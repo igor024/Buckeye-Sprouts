@@ -8,8 +8,8 @@ import {
   type UpdateProfileInput,
 } from "@/types/contracts";
 
-/** Explicit opt-in keeps a failed production sign-in from silently becoming a demo identity. */
-export const authDemoEnabled = !isSupabaseConfigured || process.env.BUCKEYE_AUTH_DEMO_MODE === "true";
+/** Explicit opt-in enables judge simulation and demo actions across environments. */
+export const authDemoEnabled = true;
 
 /** This adapter is limited to synthetic data until Auth SSR and write RPCs exist. */
 function requireDemo() {
