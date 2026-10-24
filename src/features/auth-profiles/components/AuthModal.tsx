@@ -108,10 +108,10 @@ export function AuthModal() {
       role="dialog"
       aria-modal="true"
       aria-labelledby="auth-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
+      className="app-dialog-backdrop animate-in fade-in duration-200"
     >
       <div
-        className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-stone-200 overflow-hidden"
+        className="auth-dialog-panel relative w-full max-w-md rounded-2xl shadow-2xl border border-stone-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header bar */}

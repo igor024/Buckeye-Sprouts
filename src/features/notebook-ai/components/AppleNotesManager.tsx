@@ -1,13 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   Trash2,
   Plus,
   ChevronRight,
-  Code2,
-  BookOpen,
-  HelpCircle,
 } from "lucide-react";
 
 export interface GroupNote {
@@ -15,7 +13,7 @@ export interface GroupNote {
   title: string;
   content: string;
   authorName: string;
-  category: "concept" | "code" | "question";
+  category: "note";
   createdAt: string;
 }
 
@@ -26,20 +24,18 @@ interface AppleNotesManagerProps {
   onStartNewNote?: () => void;
 }
 
-type FilterCategory = "all" | GroupNote["category"];
-
 function parseNotebook(content: string): GroupNote[] {
   if (!content.trim()) return [];
   const sections = content.split(/(?=^## )/m).filter(Boolean);
   return sections.map((section, index) => {
     const [heading = "Study note", ...body] = section.split("\n");
     const text = body.join("\n").trim();
-    const meta = text.match(/^\[(concept|code|gotcha|question)\] (.*?) · (.*?)\n/);
+    const meta = text.match(/^\[(note|concept|code|gotcha|question)\] (.*?) · (.*?)\n/);
     return {
       id: `shared-${index}-${heading}`,
       title: heading.replace(/^##\s*/, "").trim() || "Study note",
       content: meta ? text.slice(meta[0].length) : text,
-      category: meta?.[1] === "gotcha" ? "question" : (meta?.[1] as GroupNote["category"]) || "concept",
+      category: "note",
       authorName: meta?.[2] || "Group",
       createdAt: meta?.[3] || "Shared",
     };
@@ -52,11 +48,9 @@ function serializeNotebook(notes: GroupNote[]) {
 
 export function AppleNotesManager({ onNoteAdded, notebookContent = "", onNotebookContentChange, onStartNewNote }: AppleNotesManagerProps) {
   const [notes, setNotes] = useState<GroupNote[]>(() => parseNotebook(notebookContent));
-  const [selectedCategory, setSelectedCategory] = useState<FilterCategory>("all");
   const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newContent, setNewContent] = useState("");
-  const [newCategory, setNewCategory] = useState<GroupNote["category"]>("concept");
   const [activeNote, setActiveNote] = useState<GroupNote | null>(null);
 
   // Listen to the top-bar Plus (+) button event from the Shared notebook navigation header
@@ -81,7 +75,7 @@ export function AppleNotesManager({ onNoteAdded, notebookContent = "", onNoteboo
       title: newTitle.trim() || `Study Note (${time})`,
       content: newContent.trim(),
       authorName: "You",
-      category: newCategory,
+      category: "note",
       createdAt: time,
     };
 
@@ -102,88 +96,9 @@ export function AppleNotesManager({ onNoteAdded, notebookContent = "", onNoteboo
     if (activeNote?.id === id) setActiveNote(null);
   };
 
-  const getCategoryBadge = (category: GroupNote["category"]) => {
-    switch (category) {
-      case "code":
-        return (
-          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/80">
-            <Code2 size={10} />
-            <span>Code</span>
-          </span>
-        );
-      case "question":
-        return (
-          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-blue-800 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200/80">
-            <HelpCircle size={10} />
-            <span>Question</span>
-          </span>
-        );
-      case "concept":
-      default:
-        return (
-          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#a51c30] bg-red-50 px-2 py-0.5 rounded-full border border-red-200/80">
-            <BookOpen size={10} />
-            <span>Concept</span>
-          </span>
-        );
-    }
-  };
-
-  const filteredNotes = selectedCategory === "all"
-    ? notes
-    : notes.filter((n) => n.category === selectedCategory);
-
   return (
-    <div className="space-y-2.5">
-      {/* iOS Segmented Header / Category Filter */}
-      <div className="flex items-center justify-between gap-2 px-0.5">
-        <div className="flex items-center gap-1 bg-stone-100/90 p-1 rounded-xl border border-stone-200/70 overflow-x-auto text-xs">
-          <button
-            type="button"
-            onClick={() => setSelectedCategory("all")}
-            className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
-              selectedCategory === "all"
-                ? "bg-white text-stone-900 shadow-2xs"
-                : "text-stone-500 hover:text-stone-800"
-            }`}
-          >
-            All ({notes.length})
-          </button>
-          <button
-            type="button"
-            onClick={() => setSelectedCategory("concept")}
-            className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
-              selectedCategory === "concept"
-                ? "bg-white text-[#a51c30] shadow-2xs"
-                : "text-stone-500 hover:text-stone-800"
-            }`}
-          >
-            Concepts
-          </button>
-          <button
-            type="button"
-            onClick={() => setSelectedCategory("code")}
-            className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
-              selectedCategory === "code"
-                ? "bg-white text-emerald-800 shadow-2xs"
-                : "text-stone-500 hover:text-stone-800"
-            }`}
-          >
-            Code
-          </button>
-          <button
-            type="button"
-            onClick={() => setSelectedCategory("question")}
-            className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
-              selectedCategory === "question"
-                ? "bg-white text-amber-800 shadow-2xs"
-                : "text-stone-500 hover:text-stone-800"
-            }`}
-          >
-            Questions
-          </button>
-        </div>
-
+    <div className="notes-manager space-y-2.5">
+      <div className="flex items-center justify-end gap-2 px-0.5">
         <button
           type="button"
           onClick={() => { onStartNewNote?.(); setIsComposerOpen(true); }}
@@ -195,13 +110,13 @@ export function AppleNotesManager({ onNoteAdded, notebookContent = "", onNoteboo
       </div>
 
       {/* Apple Notes Inset Grouped Card */}
-      <div className="rounded-2xl border border-stone-200/70 bg-white/95 backdrop-blur-md shadow-xs divide-y divide-stone-100 overflow-hidden">
-        {filteredNotes.length === 0 ? (
+      <div className="rounded-2xl border border-stone-200/70 bg-white shadow-xs divide-y divide-stone-100 overflow-hidden">
+        {notes.length === 0 ? (
           <div className="p-6 text-center text-xs text-stone-400">
-            No notes in this category yet. Tap <strong>+</strong> in the bar above to add one.
+            No notes yet. Tap <strong>+</strong> in the bar above to add one.
           </div>
         ) : (
-          filteredNotes.map((note) => {
+          notes.map((note) => {
             // Strip code fence for clean snippet preview
             const snippet = note.content
               .replace(/```[a-z]*\n?/g, "")
@@ -214,13 +129,12 @@ export function AppleNotesManager({ onNoteAdded, notebookContent = "", onNoteboo
                 onClick={() => setActiveNote(note)}
                 className="group px-4 py-3 hover:bg-stone-50/70 active:bg-stone-100/70 cursor-pointer transition-colors"
               >
-                {/* Line 1: Title and Category badge */}
+                {/* Note title and delete action */}
                 <div className="flex items-center justify-between gap-2 mb-0.5">
-                  <h4 className="text-sm font-semibold text-stone-900 truncate tracking-tight">
+                  <h4 className="paper-title min-w-0 text-sm font-semibold text-stone-900 truncate tracking-tight">
                     {note.title}
                   </h4>
                   <div className="flex items-center gap-1.5 shrink-0">
-                    {getCategoryBadge(note.category)}
                     <button
                       type="button"
                       onClick={(e) => handleDelete(note.id, e)}
@@ -253,15 +167,15 @@ export function AppleNotesManager({ onNoteAdded, notebookContent = "", onNoteboo
       </div>
 
       {/* iOS FORM SHEET: NEW NOTE COMPOSER MODAL (NO FLOATING BUTTON) */}
-      {isComposerOpen && (
+      {isComposerOpen && createPortal(
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-stone-900/35 backdrop-blur-xs transition-opacity"
+          className="app-dialog-backdrop note-dialog-backdrop"
           onClick={() => setIsComposerOpen(false)}
         >
           <div
-            className="w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl bg-white border border-stone-200 shadow-2xl p-4 sm:p-5 space-y-3 max-h-[88vh] overflow-y-auto"
+            className="app-dialog-panel note-dialog-panel space-y-3"
             onClick={(e) => e.stopPropagation()}
           >
             {/* iOS Grabber Pill */}
@@ -276,7 +190,7 @@ export function AppleNotesManager({ onNoteAdded, notebookContent = "", onNoteboo
               >
                 Cancel
               </button>
-              <h3 className="text-sm font-semibold text-stone-900">New Note</h3>
+              <h3 className="paper-title text-sm font-semibold text-stone-900">New Note</h3>
               <button
                 type="button"
                 onClick={handleCreateNote}
@@ -288,24 +202,6 @@ export function AppleNotesManager({ onNoteAdded, notebookContent = "", onNoteboo
             </div>
 
             <form onSubmit={handleCreateNote} className="space-y-3">
-              {/* Category Segmented Control */}
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5">
-                {(["concept", "code", "question"] as const).map((cat) => (
-                  <button
-                    key={cat}
-                    type="button"
-                    onClick={() => setNewCategory(cat)}
-                    className={`px-3 py-1 rounded-full text-[11px] font-semibold capitalize cursor-pointer transition-colors ${
-                      newCategory === cat
-                        ? "bg-stone-900 text-white shadow-2xs"
-                        : "bg-stone-100 text-stone-600 hover:bg-stone-200"
-                    }`}
-                  >
-                    {cat}
-                  </button>
-                ))}
-              </div>
-
               {/* Title Input (Apple Notes Large Headline) */}
               <input
                 type="text"
@@ -331,19 +227,19 @@ export function AppleNotesManager({ onNoteAdded, notebookContent = "", onNoteboo
               </div>
             </form>
           </div>
-        </div>
+        </div>, document.body
       )}
 
       {/* iOS SHEET: NOTE DETAIL VIEW MODAL */}
-      {activeNote && (
+      {activeNote && createPortal(
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-stone-900/35 backdrop-blur-xs transition-opacity"
+          className="app-dialog-backdrop note-dialog-backdrop"
           onClick={() => setActiveNote(null)}
         >
           <div
-            className="w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl bg-white border border-stone-200 shadow-2xl p-4 sm:p-5 space-y-3.5 max-h-[85vh] overflow-y-auto"
+            className="app-dialog-panel note-dialog-panel space-y-3.5"
             onClick={(e) => e.stopPropagation()}
           >
             {/* iOS Grabber */}
@@ -351,7 +247,6 @@ export function AppleNotesManager({ onNoteAdded, notebookContent = "", onNoteboo
 
             <div className="flex items-center justify-between pb-2 border-b border-stone-100">
               <div className="flex items-center gap-2">
-                {getCategoryBadge(activeNote.category)}
                 <span className="text-xs text-stone-400 font-mono">{activeNote.createdAt}</span>
               </div>
               <button
@@ -363,10 +258,10 @@ export function AppleNotesManager({ onNoteAdded, notebookContent = "", onNoteboo
               </button>
             </div>
 
-            <h3 className="text-base font-bold text-stone-900">{activeNote.title}</h3>
+            <h3 className="paper-title text-base font-bold text-stone-900">{activeNote.title}</h3>
 
             {/* Note Body with optional code highlighting */}
-            {activeNote.category === "code" ? (
+            {/```[\s\S]*?```/.test(activeNote.content) ? (
               <div className="bg-stone-900 text-emerald-400 p-3 rounded-xl font-mono text-xs overflow-x-auto whitespace-pre-wrap leading-relaxed border border-stone-800">
                 {activeNote.content.replace(/```[a-z]*\n?/g, "")}
               </div>
@@ -381,7 +276,7 @@ export function AppleNotesManager({ onNoteAdded, notebookContent = "", onNoteboo
               <span className="font-mono text-[10px]">Thompson Floor 3</span>
             </div>
           </div>
-        </div>
+        </div>, document.body
       )}
     </div>
   );

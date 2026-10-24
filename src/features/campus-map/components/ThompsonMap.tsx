@@ -218,7 +218,7 @@ export function ThompsonMap({
         <div className="sheet-heading">
           <div className="min-w-0 flex-1 pr-1.5">
             <p className="sheet-eyebrow">OHIO STATE · THOMPSON LIBRARY · LEVEL 1</p>
-            <h1 className="truncate">{tab === "groups" ? "Group Search" : tab === "join" ? "Your Group" : tab === "notes" ? "Shared Notes" : "Your Study Profile"}</h1>
+            <h1 className="paper-title truncate">{tab === "groups" ? "Group Search" : tab === "join" ? "Your Group" : tab === "notes" ? "Shared Notes" : "Your Study Profile"}</h1>
           </div>
           {tab === "join" && joinStage === "current" && (
             <button type="button" className="group-carmen-trigger" onClick={() => setCarmenOpen(true)} aria-label="Open Carmen study suggestions" title="Carmen study suggestions">

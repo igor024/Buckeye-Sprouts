@@ -36,7 +36,7 @@ export function CollectiveGroupNotebook({
     MOCK_CARMEN_STUDENTS["11111111-1111-4111-8111-111111111111"];
 
   return (
-    <div className={`relative flex flex-col gap-3 w-full max-w-full overflow-hidden text-stone-800 pb-20 ${className}`}>
+    <div className={`relative flex flex-col gap-3 w-full max-w-full overflow-hidden text-stone-800 pb-4 ${className}`}>
       {/* Calm Status Bar (No Leave Group Option) */}
       <div className="flex items-center justify-between gap-2 pb-1.5 border-b border-stone-200/50">
         <div className="flex items-center gap-2 min-w-0">

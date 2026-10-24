@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import {
   Sparkles,
   Star,
@@ -143,10 +144,10 @@ export function CarmenAiChatbot({
   return (
     <>
       {/* Polished iOS Chat Drawer / Modal (No floating button) */}
-      {isOpen && (
+      {isOpen && createPortal(
         <>
           <div
-            className="fixed inset-0 z-50 bg-stone-900/30 backdrop-blur-xs transition-opacity"
+            className="app-dialog-backdrop transition-opacity"
             onClick={() => setIsOpen(false)}
             aria-hidden="true"
           />
@@ -154,7 +155,7 @@ export function CarmenAiChatbot({
             role="dialog"
             aria-modal="true"
             aria-label="Carmen AI Study Companion"
-            className={`fixed inset-x-3 bottom-18 sm:inset-auto sm:bottom-20 sm:right-6 z-50 bg-white/95 backdrop-blur-xl border border-stone-300/80 rounded-2xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden transition-all duration-300 ${
+            className={`carmen-dialog-panel fixed inset-x-3 sm:inset-auto sm:right-6 z-50 border border-stone-300/80 rounded-2xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden transition-all duration-300 ${
               isExpanded
                 ? "sm:w-[520px] h-[78vh] max-h-[640px]"
                 : "sm:w-[410px] h-[65vh] max-h-[520px]"
@@ -163,7 +164,7 @@ export function CarmenAiChatbot({
           {/* Header */}
           <div className="bg-gradient-to-r from-[#a51c30] via-red-900 to-stone-900 text-white p-3.5 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-xs border border-white/20 flex items-center justify-center text-amber-300">
+              <div className="w-8 h-8 rounded-full bg-red-900 border border-white/20 flex items-center justify-center text-amber-300">
                 <Star size={17} className="fill-amber-300" />
               </div>
               <div>
@@ -337,7 +338,7 @@ export function CarmenAiChatbot({
             </form>
           </div>
         </div>
-        </>
+        </>, document.body
       )}
     </>
   );

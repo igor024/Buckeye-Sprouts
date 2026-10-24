@@ -36,13 +36,13 @@ export function CatchMeUpBanner({
   const noteLines = notebookContent
     .split(/\n+/)
     .map((line) => line.replace(/^#{1,6}\s*/, "").replace(/^[-*]\s*/, "").trim())
-    .filter((line) => line && !/^\[(concept|code|gotcha|question)\]/i.test(line));
+    .filter((line) => line && !/^\[(note|concept|code|gotcha|question)\]/i.test(line));
   const summary = noteLines.length
     ? [noteLines[0], noteLines[1] || noteLines[0], noteLines[noteLines.length - 1]]
     : ["No shared notes have been added yet.", "Add a note to give incoming members a catch-up summary.", ""];
 
   return (
-    <div className="rounded-2xl border border-stone-200/80 bg-white/70 backdrop-blur-md p-2.5 transition-all shadow-2xs">
+    <div className="rounded-2xl border border-stone-200/80 bg-white p-2.5 transition-all shadow-2xs">
       <div className="flex items-center justify-between gap-2">
         <button
           type="button"
