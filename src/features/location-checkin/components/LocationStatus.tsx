@@ -1,17 +1,135 @@
-import { Image, LocateFixed, LockKeyhole, MapPin, ScanLine } from "lucide-react";
-import type { CheckInReceipt, SessionDetail } from "@/types/contracts";
+"use client";
 
-export function LocationStatus({ detail, checkIn }: { detail?: SessionDetail; checkIn?: CheckInReceipt | null }) {
+import { useState } from "react";
+import {
+  Compass,
+  Image as ImageIcon,
+  LocateFixed,
+  LockKeyhole,
+  MapPin,
+  QrCode,
+  ShieldCheck,
+  Sparkles,
+} from "lucide-react";
+import type { CheckInReceipt, SessionDetail } from "@/types/contracts";
+import { CheckInScanner } from "./CheckInScanner";
+import { GeofenceMonitor } from "./GeofenceMonitor";
+
+interface LocationStatusProps {
+  detail?: SessionDetail;
+  checkIn?: CheckInReceipt | null;
+}
+
+export function LocationStatus({ detail, checkIn: initialCheckIn }: LocationStatusProps) {
+  const [currentReceipt, setCurrentReceipt] = useState<CheckInReceipt | null>(
+    initialCheckIn || null
+  );
+
+  const session = detail?.session;
+  const location = detail?.location;
+  const isLocked = detail?.access === "locked";
+  const isHost = detail?.access === "host";
+
   return (
     <section className="panel" aria-labelledby="location-title">
-      <div className="panel-heading"><MapPin size={18} /><h2 id="location-title">Your spot on campus</h2></div>
-      <div className="map-placeholder mt-5"><div className="map-road map-road-one" /><div className="map-road map-road-two" /><span className="map-pin"><MapPin size={23} /></span><span className="map-caption">OHIO STATE · COLUMBUS</span></div>
-      <h3 className="font-semibold text-sm mt-4">{detail?.session.libraryName || "Meet at the library"}</h3>
-      <p className="muted mt-2">{detail?.location ? `Table ${detail.location.tableId} · ${detail.session.floor}` : "Your exact table stays private until the host approves you."}</p>
-      {detail?.location && <div className="flex items-center gap-2 rounded-lg border border-dashed border-stone-300 p-3 mt-4 text-xs text-stone-500"><Image size={16} aria-hidden="true" />Surroundings photo preview · coming soon</div>}
-      <div className="notice mt-4">{detail?.location ? <LocateFixed size={17} className="shrink-0" /> : <LockKeyhole size={17} className="shrink-0" />}<p>{checkIn ? "Demo check-in on file. GPS monitoring is not running." : "QR, BuckID, and location check-in are coming soon."}</p></div>
-      <button className="button-secondary mt-4 w-full" disabled><ScanLine size={16} />Scan to check in</button>
-      <p className="stub-note">Device permissions and automatic checkout are not active.</p>
+      {/* Panel Heading */}
+      <div className="panel-heading flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <MapPin size={18} className="text-red-800" />
+          <h2 id="location-title" className="font-semibold text-base">
+            Your spot on campus
+          </h2>
+        </div>
+        {currentReceipt && (
+          <span className="tag bg-emerald-100 text-emerald-800 font-semibold inline-flex items-center gap-1 text-[10px]">
+            <ShieldCheck size={11} className="text-emerald-700" />
+            <span>Table Verified</span>
+          </span>
+        )}
+      </div>
+
+      {/* Styled Campus Map Graphic */}
+      <div className="map-placeholder mt-4">
+        <div className="map-road map-road-one" />
+        <div className="map-road map-road-two" />
+        <span className="map-pin">
+          <MapPin size={23} />
+        </span>
+        <span className="map-caption">OHIO STATE · COLUMBUS</span>
+      </div>
+
+      {/* Library Venue & Table Anchor Details */}
+      <div className="mt-4 space-y-1">
+        <h3 className="font-semibold text-sm text-stone-900">
+          {session?.libraryName || "Thompson Library"}
+        </h3>
+
+        {!isLocked && location ? (
+          <div className="space-y-1">
+            <p className="text-xs font-semibold text-emerald-900 flex items-center gap-1.5">
+              <ShieldCheck size={14} className="text-emerald-700" />
+              <span>
+                Table Anchor: <strong className="font-mono text-red-900">{location.tableId}</strong>
+              </span>
+            </p>
+            <p className="text-xs text-stone-600">
+              {session?.floor || "Floor 3 - Quiet Stacks"} {session?.zone ? `· ${session.zone}` : ""}
+            </p>
+          </div>
+        ) : (
+          <p className="text-xs text-stone-500 leading-relaxed">
+            Exact table anchor (<span className="blur-xs select-none font-mono">TH-304-B</span>) stays private until the host approves your seat.
+          </p>
+        )}
+      </div>
+
+      {/* Surroundings Photo Preview (When unlocked) */}
+      {!isLocked && location?.surroundingsPhotoUrl && (
+        <div className="mt-3 p-2 bg-stone-50 rounded-xl border border-stone-200 text-xs">
+          <div className="flex items-center gap-2 text-stone-700 mb-1.5 font-medium">
+            <ImageIcon size={14} className="text-red-800" />
+            <span>Surroundings Landmark Photo</span>
+          </div>
+          <img
+            src={location.surroundingsPhotoUrl}
+            alt="Table surroundings and crowd landmarks"
+            className="w-full h-32 object-cover rounded-lg border border-stone-200"
+          />
+        </div>
+      )}
+
+      {/* Device Check-In Scanner (Table QR & BuckID 1D Barcode) */}
+      {session && (
+        <div className="mt-4 pt-4 border-t border-stone-200 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-stone-800 flex items-center gap-1.5">
+              <QrCode size={14} className="text-red-800" />
+              <span>Physical Presence Check-In</span>
+            </span>
+          </div>
+
+          <CheckInScanner
+            sessionId={session.id}
+            libraryName={session.libraryName}
+            existingCheckIn={currentReceipt}
+            onCheckInSuccess={(receipt) => setCurrentReceipt(receipt)}
+            onCheckOutSuccess={() => setCurrentReceipt(null)}
+          />
+        </div>
+      )}
+
+      {/* Geofence Departure Monitoring & Automated Checkout */}
+      {session && (
+        <div className="mt-4">
+          <GeofenceMonitor
+            sessionId={session.id}
+            libraryName={session.libraryName}
+            isHost={isHost}
+            sessionStatus={session.status}
+            onSessionClosed={() => setCurrentReceipt(null)}
+          />
+        </div>
+      )}
     </section>
   );
 }
