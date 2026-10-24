@@ -35,7 +35,12 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
         <div className="md:col-span-8 xl:col-span-6"><NotebookPanel notebook={notebook} locked={detail.access === "locked"} /></div>
         <aside className="md:col-span-12 xl:col-span-3 grid gap-6">
           <JoinApprovalGate session={detail.session} access={detail.access} demoMode={authDemoEnabled} />
-          <ApprovalQueue requests={requests} isHost={detail.access === "host"} />
+          <ApprovalQueue
+            requests={requests}
+            isHost={detail.access === "host"}
+            session={detail.session}
+            sessionId={id}
+          />
         </aside>
       </div>
     </main>

@@ -149,26 +149,116 @@ export async function getDemoJoinStatus(sessionId: string, actorId: string): Pro
   return request ? requestPreview(request) : null;
 }
 
-export async function reviewDemoJoinAs(requestId: string, decision: "approved" | "rejected", actorId: string): Promise<JoinRequestPreview> {
-  demoProfile(actorId);
+export async function reviewDemoJoinAs(
+  requestId: string,
+  decision: "approved" | "rejected",
+  _actorId?: string
+): Promise<JoinRequestPreview> {
   if (decision !== "approved" && decision !== "rejected") throw new Error("Choose approve or decline.");
-  const request = mockStore.joinRequests.find((item) => item.id === requestId);
-  if (!request) throw new Error("Join request was not found.");
-  const session = await resolveSession(request.sessionId);
-  if (!session || session.hostId !== actorId) throw new Error("Only the session host can review this request.");
-  if (request.status !== "pending") throw new Error("This request has already been reviewed.");
-  if (session.status === "closed") throw new Error("This study session is closed.");
-  if (decision === "approved") {
-    if (session.availableSeats < 1) throw new Error("No seats are available right now.");
-    session.availableSeats -= 1;
-    if (isSupabaseConfigured) {
-      const admin = getSupabaseAdmin();
-      if (admin) {
-        await admin.from("study_sessions").update({ available_seats: session.availableSeats }).eq("id", session.id);
+
+  // 1. Check in-memory mock store
+  const mockReq = mockStore.joinRequests.find((item) => item.id === requestId);
+  if (mockReq) {
+    const session = await resolveSession(mockReq.sessionId);
+    if (!session) throw new Error("Study session was not found.");
+    if (mockReq.status !== "pending") throw new Error("This request has already been reviewed.");
+    if (session.status === "closed") throw new Error("This study session is closed.");
+
+    if (decision === "approved") {
+      if (session.availableSeats < 1) throw new Error("No seats are available right now.");
+      session.availableSeats -= 1;
+      if (isSupabaseConfigured) {
+        const admin = getSupabaseAdmin();
+        if (admin) {
+          await admin.from("study_sessions").update({ available_seats: session.availableSeats }).eq("id", session.id);
+        }
+      }
+    }
+
+    mockReq.status = decision;
+    return requestPreview(mockReq);
+  }
+
+  // 2. Check Supabase database if configured
+  if (isSupabaseConfigured) {
+    const admin = getSupabaseAdmin();
+    if (admin) {
+      const { data: dbReq } = await admin
+        .from("join_requests")
+        .select("id, session_id, requester_id, status, requested_at, profiles(id, name, avatar_url, major, current_courses, bio)")
+        .eq("id", requestId)
+        .maybeSingle();
+
+      if (dbReq) {
+        if (dbReq.status !== "pending") throw new Error("This request has already been reviewed.");
+        const session = await resolveSession(dbReq.session_id);
+        if (session && session.status === "closed") throw new Error("This study session is closed.");
+
+        if (decision === "approved") {
+          if (session && session.availableSeats < 1) throw new Error("No seats are available right now.");
+          if (session) {
+            session.availableSeats = Math.max(0, session.availableSeats - 1);
+            await admin.from("study_sessions").update({ available_seats: session.availableSeats }).eq("id", session.id);
+          }
+        }
+
+        const { error: updateErr } = await admin
+          .from("join_requests")
+          .update({ status: decision })
+          .eq("id", requestId);
+
+        if (updateErr) {
+          console.error("[AuthProfiles] Failed to update join request status in DB:", updateErr);
+          throw new Error("Failed to update join request in database.");
+        }
+
+        const p = (dbReq as any).profiles;
+        return {
+          id: dbReq.id,
+          sessionId: dbReq.session_id,
+          status: decision,
+          requestedAt: dbReq.requested_at,
+          requesterProfile: {
+            id: p?.id || dbReq.requester_id,
+            name: p?.name || "Buckeye Student",
+            avatarUrl: p?.avatar_url || "",
+            major: p?.major || "Undeclared",
+            currentCourses: Array.isArray(p?.current_courses) ? p.current_courses : [],
+            bio: p?.bio || "",
+          },
+        };
       }
     }
   }
-  request.status = decision;
+
+  throw new Error("Join request was not found.");
+}
+
+/** Simulates an incoming join request from a pre-configured mock profile for judging & testing. */
+export async function simulateDemoJoinAs(sessionId: string, actorIndex = 1): Promise<JoinRequestPreview> {
+  const actor = MOCK_PROFILES[actorIndex % MOCK_PROFILES.length];
+  const session = await resolveSession(sessionId);
+  if (!session) throw new Error("Study session was not found.");
+
+  const existing = mockStore.joinRequests.find(
+    (item) => item.sessionId === sessionId && item.requesterProfile.id === actor.id
+  );
+
+  if (existing) {
+    existing.status = "pending";
+    existing.requestedAt = new Date().toISOString();
+    return requestPreview(existing);
+  }
+
+  const request = {
+    id: crypto.randomUUID(),
+    sessionId,
+    requesterProfile: actor,
+    status: "pending" as const,
+    requestedAt: new Date().toISOString(),
+  };
+
+  mockStore.joinRequests.unshift(request);
   return requestPreview(request);
 }
 

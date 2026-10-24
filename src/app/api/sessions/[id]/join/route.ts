@@ -1,6 +1,6 @@
-import { getDemoJoinStatus, requestDemoJoinAs } from "@/features/auth-profiles/services";
+import { authProfilesService, getDemoJoinStatus, requestDemoJoinAs } from "@/features/auth-profiles/services";
 import { getSupabaseAdminClient } from "@/features/sessions-discovery/db";
-import { isSupabaseConfigured, mockStore, toProfilePreview } from "@/lib/supabase";
+import { isSupabaseConfigured, mockStore } from "@/lib/supabase";
 import { MOCK_PROFILES, type JoinRequestPreview } from "@/types/contracts";
 
 export const runtime = "nodejs";
@@ -16,7 +16,10 @@ export async function GET(
   const authHeader = request.headers.get("authorization");
   const token = authHeader?.replace(/^Bearer\s+/i, "").trim();
 
-  // 1. Authenticated user check against live Supabase database
+  // Fetch all requests for this session (for host queue)
+  const allRequests = await authProfilesService.listJoinRequests(sessionId);
+
+  // 1. Authenticated user check for viewer's individual request
   if (token && isSupabaseConfigured) {
     const admin = getSupabaseAdminClient();
     if (admin) {
@@ -61,10 +64,12 @@ export async function GET(
                       bio: "",
                     },
               },
+              requests: allRequests,
             },
             { headers: noStoreHeaders }
           );
         }
+        return Response.json({ request: null, requests: allRequests }, { headers: noStoreHeaders });
       }
     }
   }
@@ -72,9 +77,9 @@ export async function GET(
   // 2. Demo mode check
   try {
     const demoReq = await getDemoJoinStatus(sessionId, demoRequesterId);
-    return Response.json({ request: demoReq }, { headers: noStoreHeaders });
+    return Response.json({ request: demoReq, requests: allRequests }, { headers: noStoreHeaders });
   } catch {
-    return Response.json({ request: null }, { headers: noStoreHeaders });
+    return Response.json({ request: null, requests: allRequests }, { headers: noStoreHeaders });
   }
 }
 
@@ -242,6 +247,35 @@ export async function POST(
     const message = err instanceof Error ? err.message : "Could not request to join.";
     return Response.json(
       { error: { code: "REQUEST_FAILED", message } },
+      { status: 400, headers: noStoreHeaders }
+    );
+  }
+}
+
+/** Reviews an incoming join request: host approves or declines. */
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id: sessionId } = await params;
+  void sessionId;
+  const body = await request.json().catch(() => null);
+  const { requestId, decision } = body || {};
+
+  if (!requestId || (decision !== "approved" && decision !== "rejected")) {
+    return Response.json(
+      { error: { code: "INVALID_REQUEST", message: "requestId and decision ('approved' | 'rejected') are required." } },
+      { status: 400, headers: noStoreHeaders }
+    );
+  }
+
+  try {
+    const updated = await authProfilesService.reviewJoinRequest(requestId, decision);
+    return Response.json({ request: updated, success: true }, { status: 200, headers: noStoreHeaders });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to review join request.";
+    return Response.json(
+      { error: { code: "REVIEW_FAILED", message } },
       { status: 400, headers: noStoreHeaders }
     );
   }

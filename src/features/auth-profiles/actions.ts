@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { MOCK_PROFILES, type UpdateProfileInput } from "@/types/contracts";
-import { authDemoEnabled, authProfilesService, getDemoJoinStatus, requestDemoJoinAs } from "./services";
+import { authDemoEnabled, authProfilesService, getDemoJoinStatus, requestDemoJoinAs, simulateDemoJoinAs } from "./services";
 
 const demoRequesterId = MOCK_PROFILES[2].id;
 
@@ -14,6 +14,12 @@ export async function updateDemoProfileAction(input: UpdateProfileInput) {
 
 export async function requestDemoJoinAction(sessionId: string) {
   const request = await requestDemoJoinAs(sessionId, demoRequesterId);
+  revalidatePath(`/session/${sessionId}`);
+  return request;
+}
+
+export async function simulateIncomingJoinAction(sessionId: string, actorIndex = 1) {
+  const request = await simulateDemoJoinAs(sessionId, actorIndex);
   revalidatePath(`/session/${sessionId}`);
   return request;
 }
