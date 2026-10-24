@@ -11,11 +11,13 @@ import {
   MapPin,
   Plus,
   Sparkles,
+  UserPlus,
   Users,
   X,
 } from "lucide-react";
 import type { SessionPreview } from "@/types/contracts";
 import { CreateSessionModal } from "./CreateSessionModal";
+import { RequestJoinModal } from "./RequestJoinModal";
 
 const ALL_COURSES = ["All courses", "CSE 2221", "MATH 1151", "ENGR 1181", "STAT 3470", "CSE 1223"];
 const ALL_LIBRARIES = [
@@ -29,6 +31,8 @@ const ALL_LIBRARIES = [
 export function SessionFeed({ sessions: initialSessions }: { sessions: SessionPreview[] }) {
   const [sessions, setSessions] = useState<SessionPreview[]>(initialSessions);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [joiningSession, setJoiningSession] = useState<SessionPreview | null>(null);
+
   const [selectedCourse, setSelectedCourse] = useState("All courses");
   const [selectedLibrary, setSelectedLibrary] = useState("All libraries");
   const [availableOnly, setAvailableOnly] = useState(false);
@@ -238,7 +242,7 @@ export function SessionFeed({ sessions: initialSessions }: { sessions: SessionPr
                 </div>
               )}
 
-              {/* Card Footer */}
+              {/* Card Footer with Request Seat & View Session buttons */}
               <div className="border-t border-stone-100 mt-4 pt-3.5 flex flex-wrap items-center justify-between gap-3">
                 <span className="text-xs text-stone-500 inline-flex items-center gap-1.5">
                   <LockKeyhole size={13} className="text-stone-400" />
@@ -246,13 +250,28 @@ export function SessionFeed({ sessions: initialSessions }: { sessions: SessionPr
                     ? "Host approval required"
                     : "Join to reveal table"}
                 </span>
-                <Link
-                  className="text-sm font-semibold text-red-800 inline-flex items-center gap-1.5 hover:underline"
-                  href={`/session/${session.id}`}
-                >
-                  <span>View session</span>
-                  <ArrowUpRight size={15} />
-                </Link>
+
+                <div className="flex items-center gap-2">
+                  {session.status === "active" && session.availableSeats > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setJoiningSession(session)}
+                      className="button-secondary text-xs py-1 px-2.5 inline-flex items-center gap-1.5 cursor-pointer hover:border-red-300 hover:text-red-800 transition"
+                      title="Request to sit at this table"
+                    >
+                      <UserPlus size={13} className="text-red-800" />
+                      <span>Request Seat</span>
+                    </button>
+                  )}
+
+                  <Link
+                    className="text-sm font-semibold text-red-800 inline-flex items-center gap-1.5 hover:underline"
+                    href={`/session/${session.id}`}
+                  >
+                    <span>View session</span>
+                    <ArrowUpRight size={15} />
+                  </Link>
+                </div>
               </div>
             </article>
           );
@@ -295,6 +314,12 @@ export function SessionFeed({ sessions: initialSessions }: { sessions: SessionPr
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSessionCreated={handleSessionCreated}
+      />
+
+      {/* Request to Join Modal */}
+      <RequestJoinModal
+        session={joiningSession}
+        onClose={() => setJoiningSession(null)}
       />
     </section>
   );
