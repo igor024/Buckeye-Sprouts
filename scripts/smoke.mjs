@@ -13,7 +13,7 @@ const post = (path, body) => fetch(`${base}${path}`, {
 const dashboard = await fetch(base);
 assert.equal(dashboard.status, 200);
 const dashboardHtml = await dashboard.text();
-assert.ok(dashboardHtml.includes("BuckeyeStudy"));
+assert.ok(dashboardHtml.includes("BuckeyeStudy") || dashboardHtml.includes("Buckeye Sprouts"));
 assert.ok(dashboardHtml.includes("CSE 2221"));
 for (const secret of ["THO-3-E12", "18AV-2-N04", "demo-hash-"]) {
   assert.ok(!dashboardHtml.includes(secret), `Public dashboard leaked ${secret}`);

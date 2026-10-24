@@ -1,0 +1,76 @@
+Buckeye Sprouts — Thompson Library map dummy data
+Status uses: busy = active group at table, full = active group with no open space, empty = no group.
+Format: table id | people in group | group status
+
+150b-1 | Alex Morgan, Jordan Lee, Sam Patel | busy
+150b-2 | Alex Morgan, Jordan Lee, Sam Patel | full
+150a-1 | None | empty
+150a-2 | None | empty
+150a-3 | Alex Morgan, Jordan Lee, Sam Patel | full
+150a-4 | None | empty
+150a-5 | Alex Morgan, Jordan Lee, Sam Patel | full
+150a-6 | Alex Morgan, Jordan Lee, Sam Patel | full
+110-1 | Alex Morgan, Jordan Lee, Sam Patel | busy
+110-2 | Alex Morgan, Jordan Lee, Sam Patel | full
+110-3 | None | empty
+110-4 | Alex Morgan, Jordan Lee, Sam Patel | full
+140-1 | Sam Patel, Alex Morgan, Jordan Lee | busy
+140-2 | Alex Morgan, Jordan Lee, Sam Patel | full
+140-3 | Alex Morgan, Jordan Lee, Sam Patel | busy
+140-4 | Alex Morgan, Jordan Lee, Sam Patel | full
+140-5 | None | empty
+140-6 | Alex Morgan, Jordan Lee, Sam Patel | full
+140-7 | None | empty
+140-8 | Alex Morgan, Jordan Lee, Sam Patel | full
+140-9 | Alex Morgan, Jordan Lee, Sam Patel | busy
+140-10 | Alex Morgan, Jordan Lee, Sam Patel | full
+140-11 | Alex Morgan, Jordan Lee, Sam Patel | busy
+140-12 | Alex Morgan, Jordan Lee, Sam Patel | full
+140-13 | None | empty
+140-14 | Alex Morgan, Jordan Lee, Sam Patel | full
+140-15 | None | empty
+140-16 | Alex Morgan, Jordan Lee, Sam Patel | full
+145-1 | Jordan Lee, Alex Morgan, Sam Patel | busy
+145-2 | Alex Morgan, Jordan Lee, Sam Patel | full
+145-3 | Alex Morgan, Jordan Lee, Sam Patel | busy
+145-4 | Alex Morgan, Jordan Lee, Sam Patel | full
+145-5 | None | empty
+145-6 | Alex Morgan, Jordan Lee, Sam Patel | full
+145-7 | None | empty
+145-8 | Alex Morgan, Jordan Lee, Sam Patel | full
+145-9 | Alex Morgan, Jordan Lee, Sam Patel | busy
+145-10 | Alex Morgan, Jordan Lee, Sam Patel | full
+145-11 | Alex Morgan, Jordan Lee, Sam Patel | busy
+145-12 | Alex Morgan, Jordan Lee, Sam Patel | full
+145-13 | None | empty
+145-14 | Alex Morgan, Jordan Lee, Sam Patel | full
+145-15 | None | empty
+145-16 | Alex Morgan, Jordan Lee, Sam Patel | full
+165-1 | Alex Morgan, Jordan Lee, Sam Patel | busy
+165-2 | Alex Morgan, Jordan Lee, Sam Patel | full
+165-3 | Alex Morgan, Jordan Lee, Sam Patel | busy
+165-4 | Alex Morgan, Jordan Lee, Sam Patel | full
+165-5 | None | empty
+165-6 | Alex Morgan, Jordan Lee, Sam Patel | full
+165-7 | None | empty
+165-8 | Alex Morgan, Jordan Lee, Sam Patel | full
+165-9 | Alex Morgan, Jordan Lee, Sam Patel | busy
+165-10 | None | empty
+160-1 | Alex Morgan, Jordan Lee, Sam Patel | busy
+160-2 | Alex Morgan, Jordan Lee, Sam Patel | full
+160-3 | Alex Morgan, Jordan Lee, Sam Patel | busy
+160-4 | Alex Morgan, Jordan Lee, Sam Patel | full
+160-5 | None | empty
+160-6 | Alex Morgan, Jordan Lee, Sam Patel | full
+160-7 | None | empty
+160-8 | Alex Morgan, Jordan Lee, Sam Patel | full
+160-9 | Alex Morgan, Jordan Lee, Sam Patel | busy
+160-10 | None | empty
+105-1 | None | empty
+105-2 | Alex Morgan, Jordan Lee, Sam Patel | full
+105-3 | Alex Morgan, Jordan Lee, Sam Patel | full
+105-4 | None | empty
+105-5 | Alex Morgan, Jordan Lee, Sam Patel | busy
+105-6 | Alex Morgan, Jordan Lee, Sam Patel | full
+105-7 | Alex Morgan, Jordan Lee, Sam Patel | full
+105-8 | Alex Morgan, Jordan Lee, Sam Patel | busy
