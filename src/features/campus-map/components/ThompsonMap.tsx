@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent, ReactNode } from "react";
 import Link from "next/link";
-import { ArrowLeft, BookOpen, MapPin, Route, Search, Users, X } from "lucide-react";
+import { ArrowLeft, BookOpen, MapPin, Plus, Route, Search, Star, Users, X } from "lucide-react";
 import {
   MOCK_STUDY_GROUP_PINS,
   THOMPSON_EAST_ENTRANCE_PLAN,
@@ -28,8 +28,19 @@ export function ThompsonMap({
   locationPanel: ReactNode;
   notebookPanel: ReactNode;
 }) {
-  const [tab, setTab] = useState<MapTab>("groups");
-  const [expanded, setExpanded] = useState(false);
+  const [tab, setTab] = useState<MapTab>(() => {
+    if (typeof window !== "undefined") {
+      const param = new URLSearchParams(window.location.search).get("tab");
+      if (param === "notes" || param === "places" || param === "groups" || param === "me") return param;
+    }
+    return "groups";
+  });
+  const [expanded, setExpanded] = useState(() => {
+    if (typeof window !== "undefined") {
+      return new URLSearchParams(window.location.search).get("tab") === "notes";
+    }
+    return false;
+  });
   const [floorPlanOpen, setFloorPlanOpen] = useState(true);
   const [groupSheetHidden, setGroupSheetHidden] = useState(false);
   const [query, setQuery] = useState("");
@@ -62,6 +73,17 @@ export function ThompsonMap({
   const groupsOnMap = tab === "groups" ? visibleGroups : [];
   const spotsOnMap = tab === "places" && floorPlanOpen ? visibleSpots : [];
   const selectedGroup = MOCK_STUDY_GROUP_PINS.find((group) => group.id === selectedGroupId) ?? null;
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const param = new URLSearchParams(window.location.search).get("tab");
+      if (param === "notes") {
+        setTab("notes");
+        setExpanded(true);
+        setGroupSheetHidden(false);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (!selectedGroup) return;
@@ -200,9 +222,32 @@ export function ThompsonMap({
           <span />
         </button>
         <div className="sheet-heading">
-          <div><p className="sheet-eyebrow">OHIO STATE · {showLibraryPlan ? "THOMPSON LIBRARY · LEVEL 1" : "CAMPUS MAP"}</p><h1>{tab === "places" ? (selectedSpot?.label || (floorPlanOpen ? "Thompson Library" : "Explore campus")) : tab === "groups" ? "Group Search" : tab === "notes" ? "Shared notebook" : "Your study profile"}</h1></div>
+          <div className="min-w-0 flex-1 pr-1.5"><p className="sheet-eyebrow">OHIO STATE · {showLibraryPlan ? "THOMPSON LIBRARY · LEVEL 1" : "CAMPUS MAP"}</p><h1 className="truncate">{tab === "places" ? (selectedSpot?.label || (floorPlanOpen ? "Thompson Library" : "Explore campus")) : tab === "groups" ? "Group Search" : tab === "notes" ? "Shared notebook" : "Your study profile"}</h1></div>
           {floorPlanOpen && tab === "places" && <button className="clear-selection" type="button" aria-label="Close library floor plan" onClick={closeFloorPlan}><X size={18} /></button>}
           {selectedSpot && tab === "places" && !floorPlanOpen && <button className="clear-selection" type="button" aria-label="Clear selected place" onClick={() => setSelectedSpot(null)}><X size={18} /></button>}
+          {tab === "notes" && (
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => window.dispatchEvent(new CustomEvent("buckeye:open-carmen-ai"))}
+                aria-label="Open Carmen AI"
+                title="Carmen AI Assistant"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-red-50 hover:bg-red-100 text-[#a51c30] border border-red-200/80 shadow-2xs transition-all active:scale-95 cursor-pointer"
+              >
+                <Star size={13} className="fill-amber-400 text-amber-500" />
+                <span>Carmen AI</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => window.dispatchEvent(new CustomEvent("buckeye:open-new-note"))}
+                aria-label="New Note"
+                title="New Note"
+                className="w-8 h-8 rounded-full bg-[#2d4b3c] hover:bg-[#20392d] text-white flex items-center justify-center shadow-2xs transition-all active:scale-95 cursor-pointer"
+              >
+                <Plus size={18} strokeWidth={2.5} />
+              </button>
+            </div>
+          )}
         </div>
         <div className="map-sheet-content">
           {tab === "groups" && <>
