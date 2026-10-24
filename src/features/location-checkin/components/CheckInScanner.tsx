@@ -7,9 +7,7 @@ import {
   Barcode,
   Camera,
   CheckCircle2,
-  Copy,
   CreditCard,
-  ExternalLink,
   HelpCircle,
   Info,
   LogOut,
@@ -53,8 +51,6 @@ export function CheckInScanner({
   const [submitting, setSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
-  const [showTableQrModal, setShowTableQrModal] = useState(false);
-  const [copiedLink, setCopiedLink] = useState(false);
 
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -141,18 +137,17 @@ export function CheckInScanner({
     setIsScanning(false);
   }
 
-  // Handle successful scan from camera, file, or external QR redirect
-  async function handleScanSuccess(rawCode: string, overrideMode?: "table_qr" | "buck_id") {
+  // Handle successful scan from camera or file
+  async function handleScanSuccess(rawCode: string) {
     setSubmitting(true);
     setCameraError(null);
 
     await stopCameraScanner();
 
     try {
-      const mode = overrideMode || activeMode;
       let resolvedTableId = "TH-201-A";
 
-      if (mode === "table_qr") {
+      if (activeMode === "table_qr") {
         try {
           const parsed = JSON.parse(rawCode);
           if (parsed && typeof parsed.tableId === "string") {
@@ -169,7 +164,7 @@ export function CheckInScanner({
 
       const geofence = resolveLibraryGeofence(libraryName);
       const payload: CheckInPayload = {
-        method: mode,
+        method: activeMode,
         rawCode,
         tableId: resolvedTableId,
         libraryName,
@@ -179,7 +174,7 @@ export function CheckInScanner({
       const newReceipt = await checkInAction(sessionId, payload);
       setReceipt(newReceipt);
       setSuccessMessage(
-        mode === "table_qr"
+        activeMode === "table_qr"
           ? `✓ Verified! Checked in at Table ${resolvedTableId} via Physical QR Anchor.`
           : `✓ BuckID Barcode verified (${rawCode})! Table occupancy confirmed.`
       );
@@ -193,57 +188,6 @@ export function CheckInScanner({
       setSubmitting(false);
     }
   }
-
-  // Automatic presence verification when landing via QR deep-link or PWA app redirect
-  useEffect(() => {
-    if (typeof window === "undefined" || receipt || submitting) return;
-
-    const attemptAutoCheckIn = (tableId: string) => {
-      if (!tableId || receipt || submitting) return;
-      setActiveMode("table_qr");
-      void handleScanSuccess(tableId, "table_qr");
-
-      try {
-        const url = new URL(window.location.href);
-        if (
-          url.searchParams.has("table") ||
-          url.searchParams.has("tableId") ||
-          url.searchParams.has("qr")
-        ) {
-          url.searchParams.delete("table");
-          url.searchParams.delete("tableId");
-          url.searchParams.delete("qr");
-          url.searchParams.delete("scan");
-          url.searchParams.delete("from");
-          window.history.replaceState(
-            {},
-            "",
-            url.pathname + (url.search ? url.search : "") + url.hash
-          );
-        }
-      } catch {}
-    };
-
-    // A. Check URL query parameters (?table= or ?tableId=)
-    const params = new URLSearchParams(window.location.search);
-    const tableFromUrl = params.get("table") || params.get("tableId");
-    if (tableFromUrl) {
-      attemptAutoCheckIn(tableFromUrl);
-    }
-
-    // B. Listen for custom event from PwaManager on protocol launch
-    const onQrScannedEvent = (e: Event) => {
-      const customEvent = e as CustomEvent<{ tableId?: string }>;
-      if (customEvent.detail?.tableId) {
-        attemptAutoCheckIn(customEvent.detail.tableId);
-      }
-    };
-
-    window.addEventListener("buckeye:qr_table_scanned", onQrScannedEvent);
-    return () => {
-      window.removeEventListener("buckeye:qr_table_scanned", onQrScannedEvent);
-    };
-  }, [receipt, submitting]);
 
   // Handle image file upload for scanning
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -528,85 +472,6 @@ export function CheckInScanner({
               >
                 ⚡ Simulate BuckID Scan
               </button>
-            </div>
-
-            {/* Test Outside-App QR Scan & Phone Scanning Anchor */}
-            <div className="pt-2 border-t border-red-200/60">
-              <button
-                type="button"
-                onClick={() => setShowTableQrModal((prev) => !prev)}
-                className="w-full py-1.5 px-2 bg-red-900 hover:bg-red-800 text-white rounded-lg text-[11px] font-semibold transition cursor-pointer shadow-xs flex items-center justify-center gap-1.5"
-              >
-                <QrCode size={13} />
-                <span>
-                  {showTableQrModal ? "Hide Physical Table QR" : "⚡ Show Table QR Anchor (Test Outside-App Redirect)"}
-                </span>
-              </button>
-
-              {showTableQrModal && (
-                <div className="mt-2.5 p-3.5 bg-white rounded-xl border border-stone-200 shadow-md space-y-3 animate-in fade-in duration-150">
-                  <div className="text-center space-y-1">
-                    <p className="text-xs font-bold text-stone-900">
-                      Physical Table QR Sticker · Table TH-412
-                    </p>
-                    <p className="text-[11px] text-stone-500">
-                      Scan with your smartphone camera to test the automatic website &rarr; app redirect.
-                    </p>
-                  </div>
-
-                  {/* Scannable QR Code */}
-                  <div className="flex flex-col items-center justify-center p-2 bg-stone-50 rounded-xl border border-stone-200">
-                    {typeof window !== "undefined" && (
-                      <img
-                        src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(
-                          `${window.location.origin}/session/${sessionId}?table=TH-412&qr=1`
-                        )}`}
-                        alt="Table TH-412 Physical QR Anchor"
-                        width={180}
-                        height={180}
-                        className="rounded-lg bg-white p-1 border border-stone-300 shadow-xs"
-                      />
-                    )}
-                    <span className="mt-1 text-[10px] font-mono text-stone-500 font-semibold">
-                      TH-412 · Thompson Floor 3
-                    </span>
-                  </div>
-
-                  {/* 1-Click External Browser Tab Simulator */}
-                  <div className="space-y-1.5">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const targetUrl = `${window.location.origin}/session/${sessionId}?table=TH-412&qr=1`;
-                        window.open(targetUrl, "_blank");
-                      }}
-                      className="w-full py-2 px-3 bg-red-800 hover:bg-red-700 text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs"
-                    >
-                      <ExternalLink size={13} />
-                      <span>Open Link in New Tab (Simulate Outside App)</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const targetUrl = `${window.location.origin}/session/${sessionId}?table=TH-412&qr=1`;
-                        navigator.clipboard.writeText(targetUrl).then(() => {
-                          setCopiedLink(true);
-                          setTimeout(() => setCopiedLink(false), 2000);
-                        });
-                      }}
-                      className="w-full py-1.5 px-3 bg-stone-100 hover:bg-stone-200 text-stone-800 rounded-lg text-[11px] font-medium flex items-center justify-center gap-1.5 transition cursor-pointer"
-                    >
-                      <Copy size={12} />
-                      <span>{copiedLink ? "✓ Link Copied!" : "Copy Scannable QR Link"}</span>
-                    </button>
-                  </div>
-
-                  <p className="text-[10px] text-stone-500 leading-normal text-center">
-                    <strong>Testing flow:</strong> Opening the link outside the app triggers the PWA redirect interstitial, automatically launching BuckeyeStudy in standalone mode and verifying Table TH-412.
-                  </p>
-                </div>
-              )}
             </div>
           </div>
         </>

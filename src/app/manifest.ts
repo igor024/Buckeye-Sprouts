@@ -15,23 +15,6 @@ export default function manifest(): MetadataRoute.Manifest {
     background_color: "#f8f7f4",
     theme_color: "#ba0c2f",
     categories: ["education", "productivity", "utilities"],
-    prefer_related_applications: true,
-    related_applications: [
-      {
-        platform: "webapp",
-        url: "./manifest.webmanifest",
-        id: "buckeyestudy",
-      },
-    ],
-    launch_handler: {
-      client_mode: ["focus-existing", "navigate-new"],
-    },
-    protocol_handlers: [
-      {
-        protocol: "web+buckeyestudy",
-        url: "/?app_open=%s",
-      },
-    ],
     icons: [
       {
         src: "icons/icon-192.png",
