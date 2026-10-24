@@ -111,5 +111,7 @@ export interface CollectiveGroupNotebookProps {
   floorLevel?: string;
   variant?: "full" | "tab" | "card";
   onLeaveGroup?: () => void;
+  onStartNewNote?: () => void;
+  onNotebookContentChange?: (content: string) => void;
   className?: string;
 }

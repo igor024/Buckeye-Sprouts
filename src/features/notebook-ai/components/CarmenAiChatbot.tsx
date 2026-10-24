@@ -44,7 +44,11 @@ export function CarmenAiChatbot({
   };
 
   const [messages, setMessages] = useState<ChatMessage[]>(() =>
-    INITIAL_CHAT_MESSAGES(studentProfile.name, courseCode)
+    INITIAL_CHAT_MESSAGES(studentProfile.name, courseCode).map((message) => ({
+      ...message,
+      text: `Hi ${studentProfile.name.split(" ")[0]}! I can offer simulated study suggestions using sample ${courseCode} course data and this group's notes. No Carmen Canvas account is connected.`,
+      carmenSourceBadge: "Buckeye Sprouts demo · mock data",
+    }))
   );
   const [inputText, setInputText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -91,28 +95,30 @@ export function CarmenAiChatbot({
     // Contextual AI intelligence matching Carmen Canvas & group notes
     setTimeout(() => {
       let aiReply = "";
-      let carmenBadge = "Carmen Canvas API · Live Sync";
+      let carmenBadge = "Demo response · mock course/group data";
       let suggestedActionText = "";
 
       const lower = textToSend.toLowerCase();
 
       if (lower.includes("what should") || lower.includes("study next") || lower.includes("focus")) {
-        aiReply = `Based on your Carmen gradebook for ${courseCode} and your group's current discussion on Thompson Floor 3:\n\n1. **High Priority (Canvas Flag):** Your Canvas Quiz 4 had trouble with *recursive base case conditions*. Make sure to test cases where input is 0 or empty.\n2. **Group Opportunity:** Your peer Jordan Lee has already mastered recursion call-tree tracing. Ask them to verify your \`reverseQueue()\` base case!\n3. **Upcoming Deadline:** Homework 6 is due tomorrow at 11:59 PM. Practice Problem 3 on NaturalNumber recursion.`;
-        carmenBadge = "CarmenCanvas Course Syllabus & Quiz 4 Analytics";
+        aiReply = `Here is a simulated study suggestion for ${courseCode}, based on the demo course and group notes:\n\n1. Review recursive base cases, including zero or empty inputs.\n2. Ask a group member to check your \`reverseQueue()\` base case.\n3. Try a NaturalNumber recursion practice problem.`;
+        carmenBadge = "Simulated suggestion · demo data";
         suggestedActionText = "### Carmen AI Focus Topic\n- **Target:** Base case testing for recursion\n- **Rule:** If input is 0 or null, return immediately before recursive step.";
       } else if (lower.includes("quiz") || lower.includes("test")) {
         aiReply = `Here is a Carmen exam-style practice problem for ${studentProfile.name}:\n\n**Question:** Consider the recursive method:\n\`\`\`java\nint mystery(int n) {\n  if (n <= 1) return 1;\n  return n * mystery(n - 1);\n}\n\`\`\`\nWhat happens if \`mystery(-3)\` is called? How would you fix the base case to safeguard against negative inputs?`;
-        carmenBadge = "Carmen Question Bank · CSE 2221 Midterm 2";
+        carmenBadge = "Simulated practice prompt · demo data";
         suggestedActionText = "### Practice Problem (Carmen Exam Bank)\nTrace `mystery(-3)`. The base case `n <= 1` immediately returns 1, avoiding infinite recursion!";
       } else if (lower.includes("error") || lower.includes("mistake") || lower.includes("check")) {
-        aiReply = `I scanned your group's active notes:\n\n✅ **Good:** Your group correctly identified that omitting a base case causes a \`StackOverflowError\`.\n⚠️ **Potential Gotcha:** Make sure that when mutating a \`Queue1L\` in Java, you restore items after the recursive return, or the caller's queue will end up empty!`;
-        carmenBadge = "Carmen Code Analysis & Notes Checker";
+        aiReply = notebookContent.trim()
+          ? `Here is a simulated review of the current group notes:\n\n${notebookContent.slice(0, 500)}`
+          : "There are no shared group notes to review yet. Add a note, then ask for another simulated review.";
+        carmenBadge = "Simulated notes feedback · demo data";
       } else if (lower.includes("deadline") || lower.includes("carmen") || lower.includes("homework")) {
         const course = studentProfile.courses[0];
-        aiReply = `📅 **Upcoming Carmen Canvas Deadlines for ${studentProfile.name}:**\n\n• **${course?.courseCode}**: ${course?.nextAssignment.title} (Due: ${course?.nextAssignment.dueDate})\n• **Midterm 2**: Covers Recursion, Sequence3, and XMLTree in 4 days at Jennings Hall 001.`;
-        carmenBadge = "CarmenCanvas Calendar API Sync";
+        aiReply = `📅 **Sample course reminders for ${studentProfile.name}:**\n\n• **${course?.courseCode}**: ${course?.nextAssignment.title} (Due: ${course?.nextAssignment.dueDate})\n• Midterm 2: Recursion, Sequence3, and XMLTree.`;
+        carmenBadge = "Simulated reminders · mock course data";
       } else {
-        aiReply = `I analyzed your question against ${courseCode} course competencies on CarmenCanvas. For ${studentProfile.name}, continuing to trace recursive steps with your table partners Jordan and Sam is the fastest way to prepare for Midterm 2!`;
+        aiReply = `For the ${courseCode} demo course, try tracing recursive steps with your group and compare each base case. This is a simulated suggestion using sample course content.`;
       }
 
       const botMsg: ChatMessage = {
@@ -164,12 +170,12 @@ export function CarmenAiChatbot({
                 <div className="flex items-center gap-1.5">
                   <h3 className="text-xs font-bold tracking-tight">Carmen AI Study Companion</h3>
                   <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-emerald-500/30 text-emerald-200 font-mono border border-emerald-400/30">
-                    Live
+                    Demo
                   </span>
                 </div>
                 <p className="text-[10px] text-stone-300 flex items-center gap-1">
                   <GraduationCap size={11} className="text-amber-300" />
-                  Synced with CarmenCanvas · {studentProfile.buckeyeIdDisplay}
+                  Mock course data · {studentProfile.buckeyeIdDisplay}
                 </p>
               </div>
             </div>
@@ -194,11 +200,11 @@ export function CarmenAiChatbot({
             </div>
           </div>
 
-          {/* Carmen Canvas API Status Sub-bar */}
+          {/* Clearly marked mock course details; no Canvas connection is used. */}
           <div className="bg-amber-50/80 px-3.5 py-1.5 border-b border-amber-200/50 flex items-center justify-between text-[10px] text-amber-900">
             <span className="flex items-center gap-1.5 font-medium">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              Carmen API: {studentProfile.courses[0]?.courseCode} ({studentProfile.courses[0]?.instructor})
+              Demo course: {studentProfile.courses[0]?.courseCode} ({studentProfile.courses[0]?.instructor})
             </span>
             <span className="text-amber-800/80 font-mono">
               Grade: {studentProfile.courses[0]?.currentGrade}
@@ -266,7 +272,7 @@ export function CarmenAiChatbot({
             {isTyping && (
               <div className="flex items-center gap-1.5 p-2 bg-white rounded-lg border border-stone-200 w-fit text-stone-500 text-xs shadow-2xs">
                 <Sparkles size={13} className="text-amber-600 animate-spin" />
-                <span className="text-[11px]">Carmen AI is analyzing your syllabus…</span>
+                <span className="text-[11px]">Preparing a simulated suggestion…</span>
               </div>
             )}
             <div ref={messagesEndRef} />
@@ -298,10 +304,10 @@ export function CarmenAiChatbot({
               </button>
               <button
                 type="button"
-                onClick={() => handleSendMessage("Pull my upcoming Carmen Canvas deadlines")}
+                onClick={() => handleSendMessage("Show sample course deadlines")}
                 className="px-2 py-1 rounded-full bg-stone-100 hover:bg-red-50 hover:text-red-800 text-stone-600 whitespace-nowrap cursor-pointer transition-colors"
               >
-                📅 Canvas Deadlines
+                📅 Sample deadlines
               </button>
             </div>
 

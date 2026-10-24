@@ -33,6 +33,14 @@ export function CatchMeUpBanner({
     setIsExpanded(true);
   };
 
+  const noteLines = notebookContent
+    .split(/\n+/)
+    .map((line) => line.replace(/^#{1,6}\s*/, "").replace(/^[-*]\s*/, "").trim())
+    .filter((line) => line && !/^\[(concept|code|gotcha|question)\]/i.test(line));
+  const summary = noteLines.length
+    ? [noteLines[0], noteLines[1] || noteLines[0], noteLines[noteLines.length - 1]]
+    : ["No shared notes have been added yet.", "Add a note to give incoming members a catch-up summary.", ""];
+
   return (
     <div className="rounded-2xl border border-stone-200/80 bg-white/70 backdrop-blur-md p-2.5 transition-all shadow-2xs">
       <div className="flex items-center justify-between gap-2">
@@ -93,9 +101,7 @@ export function CatchMeUpBanner({
                 <CheckCircle2 size={13} className="text-emerald-600" />
                 1. What Was Covered
               </div>
-              <p className="text-[11px] text-stone-600 leading-relaxed">
-                Reviewed recursion call stack structure and why omitting a base case causes a StackOverflowError. Jordan and Alex worked through recursive factorial tracing.
-              </p>
+              <p className="text-[11px] text-stone-600 leading-relaxed">{summary[0]}</p>
             </div>
 
             <div className="bg-white/90 rounded-lg p-3 border border-amber-100 shadow-2xs">
@@ -103,9 +109,7 @@ export function CatchMeUpBanner({
                 <Sparkles size={13} className="text-amber-600" />
                 2. Key Consensus & Rules
               </div>
-              <p className="text-[11px] text-stone-600 leading-relaxed">
-                Golden rule established: Always test boundary condition (e.g. <code className="bg-amber-50 px-1 py-0.5 rounded text-amber-900 font-mono text-[10px]">n == 0</code>) before reducing parameters to avoid infinite recursion loops.
-              </p>
+              <p className="text-[11px] text-stone-600 leading-relaxed">{summary[1]}</p>
             </div>
 
             <div className="bg-white/90 rounded-lg p-3 border border-amber-100 shadow-2xs">
@@ -113,9 +117,7 @@ export function CatchMeUpBanner({
                 <Clock size={13} className="text-red-700" />
                 3. Currently Working On
               </div>
-              <p className="text-[11px] text-stone-600 leading-relaxed">
-                Writing the <code className="bg-amber-50 px-1 py-0.5 rounded text-amber-900 font-mono text-[10px]">reverseQueue()</code> method for Carmen Homework 6 without using temporary arrays or loops.
-              </p>
+              <p className="text-[11px] text-stone-600 leading-relaxed">{summary[2] || "Waiting for the group’s next note."}</p>
             </div>
           </div>
         </div>

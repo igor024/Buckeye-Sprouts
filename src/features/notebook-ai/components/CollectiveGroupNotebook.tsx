@@ -2,10 +2,8 @@
 
 import { useEffect, useState } from "react";
 import type { CollectiveGroupNotebookProps } from "../types";
-import { StickyUnitTaskPadlet } from "./StickyUnitTaskPadlet";
 import { CatchMeUpBanner } from "./CatchMeUpBanner";
 import { AppleNotesManager } from "./AppleNotesManager";
-import { IndividualAiRecommendations } from "./IndividualAiRecommendations";
 import { CarmenAiChatbot } from "./CarmenAiChatbot";
 import { MOCK_CARMEN_STUDENTS } from "../mock-carmen-data";
 
@@ -19,17 +17,19 @@ export function CollectiveGroupNotebook({
   floorLevel = "Floor 3",
   variant = "full",
   className = "",
+  onStartNewNote,
+  onNotebookContentChange,
 }: CollectiveGroupNotebookProps) {
-  const [currentStudentId, setCurrentStudentId] = useState<string>(
-    currentUser?.id || "11111111-1111-4111-8111-111111111111"
-  );
+  const currentStudentId = currentUser?.id || "11111111-1111-4111-8111-111111111111";
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [notebookContent, setNotebookContent] = useState(notebook?.content || "");
 
-  useEffect(() => {
-    const handleOpenCarmenAi = () => setIsChatOpen(true);
-    window.addEventListener("buckeye:open-carmen-ai", handleOpenCarmenAi);
-    return () => window.removeEventListener("buckeye:open-carmen-ai", handleOpenCarmenAi);
-  }, []);
+  useEffect(() => setNotebookContent(notebook?.content || ""), [sessionId, notebook?.content]);
+
+  const updateNotebookContent = (content: string) => {
+    setNotebookContent(content);
+    onNotebookContentChange?.(content);
+  };
 
   const activeStudentProfile =
     MOCK_CARMEN_STUDENTS[currentStudentId] ||
@@ -50,30 +50,23 @@ export function CollectiveGroupNotebook({
         </span>
       </div>
 
-      {/* 1. STICKY PADS AT TOP: Google Tasks-style Checkboxes + Dynamic AI Readiness Engine */}
-      <StickyUnitTaskPadlet courseCode={courseCode} />
-
-      {/* 2. SHARED GROUP NOTES FEED (Apple Notes iOS Inset Grouped Style) */}
-      <AppleNotesManager />
-
-      {/* 3. Compact Catch Me Up AI Briefing Accordion */}
+      <AppleNotesManager
+        notebookContent={notebookContent}
+        onNotebookContentChange={updateNotebookContent}
+        onStartNewNote={onStartNewNote}
+      />
       <CatchMeUpBanner
         courseCode={courseCode}
         studentName={activeStudentProfile.name.split(" ")[0]}
+        notebookContent={notebookContent}
       />
-
-      {/* 4. Compact Individualized CarmenCanvas Focus Accordion */}
-      <IndividualAiRecommendations
-        currentStudentId={currentStudentId}
-        onSelectStudent={(id) => setCurrentStudentId(id)}
-      />
-
-      {/* 5. Carmen AI Modal Assistant (No floating star button) */}
       <CarmenAiChatbot
         studentProfile={activeStudentProfile}
         courseCode={courseCode}
         isOpenExternal={isChatOpen}
         onToggleExternal={() => setIsChatOpen(!isChatOpen)}
+        notebookContent={notebookContent}
+        onInsertToNotebook={(text) => updateNotebookContent(`${notebookContent}\n\n${text}`.trim())}
       />
     </div>
   );

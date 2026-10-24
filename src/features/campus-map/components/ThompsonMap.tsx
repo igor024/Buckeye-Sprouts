@@ -2,109 +2,98 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent, ReactNode } from "react";
-import Link from "next/link";
-import { ArrowLeft, BookOpen, MapPin, Plus, Route, Search, Star, Users, X } from "lucide-react";
+import { BookOpen, MapPin, Plus, Search, Star, Users, X } from "lucide-react";
 import {
-  MOCK_STUDY_GROUP_PINS,
-  THOMPSON_EAST_ENTRANCE_PLAN,
-  type CampusMapSpot,
+  MOCK_NOTEBOOKS,
+  MOCK_PROFILES,
+  MOCK_THOMPSON_TABLE_GROUPS,
+  THOMPSON_EAST_ENTRANCE_TABLES,
   type ProfilePreview,
   type SessionPreview,
+  type SharedNotebook,
+  type ThompsonTable,
 } from "@/types/contracts";
+import { GroupJoinManager } from "@/features/location-checkin/components/GroupJoinManager";
+import { NotebookPanel } from "@/features/notebook-ai/components/NotebookPanel";
+import { CarmenAiChatbot } from "@/features/notebook-ai/components/CarmenAiChatbot";
+import { MOCK_CARMEN_STUDENTS } from "@/features/notebook-ai/mock-carmen-data";
 import { IntegratedCampusMap } from "./IntegratedCampusMap";
 
-type MapTab = "groups" | "places" | "notes" | "me";
+type MapTab = "groups" | "join" | "notes" | "me";
 
 export function ThompsonMap({
-  sessions,
+  sessions: _sessions,
   profile,
   profilePanel,
   locationPanel,
-  notebookPanel,
 }: {
   sessions: SessionPreview[];
   profile: ProfilePreview | null;
   profilePanel: ReactNode;
   locationPanel: ReactNode;
-  notebookPanel: ReactNode;
 }) {
-  const [tab, setTab] = useState<MapTab>(() => {
-    if (typeof window !== "undefined") {
-      const param = new URLSearchParams(window.location.search).get("tab");
-      if (param === "notes" || param === "places" || param === "groups" || param === "me") return param;
-    }
-    return "groups";
-  });
-  const [expanded, setExpanded] = useState(() => {
-    if (typeof window !== "undefined") {
-      return new URLSearchParams(window.location.search).get("tab") === "notes";
-    }
-    return false;
-  });
-  const [floorPlanOpen, setFloorPlanOpen] = useState(true);
+  const [tab, setTab] = useState<MapTab>("groups");
+  const [expanded, setExpanded] = useState(false);
   const [groupSheetHidden, setGroupSheetHidden] = useState(false);
-  const [query, setQuery] = useState("");
   const [groupQuery, setGroupQuery] = useState("");
-  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
-  const [selectedSpot, setSelectedSpot] = useState<CampusMapSpot | null>(null);
-  const [showRoute, setShowRoute] = useState(false);
+  const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
   const [libraryFocusRequest, setLibraryFocusRequest] = useState(0);
+  const [joinStage, setJoinStage] = useState("idle");
+  const [carmenOpen, setCarmenOpen] = useState(false);
+  const [notebookContent, setNotebookContent] = useState(MOCK_NOTEBOOKS[0]?.content ?? "");
   const sheetStart = useRef<number | null>(null);
   const tabBarStart = useRef<{ pointerId: number; y: number } | null>(null);
   const sheetDragged = useRef(false);
   const tabBarDragged = useRef(false);
-  const groupCloseButton = useRef<HTMLButtonElement>(null);
-  const groupTrigger = useRef<HTMLElement | null>(null);
-
-  const visibleSpots = useMemo(() => {
-    const normalizedQuery = query.trim().toLocaleLowerCase();
-    return THOMPSON_EAST_ENTRANCE_PLAN.spots.filter((spot) =>
-      !normalizedQuery || `${spot.label} ${spot.detail}`.toLocaleLowerCase().includes(normalizedQuery),
-    );
-  }, [query]);
+  const tableCloseButton = useRef<HTMLButtonElement>(null);
+  const tableTrigger = useRef<HTMLElement | null>(null);
 
   const visibleGroups = useMemo(() => {
     const normalizedQuery = groupQuery.trim().toLocaleLowerCase();
-    return MOCK_STUDY_GROUP_PINS.filter((group) =>
-      !normalizedQuery || group.courseCode.toLocaleLowerCase().includes(normalizedQuery),
-    );
+    return THOMPSON_EAST_ENTRANCE_TABLES
+      .filter((table) => table.showInSearch && table.groupId)
+      .flatMap((table) => {
+        const group = MOCK_THOMPSON_TABLE_GROUPS.find((item) => item.id === table.groupId);
+        return group ? [{ table, group }] : [];
+      })
+      .filter(({ group }) => !normalizedQuery || group.courseCode.toLocaleLowerCase().includes(normalizedQuery));
   }, [groupQuery]);
-  const showLibraryPlan = tab === "groups" || (tab === "places" && floorPlanOpen);
-  const groupsOnMap = tab === "groups" ? visibleGroups : [];
-  const spotsOnMap = tab === "places" && floorPlanOpen ? visibleSpots : [];
-  const selectedGroup = MOCK_STUDY_GROUP_PINS.find((group) => group.id === selectedGroupId) ?? null;
+  const selectedTable = THOMPSON_EAST_ENTRANCE_TABLES.find((table) => table.id === selectedTableId) ?? null;
+  const selectedGroup = selectedTable?.groupId
+    ? MOCK_THOMPSON_TABLE_GROUPS.find((group) => group.id === selectedTable.groupId) ?? null
+    : null;
+  const currentNotebook: SharedNotebook = {
+    sessionId: "local-current-group",
+    content: notebookContent,
+    lastUpdatedBy: profile?.id ?? MOCK_PROFILES[0].id,
+    aiSummary: "A local catch-up is generated from this group’s current shared notes.",
+    aiSuggestions: ["Review the next concept together."],
+    updatedAt: new Date(0).toISOString(),
+  };
+  const currentStudent = MOCK_CARMEN_STUDENTS[profile?.id ?? MOCK_PROFILES[0].id]
+    ?? MOCK_CARMEN_STUDENTS[MOCK_PROFILES[0].id];
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const param = new URLSearchParams(window.location.search).get("tab");
-      if (param === "notes") {
-        setTab("notes");
-        setExpanded(true);
-        setGroupSheetHidden(false);
-      }
-    }
-  }, []);
+    const expandNotesForNewNote = () => {
+      if (tab === "notes") setExpanded(true);
+    };
+    window.addEventListener("buckeye:open-new-note", expandNotesForNewNote);
+    return () => window.removeEventListener("buckeye:open-new-note", expandNotesForNewNote);
+  }, [tab]);
 
   useEffect(() => {
-    if (!selectedGroup) return;
-    groupCloseButton.current?.focus();
-    const opener = groupTrigger.current;
+    if (!selectedTable) return;
+    tableCloseButton.current?.focus();
+    const opener = tableTrigger.current;
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setSelectedGroupId(null);
+      if (event.key === "Escape") setSelectedTableId(null);
     };
     window.addEventListener("keydown", closeOnEscape);
     return () => {
       window.removeEventListener("keydown", closeOnEscape);
       opener?.focus();
     };
-  }, [selectedGroup]);
-
-  const openFloorPlan = () => {
-    setTab("places");
-    setFloorPlanOpen(true);
-    setExpanded(true);
-    setGroupSheetHidden(false);
-  };
+  }, [selectedTable]);
 
   const openGroupSearch = () => {
     if (tab === "groups" && !groupSheetHidden) {
@@ -113,32 +102,18 @@ export function ThompsonMap({
       return;
     }
     setTab("groups");
-    setFloorPlanOpen(true);
-    setLibraryFocusRequest((request) => request + 1);
     setExpanded(false);
     setGroupSheetHidden(false);
-    setSelectedSpot(null);
-    setShowRoute(false);
   };
 
-  const openGroup = (groupId: string, trigger: HTMLElement) => {
-    groupTrigger.current = trigger;
-    setSelectedGroupId(groupId);
+  const openTable = (table: ThompsonTable, trigger: HTMLElement) => {
+    tableTrigger.current = trigger;
+    setSelectedTableId(table.id);
   };
 
-  const selectSpot = (spot: CampusMapSpot) => {
-    setSelectedSpot(spot);
-    setFloorPlanOpen(true);
-    setShowRoute(false);
-    setTab("places");
-    setExpanded(true);
+  const selectTab = (nextTab: MapTab) => {
+    setTab(nextTab);
     setGroupSheetHidden(false);
-  };
-
-  const closeFloorPlan = () => {
-    setFloorPlanOpen(false);
-    setSelectedSpot(null);
-    setShowRoute(false);
     setExpanded(false);
   };
 
@@ -150,14 +125,14 @@ export function ThompsonMap({
   const endSheetSwipe = (event: ReactPointerEvent<HTMLButtonElement>) => {
     if (sheetStart.current !== null) {
       const delta = event.clientY - sheetStart.current;
-      if (delta < -35) { setGroupSheetHidden(false); setExpanded(true); sheetDragged.current = true; }
+      if (delta < -35) {
+        setGroupSheetHidden(false);
+        setExpanded(true);
+        sheetDragged.current = true;
+      }
       if (delta > 35) {
-        if (tab === "groups") {
-          setGroupSheetHidden(true);
-        } else if (floorPlanOpen && delta > 100) {
-          closeFloorPlan();
-        }
-        setExpanded(false);
+        if (tab === "groups") setGroupSheetHidden(true);
+        else setExpanded(false);
         sheetDragged.current = true;
       }
     }
@@ -174,13 +149,13 @@ export function ThompsonMap({
     const start = tabBarStart.current;
     if (!start || start.pointerId !== event.pointerId) return;
     const delta = event.clientY - start.y;
-    if (tab === "groups" && delta < -35) {
+    if (delta < -35) {
       setGroupSheetHidden(false);
       setExpanded(true);
       tabBarDragged.current = true;
-    } else if (tab === "groups" && delta > 35) {
-      setGroupSheetHidden(true);
-      setExpanded(false);
+    } else if (delta > 35) {
+      if (tab === "groups") setGroupSheetHidden(true);
+      else setExpanded(false);
       tabBarDragged.current = true;
     }
     tabBarStart.current = null;
@@ -195,78 +170,48 @@ export function ThompsonMap({
   return (
     <div className="thompson-map-app" onPointerDownCapture={beginTabBarGesture} onPointerUpCapture={endTabBarGesture} onPointerCancelCapture={() => { tabBarStart.current = null; }} onClickCapture={guardTabBarClick}>
       <IntegratedCampusMap
-        onOpenFloorPlan={openFloorPlan}
-        showLibraryPlan={showLibraryPlan}
+        onOpenFloorPlan={() => setLibraryFocusRequest((request) => request + 1)}
+        showLibraryPlan
         libraryFocusRequest={libraryFocusRequest}
-        visibleGroups={groupsOnMap}
-        visibleSpots={spotsOnMap}
-        selectedSpot={selectedSpot}
-        showRoute={showRoute}
-        selectedGroupId={selectedGroupId}
-        onSelectGroup={(group, trigger) => openGroup(group.id, trigger)}
-        onSelectSpot={selectSpot}
+        visibleTables={THOMPSON_EAST_ENTRANCE_TABLES}
+        visibleSpots={[]}
+        selectedSpot={null}
+        showRoute={false}
+        selectedTableId={selectedTableId}
+        onSelectTable={openTable}
+        onSelectSpot={() => undefined}
       />
 
-      <header className="map-service-header">
-        <Link href="/" className="map-back" aria-label="Buckeye Sprouts home"><ArrowLeft size={18} /></Link>
-        <div className="map-service-title"><strong>Buckeye Sprouts</strong><span>Ohio State · Columbus campus</span></div>
-        <span className="map-level-badge integrated-campus-badge">OSU</span>
-      </header>
-
-      {!showLibraryPlan && <button type="button" className="integrated-library-shortcut" onClick={openFloorPlan}>
-        <BookOpen size={16} /><span>Thompson Library</span><span className="integrated-shortcut-detail">Floor plan</span>
-      </button>}
-
-      <section className={`map-info-sheet${expanded ? " sheet-expanded" : ""}${tab === "groups" ? " group-search-sheet" : ""}${groupSheetHidden && tab === "groups" ? " group-sheet-hidden" : ""}`} aria-label={tab === "groups" ? "Study group search and Thompson Library map" : "Campus places and navigation"}>
-        <button type="button" className="sheet-swipe-handle" onPointerDown={beginSheetSwipe} onPointerUp={endSheetSwipe} onPointerCancel={endSheetSwipe} aria-label={expanded ? "Collapse map panel" : "Expand map panel"} onClick={() => { if (sheetDragged.current) { sheetDragged.current = false; return; } setExpanded((value) => !value); }}>
+      <section className={`map-info-sheet${expanded ? " sheet-expanded" : ""}${tab === "groups" ? " group-search-sheet" : ""}${tab === "join" && joinStage === "current" ? " current-group-sheet" : ""}${groupSheetHidden && tab === "groups" ? " group-sheet-hidden" : ""}`} aria-label={tab === "groups" ? "Study group search" : tab === "join" ? "Join or manage a study group" : tab === "notes" ? "Shared notebook" : "Your study profile"}>
+        <button type="button" className="sheet-swipe-handle" onPointerDown={beginSheetSwipe} onPointerUp={endSheetSwipe} onPointerCancel={endSheetSwipe} aria-label={expanded ? "Collapse panel" : "Expand panel"} onClick={() => { if (sheetDragged.current) { sheetDragged.current = false; return; } setExpanded((value) => !value); }}>
           <span />
         </button>
         <div className="sheet-heading">
-          <div className="min-w-0 flex-1 pr-1.5"><p className="sheet-eyebrow">OHIO STATE · {showLibraryPlan ? "THOMPSON LIBRARY · LEVEL 1" : "CAMPUS MAP"}</p><h1 className="truncate">{tab === "places" ? (selectedSpot?.label || (floorPlanOpen ? "Thompson Library" : "Explore campus")) : tab === "groups" ? "Group Search" : tab === "notes" ? "Shared notebook" : "Your study profile"}</h1></div>
-          {floorPlanOpen && tab === "places" && <button className="clear-selection" type="button" aria-label="Close library floor plan" onClick={closeFloorPlan}><X size={18} /></button>}
-          {selectedSpot && tab === "places" && !floorPlanOpen && <button className="clear-selection" type="button" aria-label="Clear selected place" onClick={() => setSelectedSpot(null)}><X size={18} /></button>}
-          {tab === "notes" && (
-            <div className="flex items-center gap-2 shrink-0">
-              <button
-                type="button"
-                onClick={() => window.dispatchEvent(new CustomEvent("buckeye:open-carmen-ai"))}
-                aria-label="Open Carmen AI"
-                title="Carmen AI Assistant"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-red-50 hover:bg-red-100 text-[#a51c30] border border-red-200/80 shadow-2xs transition-all active:scale-95 cursor-pointer"
-              >
-                <Star size={13} className="fill-amber-400 text-amber-500" />
-                <span>Carmen AI</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => window.dispatchEvent(new CustomEvent("buckeye:open-new-note"))}
-                aria-label="New Note"
-                title="New Note"
-                className="w-8 h-8 rounded-full bg-[#2d4b3c] hover:bg-[#20392d] text-white flex items-center justify-center shadow-2xs transition-all active:scale-95 cursor-pointer"
-              >
-                <Plus size={18} strokeWidth={2.5} />
-              </button>
-            </div>
+          <div className="min-w-0 flex-1 pr-1.5">
+            <p className="sheet-eyebrow">OHIO STATE · THOMPSON LIBRARY · LEVEL 1</p>
+            <h1 className="truncate">{tab === "groups" ? "Group Search" : tab === "join" ? "Your Group" : tab === "notes" ? "Shared Notes" : "Your Study Profile"}</h1>
+          </div>
+          {tab === "join" && joinStage === "current" && (
+            <button type="button" className="group-carmen-trigger" onClick={() => setCarmenOpen(true)} aria-label="Open Carmen study suggestions" title="Carmen study suggestions">
+              <Star size={18} className="fill-amber-300" />
+            </button>
           )}
+          {tab === "notes" && <button type="button" className="notes-new-button" onClick={() => { setExpanded(true); window.dispatchEvent(new CustomEvent("buckeye:open-new-note")); }} aria-label="Create a new group note" title="New note"><Plus size={18} /></button>}
         </div>
         <div className="map-sheet-content">
           {tab === "groups" && <>
             <label className="map-search group-search-field"><Search size={18} /><input value={groupQuery} onChange={(event) => setGroupQuery(event.target.value)} placeholder="Search by course number (e.g., CSE 2221)" aria-label="Search study groups by course number" /></label>
             <div className="map-group-list" role="list" aria-label="Study groups on Thompson Library Level 1">
-              {visibleGroups.map((group) => <button className="map-group-row" type="button" key={group.id} onClick={(event) => openGroup(group.id, event.currentTarget)}>
-                <span className="group-icon"><Users size={19} /></span><span className="group-row-copy"><strong>{group.name}</strong><small>{group.courseCode} · {group.topic}</small></span><span className="group-table-label"><MapPin size={13} />{group.tableLabel}</span>
+              {visibleGroups.map(({ table, group }) => <button className="map-group-row" type="button" key={group.id} onClick={(event) => openTable(table, event.currentTarget)}>
+                <span className="group-icon"><Users size={19} /></span><span className="group-row-copy"><strong>{group.name}</strong><small>{group.courseCode} · {group.topic}</small></span><span className="group-table-label"><MapPin size={13} />{table.label}</span>
               </button>)}
             </div>
             {visibleGroups.length === 0 && <p className="map-hint group-no-results">No study groups match “{groupQuery}”. Try a course number such as CSE 2221 or MATH 1151.</p>}
           </>}
-          {tab === "places" && <>
-            <label className="map-search"><Search size={18} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search Thompson rooms and spaces" aria-label="Search Thompson Library rooms" /></label>
-            {selectedSpot && <div className="selected-place"><span className={`place-symbol place-${selectedSpot.kind}`}><MapPin size={19} /></span><div><strong>{selectedSpot.label}</strong><p>{selectedSpot.detail} · {THOMPSON_EAST_ENTRANCE_PLAN.level}{showRoute ? " · Approximate East Entrance route" : ""}</p></div><button type="button" className={showRoute ? "route-active" : ""} onClick={() => setShowRoute((active) => !active)} aria-label={showRoute ? "Hide illustrative route" : "Show approximate route from East Entrance"} title="Approximate route across the East Atrium"><Route size={17} /></button></div>}
-            {!floorPlanOpen && <p className="map-hint">Pan around campus, or open Thompson Library to search its rooms and services.</p>}
-            <div className="spot-list">{visibleSpots.slice(0, floorPlanOpen || query.trim() ? 24 : 6).map((spot) => <button key={spot.id} className="spot-row" type="button" onClick={() => selectSpot(spot)}><span className={`spot-dot dot-${spot.kind}`} /><span><strong>{spot.label}</strong><small>{spot.detail}</small></span><MapPin size={15} /></button>)}</div>
-            {visibleSpots.length === 0 && <p className="map-hint">No Thompson rooms match “{query}”.</p>}
-          </>}
-          {tab === "notes" && <div className="map-feature-panel">{notebookPanel}</div>}
+          <div hidden={tab !== "join"}>
+            <GroupJoinManager currentUserId={profile?.id} currentUserName={profile?.name || "Alex Morgan"} notebookContent={notebookContent} onNotebookContentChange={setNotebookContent} onStageChange={(stage) => { setJoinStage(stage); if (stage === "existing" || stage === "create") setExpanded(true); if (stage === "current") setExpanded(false); }} />
+          </div>
+          {tab === "notes" && <div className="map-feature-panel"><NotebookPanel notebook={currentNotebook} sessionId={currentNotebook.sessionId} courseCode="CSE 2221" onStartNewNote={() => setExpanded(true)} onNotebookContentChange={setNotebookContent} /></div>}
           {tab === "me" && <div className="map-feature-panel">{profile ? <><div className="map-user-greeting">Hi, {profile.name.split(" ")[0]}</div>{profilePanel}{locationPanel}</> : <p className="map-hint">Your study profile is not available.</p>}</div>}
         </div>
       </section>
@@ -274,19 +219,25 @@ export function ThompsonMap({
       <nav className="map-service-tabs" aria-label="Map app navigation">
         <span className="map-tabs-grabber" aria-hidden="true" />
         <button className={tab === "groups" ? "active" : ""} type="button" onClick={openGroupSearch}><Users size={20} /><span>Groups</span></button>
-        <button className={tab === "places" ? "active" : ""} type="button" onClick={() => { setTab("places"); setGroupSheetHidden(false); setExpanded(false); }}><MapPin size={20} /><span>Places</span></button>
-        <button className={tab === "notes" ? "active" : ""} type="button" onClick={() => { setTab("notes"); setFloorPlanOpen(false); setGroupSheetHidden(false); setExpanded(false); }}><BookOpen size={20} /><span>Notes</span></button>
-        <button className={tab === "me" ? "active" : ""} type="button" onClick={() => { setTab("me"); setFloorPlanOpen(false); setGroupSheetHidden(false); setExpanded(false); }}><span className="service-avatar">{profile?.name.slice(0, 1) || "?"}</span><span>Me</span></button>
+        <button className={tab === "join" ? "active" : ""} type="button" onClick={() => selectTab("join")} aria-label="Join or manage a group"><Plus size={21} /><span>Group</span></button>
+        <button className={tab === "notes" ? "active" : ""} type="button" onClick={() => selectTab("notes")}><BookOpen size={20} /><span>Notes</span></button>
+        <button className={tab === "me" ? "active" : ""} type="button" onClick={() => selectTab("me")}><span className="service-avatar">{profile?.name.slice(0, 1) || "?"}</span><span>Me</span></button>
       </nav>
 
-      {selectedGroup && <div className="group-info-backdrop" role="presentation" onClick={() => setSelectedGroupId(null)}>
+      {tab === "join" && joinStage === "current" && currentStudent && <CarmenAiChatbot studentProfile={currentStudent} courseCode="CSE 2221" notebookContent={notebookContent} isOpenExternal={carmenOpen} onToggleExternal={() => setCarmenOpen((open) => !open)} onInsertToNotebook={(text) => setNotebookContent((content) => `${content}\n\n${text}`.trim())} />}
+
+      {selectedTable && <div className="group-info-backdrop" role="presentation" onClick={() => setSelectedTableId(null)}>
         <section className="group-info-dialog" role="dialog" aria-modal="true" aria-labelledby="group-info-title" aria-describedby="group-info-status" onClick={(event) => event.stopPropagation()}>
-          <button ref={groupCloseButton} type="button" className="group-info-close" onClick={() => setSelectedGroupId(null)} aria-label="Close group information"><X size={20} /></button>
-          <div className="group-info-heading"><p className="group-info-eyebrow">STUDY GROUP</p><h2 id="group-info-title">{selectedGroup.name}</h2><p id="group-info-status">{selectedGroup.courseCode} · {selectedGroup.topic}</p></div>
-          <ul className="group-profile-list" aria-label="Group host and members">
+          <button ref={tableCloseButton} type="button" className="group-info-close" onClick={() => setSelectedTableId(null)} aria-label="Close table information"><X size={20} /></button>
+          <div className="group-info-heading">
+            <p className="group-info-eyebrow">{selectedTable.label} · {selectedTable.status === "empty" ? "EMPTY" : selectedTable.status === "very-busy" ? "VERY BUSY" : "BUSY"}</p>
+            <h2 id="group-info-title">{selectedGroup ? selectedGroup.name : "Available table"}</h2>
+            <p id="group-info-status">{selectedGroup ? `${selectedGroup.courseCode} · ${selectedGroup.topic}` : "No study group is at this table right now."}</p>
+          </div>
+          {selectedGroup && <ul className="group-profile-list" aria-label="Group host and members">
             <li className="group-profile-row"><ProfileAvatar profile={selectedGroup.host} /><span className="group-profile-name">{selectedGroup.host.name}</span><span className="group-profile-role">Host</span></li>
             {selectedGroup.members.map((member) => <li key={member.id} className="group-profile-row"><ProfileAvatar profile={member} /><span className="group-profile-name">{member.name}</span><span className="group-profile-role">Member</span></li>)}
-          </ul>
+          </ul>}
         </section>
       </div>}
     </div>

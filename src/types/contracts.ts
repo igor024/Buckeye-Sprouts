@@ -108,6 +108,31 @@ export interface StudyGroupMapPin extends IllustrativeMapPosition {
   members: ProfilePreview[];
 }
 
+/** A group associated with a clickable Thompson Level 1 table. */
+export interface ThompsonTableGroup {
+  id: string;
+  name: string;
+  courseCode: string;
+  topic: string;
+  host: ProfilePreview;
+  members: ProfilePreview[];
+}
+
+/** User-facing occupancy states for the colored Thompson table controls. */
+export type ThompsonTableStatus = "empty" | "busy" | "very-busy";
+
+/** A colored table in the supplied Thompson Level 1 SVG. */
+export interface ThompsonTable extends IllustrativeMapPosition {
+  id: string;
+  label: string;
+  status: ThompsonTableStatus;
+  width: number;
+  height: number;
+  groupId?: ThompsonTableGroup["id"];
+  /** Only the named Jordan and Sam fixtures appear as Group Search rows. */
+  showInSearch?: boolean;
+}
+
 export interface IndoorLibraryPlan {
   name: string;
   level: string;
@@ -349,24 +374,167 @@ export const MOCK_STUDY_GROUP_PINS: StudyGroupMapPin[] = [
     name: "Jordan's Group",
     courseCode: "CSE 2221",
     topic: "Recursion and software components",
-    tableLabel: "Table X",
+    tableLabel: "Table 145-1",
     x: 27,
     y: 29,
     host: toProfilePreview(MOCK_PROFILES[1]),
-    members: [toProfilePreview(MOCK_PROFILES[0]), toProfilePreview(MOCK_PROFILES[2])],
+    members: [toProfilePreview(MOCK_PROFILES[2])],
   },
   {
     id: "sam-math-1151",
     name: "Sam's Group",
     courseCode: "MATH 1151",
     topic: "Limits and derivatives",
-    tableLabel: "Table Y",
+    tableLabel: "Table 140-1",
     x: 68,
     y: 49,
     host: toProfilePreview(MOCK_PROFILES[2]),
-    members: [toProfilePreview(MOCK_PROFILES[0]), toProfilePreview(MOCK_PROFILES[1])],
+    members: [toProfilePreview(MOCK_PROFILES[1])],
   },
 ];
+
+const THOMPSON_PLAN_SVG_SIZE = { width: 533, height: 775 } as const;
+const TABLE_RECT_SIZE = { width: 21.7436, height: 20.3846 } as const;
+const TABLE_105_RECT_SIZE = { width: 25.0435, height: 23.4783 } as const;
+
+function tableFromSvgRect(
+  id: string,
+  label: string,
+  status: ThompsonTableStatus,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+): ThompsonTable {
+  const groupId = status === "empty"
+    ? undefined
+    : id === "145-1"
+      ? "jordan-cse-2221"
+      : id === "140-1"
+        ? "sam-math-1151"
+        : `thompson-table-${id}`;
+
+  return {
+    id,
+    label,
+    status,
+    x: (x + width / 2) / THOMPSON_PLAN_SVG_SIZE.width * 100,
+    y: (y + height / 2) / THOMPSON_PLAN_SVG_SIZE.height * 100,
+    width: width / THOMPSON_PLAN_SVG_SIZE.width * 100,
+    height: height / THOMPSON_PLAN_SVG_SIZE.height * 100,
+    ...(groupId ? { groupId } : {}),
+    ...((id === "145-1" || id === "140-1") ? { showInSearch: true } : {}),
+  };
+}
+
+/** Every colored table in the supplied Thompson Level 1 SVG. */
+export const THOMPSON_EAST_ENTRANCE_TABLES: readonly ThompsonTable[] = [
+  tableFromSvgRect("150b-1", "Table 150B-1", "busy", 479.1, 126.931, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("150b-2", "Table 150B-2", "very-busy", 505.844, 126.931, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("150a-1", "Table 150A-1", "empty", 452.1, 177.315, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("150a-2", "Table 150A-2", "empty", 478.844, 177.315, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("150a-3", "Table 150A-3", "very-busy", 505.587, 177.315, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("150a-4", "Table 150A-4", "empty", 452.1, 227.7, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("150a-5", "Table 150A-5", "very-busy", 478.844, 227.7, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("150a-6", "Table 150A-6", "very-busy", 505.587, 227.7, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+
+  tableFromSvgRect("110-1", "Table 110-1", "busy", 119.1, 448.931, 32, 66),
+  tableFromSvgRect("110-2", "Table 110-2", "very-busy", 162.1, 448.931, 32, 66),
+  tableFromSvgRect("110-3", "Table 110-3", "empty", 119.1, 525.931, 32, 45),
+  tableFromSvgRect("110-4", "Table 110-4", "very-busy", 162.1, 525.931, 32, 45),
+
+  tableFromSvgRect("140-1", "Table 140-1", "busy", 334.1, 135.931, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("140-2", "Table 140-2", "very-busy", 360.844, 135.931, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("140-3", "Table 140-3", "busy", 387.587, 135.931, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("140-4", "Table 140-4", "very-busy", 414.331, 135.931, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("140-5", "Table 140-5", "empty", 334.1, 161.315, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("140-6", "Table 140-6", "very-busy", 360.844, 161.315, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("140-7", "Table 140-7", "empty", 387.587, 161.315, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("140-8", "Table 140-8", "very-busy", 414.331, 161.315, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("140-9", "Table 140-9", "busy", 334.1, 217.931, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("140-10", "Table 140-10", "very-busy", 360.844, 217.931, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("140-11", "Table 140-11", "busy", 387.587, 217.931, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("140-12", "Table 140-12", "very-busy", 414.331, 217.931, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("140-13", "Table 140-13", "empty", 334.1, 243.315, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("140-14", "Table 140-14", "very-busy", 360.844, 243.315, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("140-15", "Table 140-15", "empty", 387.587, 243.315, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("140-16", "Table 140-16", "very-busy", 414.331, 243.315, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+
+  tableFromSvgRect("145-1", "Table 145-1", "busy", 95.1, 135.931, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("145-2", "Table 145-2", "very-busy", 121.844, 135.931, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("145-3", "Table 145-3", "busy", 148.587, 135.931, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("145-4", "Table 145-4", "very-busy", 175.331, 135.931, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("145-5", "Table 145-5", "empty", 95.1, 161.315, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("145-6", "Table 145-6", "very-busy", 121.844, 161.315, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("145-7", "Table 145-7", "empty", 148.587, 161.315, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("145-8", "Table 145-8", "very-busy", 175.331, 161.315, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("145-9", "Table 145-9", "busy", 95.1, 217.931, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("145-10", "Table 145-10", "very-busy", 121.844, 217.931, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("145-11", "Table 145-11", "busy", 148.587, 217.931, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("145-12", "Table 145-12", "very-busy", 175.331, 217.931, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("145-13", "Table 145-13", "empty", 95.1, 243.315, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("145-14", "Table 145-14", "very-busy", 121.844, 243.315, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("145-15", "Table 145-15", "empty", 148.587, 243.315, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("145-16", "Table 145-16", "very-busy", 175.331, 243.315, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+
+  tableFromSvgRect("165-1", "Table 165-1", "busy", 125.1, 17.9305, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("165-2", "Table 165-2", "very-busy", 151.844, 17.9305, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("165-3", "Table 165-3", "busy", 178.587, 17.9305, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("165-4", "Table 165-4", "very-busy", 205.331, 17.9305, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("165-5", "Table 165-5", "empty", 125.1, 67.3151, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("165-6", "Table 165-6", "very-busy", 151.844, 67.3151, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("165-7", "Table 165-7", "empty", 178.587, 67.3151, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("165-8", "Table 165-8", "very-busy", 205.331, 67.3151, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("165-9", "Table 165-9", "busy", 205.1, 42.9305, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("165-10", "Table 165-10", "empty", 111.1, 42.9305, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+
+  tableFromSvgRect("160-1", "Table 160-1", "busy", 385.3304, 17.9305, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("160-2", "Table 160-2", "very-busy", 358.5874, 17.9305, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("160-3", "Table 160-3", "busy", 331.8434, 17.9305, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("160-4", "Table 160-4", "very-busy", 305.1004, 17.9305, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("160-5", "Table 160-5", "empty", 385.3304, 67.3151, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("160-6", "Table 160-6", "very-busy", 358.5874, 67.3151, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("160-7", "Table 160-7", "empty", 331.8434, 67.3151, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("160-8", "Table 160-8", "very-busy", 305.1004, 67.3151, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("160-9", "Table 160-9", "busy", 305.3304, 42.9305, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+  tableFromSvgRect("160-10", "Table 160-10", "empty", 399.3304, 42.9305, TABLE_RECT_SIZE.width, TABLE_RECT_SIZE.height),
+
+  tableFromSvgRect("105-1", "Table 105-1", "empty", 16.1, 633.931, TABLE_105_RECT_SIZE.width, TABLE_105_RECT_SIZE.height),
+  tableFromSvgRect("105-2", "Table 105-2", "very-busy", 50.1435, 633.931, TABLE_105_RECT_SIZE.width, TABLE_105_RECT_SIZE.height),
+  tableFromSvgRect("105-3", "Table 105-3", "very-busy", 84.1865, 633.931, TABLE_105_RECT_SIZE.width, TABLE_105_RECT_SIZE.height),
+  tableFromSvgRect("105-4", "Table 105-4", "empty", 118.2305, 633.931, TABLE_105_RECT_SIZE.width, TABLE_105_RECT_SIZE.height),
+  tableFromSvgRect("105-5", "Table 105-5", "busy", 16.1, 698.409, TABLE_105_RECT_SIZE.width, TABLE_105_RECT_SIZE.height),
+  tableFromSvgRect("105-6", "Table 105-6", "very-busy", 50.1435, 698.409, TABLE_105_RECT_SIZE.width, TABLE_105_RECT_SIZE.height),
+  tableFromSvgRect("105-7", "Table 105-7", "very-busy", 84.1865, 698.409, TABLE_105_RECT_SIZE.width, TABLE_105_RECT_SIZE.height),
+  tableFromSvgRect("105-8", "Table 105-8", "busy", 118.2305, 698.409, TABLE_105_RECT_SIZE.width, TABLE_105_RECT_SIZE.height),
+] as const;
+
+const TABLE_GROUP_TOPICS = [
+  { courseCode: "CSE 2221", topic: "Recursion and software components" },
+  { courseCode: "MATH 1151", topic: "Limits and derivatives" },
+  { courseCode: "CSE 2321", topic: "Graph traversal practice" },
+  { courseCode: "ENGR 1181", topic: "MATLAB lab prep" },
+] as const;
+
+function toTableGroup(group: StudyGroupMapPin): ThompsonTableGroup {
+  return { id: group.id, name: group.name, courseCode: group.courseCode, topic: group.topic, host: group.host, members: group.members };
+}
+
+function createDemoTableGroup(table: ThompsonTable, index: number): ThompsonTableGroup {
+  const host = toProfilePreview(MOCK_PROFILES[index % MOCK_PROFILES.length]);
+  const members = MOCK_PROFILES.filter((profile) => profile.id !== host.id).map(toProfilePreview);
+  const topic = TABLE_GROUP_TOPICS[index % TABLE_GROUP_TOPICS.length];
+  return { id: table.groupId!, name: `${host.name.split(" ")[0]}'s Group`, courseCode: topic.courseCode, topic: topic.topic, host, members };
+}
+
+/** Details shown when a non-empty Thompson table is selected. */
+export const MOCK_THOMPSON_TABLE_GROUPS: readonly ThompsonTableGroup[] = THOMPSON_EAST_ENTRANCE_TABLES
+  .filter((table) => table.groupId)
+  .map((table, index) => {
+    if (table.groupId === MOCK_STUDY_GROUP_PINS[0].id) return toTableGroup(MOCK_STUDY_GROUP_PINS[0]);
+    if (table.groupId === MOCK_STUDY_GROUP_PINS[1].id) return toTableGroup(MOCK_STUDY_GROUP_PINS[1]);
+    return createDemoTableGroup(table, index);
+  });
 
 /** Local floor plan artwork and its illustrative, normalized room positions. */
 export const THOMPSON_EAST_ENTRANCE_PLAN = {

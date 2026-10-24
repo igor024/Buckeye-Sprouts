@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { BookOpen, Crosshair, LocateFixed, MapPin, Minus, Plus, Users, X } from "lucide-react";
+import { BookOpen, Crosshair, LocateFixed, MapPin, Minus, Plus, X } from "lucide-react";
 import { createPortal } from "react-dom";
 import {
   CAMPUS_MAP_ARTWORK_SIZE,
@@ -10,12 +10,11 @@ import {
   CAMPUS_MAP_GEO_BOUNDS,
   CAMPUS_MAP_LANDMARKS,
   CAMPUS_MAP_ZOOM_LIMITS,
-  MOCK_STUDY_GROUP_PINS,
   THOMPSON_EAST_ENTRANCE_PLAN,
   type CampusMapView,
   type Coordinates,
   type CampusMapSpot,
-  type StudyGroupMapPin,
+  type ThompsonTable,
 } from "@/types/contracts";
 import "../integrated-campus-map.css";
 
@@ -65,6 +64,24 @@ function planPointToScreen(position: { x: number; y: number }, view: CampusMapVi
     x: plan.left + plan.width * position.x / 100,
     y: plan.top + plan.height * position.y / 100,
   }, view, viewport);
+}
+
+/** Keep each hit target aligned with its source SVG table rectangle while the map moves. */
+function planTableStyle(table: ThompsonTable, view: CampusMapView, viewport: ViewportSize) {
+  const plan = getPlanGeometry(viewport);
+  const center = planPointToScreen(table, view, viewport);
+  return {
+    left: `${Math.round(center.x)}px`,
+    top: `${Math.round(center.y)}px`,
+    width: `${plan.width * table.width / 100 * view.scale}px`,
+    height: `${plan.height * table.height / 100 * view.scale}px`,
+  };
+}
+
+function tableStatusLabel(table: ThompsonTable): string {
+  if (table.status === "empty") return `${table.label}: empty and available`;
+  if (table.status === "very-busy") return `${table.label}: very busy; people can still join`;
+  return `${table.label}: busy with a study group`;
 }
 
 function maximumMapScale(viewport: ViewportSize, keepThompsonVisible: boolean): number {
@@ -127,23 +144,23 @@ export function IntegratedCampusMap({
   onOpenFloorPlan,
   showLibraryPlan,
   libraryFocusRequest,
-  visibleGroups,
+  visibleTables,
   visibleSpots,
   selectedSpot,
   showRoute,
-  selectedGroupId,
-  onSelectGroup,
+  selectedTableId,
+  onSelectTable,
   onSelectSpot,
 }: {
   onOpenFloorPlan: () => void;
   showLibraryPlan: boolean;
   libraryFocusRequest: number;
-  visibleGroups: StudyGroupMapPin[];
+  visibleTables: readonly ThompsonTable[];
   visibleSpots: CampusMapSpot[];
   selectedSpot: CampusMapSpot | null;
   showRoute: boolean;
-  selectedGroupId: string | null;
-  onSelectGroup: (group: StudyGroupMapPin, trigger: HTMLElement) => void;
+  selectedTableId: string | null;
+  onSelectTable: (table: ThompsonTable, trigger: HTMLElement) => void;
   onSelectSpot: (spot: CampusMapSpot) => void;
 }) {
   const [view, setView] = useState<CampusMapView>({ scale: CAMPUS_MAP_ZOOM_LIMITS.minScale, x: 0, y: 0 });
@@ -309,7 +326,7 @@ export function IntegratedCampusMap({
         const point = coordinatesToPoint({ lat: coords.latitude, lng: coords.longitude });
         setLocationState("live");
         setLocationMessage(point.x < 0 || point.x > CAMPUS_MAP_ARTWORK_SIZE.width || point.y < 0 || point.y > CAMPUS_MAP_ARTWORK_SIZE.height
-          ? "Your location is outside this illustrated campus view. It stays on this device."
+          ? "Your location is outside the displayed campus area. It stays on this device."
           : "Your approximate position is shown on this device.");
         showPosition({ lat: coords.latitude, lng: coords.longitude });
       },
@@ -345,12 +362,12 @@ export function IntegratedCampusMap({
   const maxScale = maximumMapScale(mapSize, showLibraryPlan);
 
   return (
-    <div className="integrated-campus-map" aria-label="Illustrated Ohio State campus map with Thompson Library">
+    <div className="integrated-campus-map" aria-label="Ohio State campus map with Thompson Library">
       <div
         className="integrated-map-viewport"
         ref={viewportRef}
         role="region"
-        aria-label="Interactive campus map. Drag to pan, pinch or double tap to zoom."
+        aria-label="Interactive map of the displayed campus area. Drag to pan, pinch or double tap to zoom."
         onPointerDown={onMapPointerDown}
         onPointerMove={onMapPointerMove}
         onPointerUp={onMapPointerUp}
@@ -363,7 +380,7 @@ export function IntegratedCampusMap({
           viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`}
           preserveAspectRatio="none"
           role="img"
-          aria-label="Illustrated Ohio State campus map with Thompson Library"
+          aria-label="Ohio State campus map with Thompson Library"
         >
           <svg className="integrated-map-art" x="0" y="0" width={mapSize.width} height={mapSize.height} viewBox={`0 0 ${CAMPUS_MAP_ARTWORK_SIZE.width} ${CAMPUS_MAP_ARTWORK_SIZE.height}`} preserveAspectRatio="xMidYMid slice" aria-hidden="true">
             <rect width={CAMPUS_MAP_ARTWORK_SIZE.width} height={CAMPUS_MAP_ARTWORK_SIZE.height} fill="#edf0e8" />
@@ -436,19 +453,16 @@ export function IntegratedCampusMap({
               <span className="integrated-marker-icon"><BookOpen size={15} /></span><span>Thompson Library</span>
             </button>
           ))}
-          {showLibraryPlan && visibleGroups.map((group) => (
+          {showLibraryPlan && visibleTables.map((table) => (
             <button
-              key={group.id}
+              key={table.id}
               type="button"
-              className={`study-group-pin embedded-group-pin${selectedGroupId === group.id ? " selected" : ""}`}
-              style={planMarkerStyle(group)}
-              onClick={(event) => onSelectGroup(group, event.currentTarget)}
-              aria-label={`${group.name}, studying ${group.courseCode}, at ${group.tableLabel}`}
-              title={`${group.name} · ${group.courseCode} · ${group.tableLabel}`}
-            >
-              <span className="study-group-pin-icon"><Users size={16} /></span>
-              <span className="study-group-pin-label">{group.tableLabel}</span>
-            </button>
+              className={`integrated-table-control table-status-${table.status}${selectedTableId === table.id ? " selected" : ""}`}
+              style={planTableStyle(table, view, mapSize)}
+              onClick={(event) => onSelectTable(table, event.currentTarget)}
+              aria-label={tableStatusLabel(table)}
+              title={tableStatusLabel(table)}
+            />
           ))}
           {showLibraryPlan && visibleSpots.map((spot) => (
             <button
@@ -496,14 +510,13 @@ export function IntegratedCampusMap({
       </div>
 
       {locationMessage && <div className={`integrated-location-status status-${locationState}`} role="status"><span />{locationMessage}</div>}
-      <div className="integrated-map-note">Illustrated campus map · locations are approximate</div>
 
       {showDisclosure && createPortal(<div className="location-disclosure-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setShowDisclosure(false); }}>
         <section className="location-disclosure" role="dialog" aria-modal="true" aria-labelledby="location-disclosure-title">
           <button className="location-disclosure-close" type="button" aria-label="Close location information" onClick={() => setShowDisclosure(false)}><X size={18} /></button>
           <span className="location-disclosure-icon"><Crosshair size={23} /></span>
           <h2 id="location-disclosure-title">Show your location?</h2>
-          <p>Your browser will ask for location access. Your approximate position appears on this campus illustration and stays on this device. Buckeye Sprouts does not save your coordinates.</p>
+          <p>Your browser will ask for location access. Your approximate position appears on this campus map and stays on this device. Buckeye Sprouts does not save your coordinates.</p>
           <button className="location-disclosure-confirm" type="button" onClick={requestLocation}>Continue</button>
           <button className="location-disclosure-cancel" type="button" onClick={() => setShowDisclosure(false)}>Not now</button>
         </section>

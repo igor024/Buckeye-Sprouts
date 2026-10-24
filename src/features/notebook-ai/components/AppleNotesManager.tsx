@@ -2,11 +2,7 @@
 
 import { useEffect, useState } from "react";
 import {
-  FileText,
-  Clock,
-  User,
   Trash2,
-  X,
   Plus,
   ChevronRight,
   Code2,
@@ -24,41 +20,39 @@ export interface GroupNote {
   createdAt: string;
 }
 
-const INITIAL_NOTES: GroupNote[] = [
-  {
-    id: "note-1",
-    title: "Base Case Golden Rules",
-    content: "Always check the simplest boundary condition first (e.g. n <= 0 or empty queue). If omitted, execution hits StackOverflowError! Dr. Bucci will test this on Question 2.",
-    authorName: "Alex Morgan",
-    category: "concept",
-    createdAt: "3:15 PM",
-  },
-  {
-    id: "note-2",
-    title: "Queue1L Recursive Reversal Trace",
-    content: "```java\nvoid reverseQueue(Queue<Integer> q) {\n  if (q.length() == 0) return;\n  int x = q.dequeue();\n  reverseQueue(q);\n  q.enqueue(x);\n}\n```\nTraced on <1, 2, 3>. Call stack depth is 3 frames. Restoring on return gives <3, 2, 1>.",
-    authorName: "Jordan Lee",
-    category: "code",
-    createdAt: "3:28 PM",
-  },
-  {
-    id: "note-3",
-    title: "Carmen Quiz 4 Trap: Caller State Mutation",
-    content: "Remember that mutating Java objects (like Queue.dequeue) alters the caller's queue permanently unless re-enqueued on the way back down the call stack.",
-    authorName: "Sam Patel",
-    category: "gotcha",
-    createdAt: "3:40 PM",
-  },
-];
-
 interface AppleNotesManagerProps {
   onNoteAdded?: (note: GroupNote) => void;
+  notebookContent?: string;
+  onNotebookContentChange?: (content: string) => void;
+  onStartNewNote?: () => void;
 }
 
 type FilterCategory = "all" | GroupNote["category"];
 
-export function AppleNotesManager({ onNoteAdded }: AppleNotesManagerProps) {
-  const [notes, setNotes] = useState<GroupNote[]>(INITIAL_NOTES);
+function parseNotebook(content: string): GroupNote[] {
+  if (!content.trim()) return [];
+  const sections = content.split(/(?=^## )/m).filter(Boolean);
+  return sections.map((section, index) => {
+    const [heading = "Study note", ...body] = section.split("\n");
+    const text = body.join("\n").trim();
+    const meta = text.match(/^\[(concept|code|gotcha|question)\] (.*?) · (.*?)\n/);
+    return {
+      id: `shared-${index}-${heading}`,
+      title: heading.replace(/^##\s*/, "").trim() || "Study note",
+      content: meta ? text.slice(meta[0].length) : text,
+      category: (meta?.[1] as GroupNote["category"]) || "concept",
+      authorName: meta?.[2] || "Group",
+      createdAt: meta?.[3] || "Shared",
+    };
+  });
+}
+
+function serializeNotebook(notes: GroupNote[]) {
+  return notes.map((note) => `## ${note.title}\n[${note.category}] ${note.authorName} · ${note.createdAt}\n${note.content}`).join("\n\n");
+}
+
+export function AppleNotesManager({ onNoteAdded, notebookContent = "", onNotebookContentChange, onStartNewNote }: AppleNotesManagerProps) {
+  const [notes, setNotes] = useState<GroupNote[]>(() => parseNotebook(notebookContent));
   const [selectedCategory, setSelectedCategory] = useState<FilterCategory>("all");
   const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [newTitle, setNewTitle] = useState("");
@@ -68,13 +62,18 @@ export function AppleNotesManager({ onNoteAdded }: AppleNotesManagerProps) {
 
   // Listen to the top-bar Plus (+) button event from the Shared notebook navigation header
   useEffect(() => {
-    const handleOpenNewNote = () => setIsComposerOpen(true);
+    const handleOpenNewNote = () => {
+      onStartNewNote?.();
+      setIsComposerOpen(true);
+    };
     window.addEventListener("buckeye:open-new-note", handleOpenNewNote);
     return () => window.removeEventListener("buckeye:open-new-note", handleOpenNewNote);
-  }, []);
+  }, [onStartNewNote]);
 
-  const handleCreateNote = (e: React.FormEvent) => {
-    e.preventDefault();
+  useEffect(() => setNotes(parseNotebook(notebookContent)), [notebookContent]);
+
+  const handleCreateNote = (e?: React.FormEvent) => {
+    e?.preventDefault();
     if (!newContent.trim()) return;
 
     const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -87,7 +86,9 @@ export function AppleNotesManager({ onNoteAdded }: AppleNotesManagerProps) {
       createdAt: time,
     };
 
-    setNotes((prev) => [created, ...prev]);
+    const updated = [created, ...notes];
+    setNotes(updated);
+    onNotebookContentChange?.(serializeNotebook(updated));
     setNewTitle("");
     setNewContent("");
     setIsComposerOpen(false);
@@ -96,7 +97,9 @@ export function AppleNotesManager({ onNoteAdded }: AppleNotesManagerProps) {
 
   const handleDelete = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setNotes((prev) => prev.filter((n) => n.id !== id));
+    const updated = notes.filter((n) => n.id !== id);
+    setNotes(updated);
+    onNotebookContentChange?.(serializeNotebook(updated));
     if (activeNote?.id === id) setActiveNote(null);
   };
 
@@ -191,7 +194,7 @@ export function AppleNotesManager({ onNoteAdded }: AppleNotesManagerProps) {
 
         <button
           type="button"
-          onClick={() => setIsComposerOpen(true)}
+          onClick={() => { onStartNewNote?.(); setIsComposerOpen(true); }}
           className="text-xs font-semibold text-[#2d4b3c] hover:text-[#1a3327] inline-flex items-center gap-1 cursor-pointer shrink-0 py-1 px-1.5"
         >
           <Plus size={14} />

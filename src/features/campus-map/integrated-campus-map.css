@@ -16,7 +16,7 @@
 .integrated-marker-icon { display: grid; place-items: center; width: 27px; height: 27px; border-radius: 50%; color: #fff; background: #a51c30; }
 .integrated-user-location { position: absolute; z-index: 2; width: 21px; height: 21px; transform: translate(-50%, -50%); border: 3px solid #fff; border-radius: 50%; background: #1681ec; box-shadow: 0 1px 5px #17304e66, 0 0 0 8px #1985ee30; }
 .integrated-user-location.is-demo { background: #ec9e32; box-shadow: 0 1px 5px #17304e55, 0 0 0 8px #ec9e3230; }
-.integrated-map-actions { position: absolute; z-index: 3; top: max(77px,calc(env(safe-area-inset-top) + 74px)); right: max(13px,calc((100vw - 610px) / 2)); display: grid; justify-items: end; gap: 7px; transition: opacity .2s ease, visibility .2s ease; }
+.integrated-map-actions { position: absolute; z-index: 3; top: max(16px,calc(env(safe-area-inset-top) + 12px)); right: max(13px,calc((100vw - 610px) / 2)); display: grid; justify-items: end; gap: 7px; transition: opacity .2s ease, visibility .2s ease; }
 .thompson-map-app:has(.sheet-expanded) .integrated-map-actions { opacity: 0; visibility: hidden; pointer-events: none; }
 .integrated-location-button, .integrated-demo-location, .integrated-recenter, .integrated-map-zoom { border: 1px solid #ffffffed; color: #263d31; background: #ffffffed; box-shadow: 0 5px 20px #1d34221c; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
 .integrated-location-button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 39px; padding: 0 12px; border-radius: 999px; font: inherit; font-size: 10px; font-weight: 700; cursor: pointer; }
@@ -28,7 +28,7 @@
 .integrated-map-zoom button + button { border-top: 1px solid #e7ebe4; }
 .integrated-recenter { border: 1px solid #ffffffed; border-radius: 50%; background: #ffffffed; cursor: pointer; }
 .integrated-demo-location { min-height: 30px; padding: 0 10px; border-radius: 999px; color: #68776d; font: inherit; font-size: 9px; font-weight: 650; cursor: pointer; }
-.integrated-location-status { position: absolute; z-index: 3; top: max(121px,calc(env(safe-area-inset-top) + 118px)); left: max(14px,calc((100vw - 610px) / 2)); display: flex; align-items: center; gap: 7px; max-width: min(245px,calc(100vw - 125px)); padding: 8px 10px; border: 1px solid #ffffffed; border-radius: 12px; color: #52685a; background: #ffffffeb; box-shadow: 0 4px 16px #1d34221c; font-size: 9px; line-height: 1.35; }
+.integrated-location-status { position: absolute; z-index: 3; top: max(58px,calc(env(safe-area-inset-top) + 54px)); left: max(14px,calc((100vw - 610px) / 2)); display: flex; align-items: center; gap: 7px; max-width: min(245px,calc(100vw - 125px)); padding: 8px 10px; border: 1px solid #ffffffed; border-radius: 12px; color: #52685a; background: #ffffffeb; box-shadow: 0 4px 16px #1d34221c; font-size: 9px; line-height: 1.35; }
 .integrated-location-status > span { width: 8px; height: 8px; flex: 0 0 auto; border-radius: 50%; background: #8a9a8d; }
 .integrated-location-status.status-live > span { background: #147ee8; box-shadow: 0 0 0 4px #1485e522; }
 .integrated-location-status.status-demo > span { background: #ec9e32; }
@@ -47,14 +47,16 @@
 .group-search-field { max-width: 430px; margin-inline: auto; }
 .group-search-field input { font-size: 12px; }
 .group-plan-frame { overflow: visible; }
-.study-group-pin { position: absolute; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 52px; min-height: 57px; padding: 2px; transform: translate(-50%,-50%); border: 0; border-radius: 14px; color: #24372d; background: transparent; font: inherit; cursor: pointer; touch-action: manipulation; }
-.study-group-pin-icon { display: grid; place-items: center; width: 34px; height: 34px; border: 2px solid #fff; border-radius: 50%; color: #fff; background: #348d77; box-shadow: 0 2px 8px #183d344a, 0 0 0 2px #348d7733; transition: transform .16s ease, background-color .16s ease; }
-.study-group-pin-label { padding: 2px 6px; border: 1px solid #ffffff; border-radius: 999px; color: #35483e; background: #fffffff0; box-shadow: 0 2px 7px #2436292e; font-size: 8px; font-weight: 750; white-space: nowrap; }
-.study-group-pin:hover .study-group-pin-icon, .study-group-pin:focus-visible .study-group-pin-icon { background: #a51c30; }
-.integrated-map-marker-layer .embedded-group-pin { min-width: 52px; min-height: 54px; gap: 2px; }
-.integrated-map-marker-layer .embedded-group-pin .study-group-pin-icon { width: 32px; height: 32px; border-width: 2px; }
-.integrated-map-marker-layer .embedded-group-pin .study-group-pin-label { padding: 2px 6px; font-size: 8px; }
-.study-group-pin.selected .study-group-pin-icon { background: #a51c30; box-shadow: 0 0 0 4px #a51c302a, 0 2px 8px #183d344a; }
+.integrated-table-control { --table-status-color: #4d8a67; position: absolute; z-index: 2; display: block; min-width: 0; min-height: 0; padding: 0; transform: translate(-50%,-50%); border: 0; border-radius: 3px; background: transparent; cursor: pointer; touch-action: manipulation; }
+.integrated-table-control.table-status-busy { --table-status-color: #c18432; }
+.integrated-table-control.table-status-very-busy { --table-status-color: #ae3c42; }
+.integrated-table-control::after { position: absolute; inset: -3px; content: ""; border: 1.5px solid var(--table-status-color); border-radius: 5px; background: color-mix(in srgb, var(--table-status-color) 12%, transparent); box-shadow: 0 0 0 1px #ffffff96; animation: table-control-pulse 1.8s ease-out infinite; pointer-events: none; }
+.integrated-table-control.table-status-busy::after { animation-duration: 1.5s; }
+.integrated-table-control.table-status-very-busy::after { animation-duration: 1.2s; }
+.integrated-table-control:hover::after, .integrated-table-control:focus-visible::after, .integrated-table-control.selected::after { inset: -4px; border-width: 2px; background: color-mix(in srgb, var(--table-status-color) 22%, transparent); box-shadow: 0 0 0 2px #ffffffc2; }
+.integrated-table-control:focus-visible { outline: 2px solid #0b6d91; outline-offset: 2px; }
+@keyframes table-control-pulse { 0%,100% { opacity: .5; transform: scale(.92); } 50% { opacity: 1; transform: scale(1.35); } }
+@media (prefers-reduced-motion: reduce) { .integrated-table-control::after { animation: none; opacity: .75; transform: scale(1.15); } }
 .group-no-results { max-width: 430px; margin: 12px auto 4px; padding: 10px 12px; border: 1px solid #ffffffd9; border-radius: 13px; background: #ffffff8c; line-height: 1.45; }
 .integrated-plan-dot { position: absolute; z-index: 1; display: grid; place-items: center; width: 30px; height: 30px; padding: 0; transform: translate(-50%,-50%); border: 0; border-radius: 50%; background: transparent; cursor: pointer; touch-action: manipulation; pointer-events: auto; }
 .integrated-plan-dot::before { content: ""; display: block; width: 12px; height: 12px; border: 2px solid #fff; border-radius: 50%; background: #55a6ad; box-shadow: 0 1px 5px #173a3848; }
@@ -82,15 +84,15 @@
 .group-profile-name { min-width: 0; flex: 1; overflow: hidden; color: #26382d; font-size: 13px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
 .group-profile-role { padding: 5px 8px; border-radius: 999px; color: #60766a; background: #e2eee5; font-size: 9px; font-weight: 700; }
 @media (min-width: 760px) {
-  .integrated-map-actions { top: 96px; right: 24px; }
+  .integrated-map-actions { top: max(18px,calc(env(safe-area-inset-top) + 14px)); right: 24px; }
   .integrated-library-shortcut { top: 96px; left: 22px; }
-  .integrated-location-status { top: 152px; left: 22px; }
+  .integrated-location-status { top: max(62px,calc(env(safe-area-inset-top) + 58px)); left: 22px; }
   .integrated-map-note { bottom: calc(min(43svh,420px) + 18px); }
   .integrated-library-open.map-info-sheet { height: min(68svh,660px); }
   .group-info-dialog { padding: 26px 24px 20px; }
 }
 @media (max-width: 390px) {
-  .integrated-map-actions { top: max(73px,calc(env(safe-area-inset-top) + 70px)); right: 10px; gap: 5px; }
+  .integrated-map-actions { top: max(14px,calc(env(safe-area-inset-top) + 10px)); right: 10px; gap: 5px; }
   .integrated-location-button { min-height: 15px; padding: 0; font-size: 0; }
   .integrated-map-zoom button, .integrated-recenter { width: 35px; height: 35px; }
   .integrated-demo-location { min-height: 28px; padding-inline: 8px; font-size: 8px; }

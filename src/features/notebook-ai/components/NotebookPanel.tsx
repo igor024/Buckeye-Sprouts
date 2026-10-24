@@ -7,6 +7,8 @@ interface NotebookPanelProps {
   sessionId?: string;
   courseCode?: string;
   className?: string;
+  onStartNewNote?: () => void;
+  onNotebookContentChange?: (content: string) => void;
 }
 
 export function NotebookPanel({
@@ -15,6 +17,8 @@ export function NotebookPanel({
   sessionId,
   courseCode,
   className,
+  onStartNewNote,
+  onNotebookContentChange,
 }: NotebookPanelProps) {
   return (
     <CollectiveGroupNotebook
@@ -23,6 +27,8 @@ export function NotebookPanel({
       sessionId={sessionId}
       courseCode={courseCode || "CSE 2221"}
       className={className}
+      onStartNewNote={onStartNewNote}
+      onNotebookContentChange={onNotebookContentChange}
     />
   );
 }

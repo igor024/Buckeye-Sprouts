@@ -26,6 +26,8 @@ This section is the current user-approved source of truth for the Buckeye Sprout
 - Use the provided Level 1 SVG so the plan stays vector-sharp. Keep zoom and map-pan bounds in `src/types/contracts.ts`: scale 1.0 minimum, 3.6 absolute maximum, and a viewport-aware cap while the plan is open so at least 50% of its area remains visible. Do not expose blank space past the campus drawing. Align the plan and location/group/room markers through the same `xMidYMid slice` artwork projection; render clickable controls in an unscaled marker layer so text and icons remain crisp at every zoom.
 - While Group Search is active, keep the course search and all matching clickable group rows in the bottom sheet. Dragging the sheet down tucks it beneath the bottom navigation and fades it out; dragging up from the bottom navigation reveals and expands it. Clicking Groups while it is selected toggles the sheet closed; clicking it again reopens the sheet.
 - Keep the Group Search sheet and bottom navigation mostly transparent so the campus and embedded floor plan remain visible beneath them. Keep future UI layered over the map similarly translucent.
+- Keep the map canvas mounted as a persistent layer while switching bottom-navigation pages. Tab changes must not reset its camera, pan/zoom, floor-plan visibility, location, or selection; change map state only through direct user map interactions.
+- Support pinch-to-zoom on the map, respecting the existing zoom and pan bounds.
 - Keep the map's visible location control fixed at 15 × 15 CSS pixels and icon-only, with an accessible name and a transparent hit area for touch.
 - Add a class/course-number search field (for example, `CSE 2221`) and filter the visible group pins as the query changes.
 - Use local demo groups on this floor, such as Jordan's group at Table X for CSE 2221 and Sam's group at Table Y for MATH 1151. Keep them frontend-only and use the Alex, Jordan, and Sam demo profiles.
@@ -63,7 +65,17 @@ This section is the current user-approved source of truth for the Buckeye Sprout
 - On host departure, if members remain, transfer host status to the earliest-joined remaining member. If no members remain, close the group posting.
 - Automatically leave when the user moves more than **150 m** from the group location; provide a discreet `Simulate Walking Away (GPS Trigger)` action for this mock geofence flow.
 - Include an editable shared Group Notebook and an AI Summary / Catch-Up section that summarizes its current mock notes for incoming members.
+- Clean up the Notes tab presentation within the existing phone-first visual style. Whenever the user starts a new-note action, expand the Notes UI fully to make room for note entry.
+- Reuse the existing notebook components and connect them to the current group's frontend mock state; do not rebuild the notebook UI from scratch.
+- In the current-group view, provide the requested polished Carmen study-suggestion chatbot behind a circular star button. Use mock Carmen/course data only and make the simulated source clear; do not connect to Carmen Canvas.
 - At the end of Phase 3, demonstrate sheet dragging, the leave control, host succession, GPS simulation, and notebook/catch-up UI; wait for approval.
+
+### Existing notebook implementation status
+
+- `NotebookPanel` currently mounts `CollectiveGroupNotebook` in the Notes tab. Its `notebook` prop is passed as `null` from the home page, and the visible notes/catch-up panels are not yet connected to the selected group's notebook state.
+- `AppleNotesManager`, `CatchMeUpBanner`, and `CarmenAiChatbot` provide reusable UI. The current catch-up copy is fixed demo text; the chatbot uses scripted Carmen-style replies and currently opens from a star pill in the Notes heading rather than the circular star control required in the current-group view.
+- `NotebookEditor`, `PadletBoard`, `GroupAgendaChecklist`, `StickyUnitTaskPadlet`, `IndividualAiRecommendations`, and `AmbientTopicBanner` also exist. Treat these as existing prototype pieces, not completed Phase 3 requirements unless they are needed to satisfy the approved notebook/catch-up behavior.
+- Connect editable notes and catch-up to the active group's frontend-only mock state before marking the Phase 3 notebook requirement complete. Keep any optional AI endpoints and persistence behavior within the approved frontend/mock scope.
 
 ## Phase 4 — Invite-only host, State 3
 
