@@ -65,14 +65,13 @@ export async function GET(
             { headers: noStoreHeaders }
           );
         }
-        return Response.json({ request: null }, { headers: noStoreHeaders });
       }
     }
   }
 
   // 2. Demo mode check
   try {
-    const demoReq = getDemoJoinStatus(sessionId, demoRequesterId);
+    const demoReq = await getDemoJoinStatus(sessionId, demoRequesterId);
     return Response.json({ request: demoReq }, { headers: noStoreHeaders });
   } catch {
     return Response.json({ request: null }, { headers: noStoreHeaders });
@@ -108,14 +107,29 @@ export async function POST(
 
     const userId = authData.user.id;
 
-    // Check target study session
-    const { data: sessionRow, error: sessionErr } = await admin
+    // Resolve target study session (check Supabase first, then mock store)
+    let sessionRow: { id: string; host_id: string; available_seats: number; status: string } | null = null;
+    const { data: dbRow } = await admin
       .from("study_sessions")
       .select("id, host_id, available_seats, status")
       .eq("id", sessionId)
       .maybeSingle();
 
-    if (sessionErr || !sessionRow) {
+    if (dbRow) {
+      sessionRow = dbRow;
+    } else {
+      const mockSession = mockStore.sessions.find((s) => s.id === sessionId);
+      if (mockSession) {
+        sessionRow = {
+          id: mockSession.id,
+          host_id: mockSession.hostId,
+          available_seats: mockSession.availableSeats,
+          status: mockSession.status,
+        };
+      }
+    }
+
+    if (!sessionRow) {
       return Response.json(
         { error: { code: "NOT_FOUND", message: "Study session was not found." } },
         { status: 404, headers: noStoreHeaders }
@@ -143,7 +157,7 @@ export async function POST(
       );
     }
 
-    // Check existing request
+    // Check existing request in Supabase
     const { data: existingReq } = await admin
       .from("join_requests")
       .select("*")
@@ -161,7 +175,7 @@ export async function POST(
       return Response.json({ request: existingReq }, { status: 200, headers: noStoreHeaders });
     }
 
-    // Insert new join request
+    // Insert new join request in Supabase
     const { data: newRow, error: insertErr } = await admin
       .from("join_requests")
       .insert({
@@ -173,7 +187,7 @@ export async function POST(
       .single();
 
     if (insertErr || !newRow) {
-      console.error("[JoinAPI] Failed to insert join request:", insertErr);
+      console.error("[JoinAPI] Failed to insert join request in DB:", insertErr);
       return Response.json(
         { error: { code: "PERSISTENCE_ERROR", message: "Failed to record join request." } },
         { status: 500, headers: noStoreHeaders }
@@ -216,7 +230,7 @@ export async function POST(
 
   // 2. Demo mode path (fallback for judges and unauthenticated testing)
   try {
-    const preview = requestDemoJoinAs(sessionId, demoRequesterId);
+    const preview = await requestDemoJoinAs(sessionId, demoRequesterId);
     return Response.json(preview, {
       status: 201,
       headers: {
