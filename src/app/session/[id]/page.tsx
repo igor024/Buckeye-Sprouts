@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, LockKeyhole, Users } from "lucide-react";
 import { ApprovalQueue } from "@/features/auth-profiles/components/ApprovalQueue";
-import { authProfilesService } from "@/features/auth-profiles/services";
+import { JoinApprovalGate } from "@/features/auth-profiles/components/JoinApprovalGate";
+import { authDemoEnabled, authProfilesService } from "@/features/auth-profiles/services";
 import { sessionsDiscoveryService } from "@/features/sessions-discovery/services";
 import { LocationStatus } from "@/features/location-checkin/components/LocationStatus";
 import { locationCheckInService } from "@/features/location-checkin/services";
@@ -32,7 +33,15 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
         <aside className="md:col-span-4 xl:col-span-3"><LocationStatus detail={detail} checkIn={checkIn} /></aside>
         <div className="md:col-span-8 xl:col-span-6"><NotebookPanel notebook={notebook} locked={detail.access === "locked"} /></div>
-        <aside className="md:col-span-12 xl:col-span-3"><ApprovalQueue requests={requests} isHost={detail.access === "host"} /></aside>
+        <aside className="md:col-span-12 xl:col-span-3 grid gap-6">
+          <JoinApprovalGate session={detail.session} access={detail.access} demoMode={authDemoEnabled} />
+          <ApprovalQueue
+            requests={requests}
+            isHost={detail.access === "host"}
+            session={detail.session}
+            sessionId={id}
+          />
+        </aside>
       </div>
     </main>
   );
