@@ -1,12 +1,22 @@
 // BuckeyeStudy Service Worker (PWA)
 // Enables offline access, background resilience in OSU libraries, and asset caching
 
-const CACHE_NAME = "buckeyestudy-v1";
-const OFFLINE_FALLBACK_URL = "/offline";
+const CACHE_NAME = "buckeyestudy-v2";
 
-const PRECACHE_ASSETS = [
+// Dynamically determine the application base path (e.g. "/hackohio2026" on GitHub Pages or "" on localhost)
+function getBasePath() {
+  try {
+    const scopeUrl = new URL(self.registration ? self.registration.scope : self.location.href);
+    const path = scopeUrl.pathname;
+    return path.endsWith("/") ? path.slice(0, -1) : path;
+  } catch {
+    return "";
+  }
+}
+
+const PRECACHE_PATHS = [
   "/",
-  OFFLINE_FALLBACK_URL,
+  "/offline",
   "/manifest.webmanifest",
   "/manifest.json",
   "/favicon.svg",
@@ -18,15 +28,32 @@ const PRECACHE_ASSETS = [
   "/icons/apple-touch-icon.png",
 ];
 
-// Install: precache offline shell and core assets
+// Install: precache offline shell and core assets defensively
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
       .open(CACHE_NAME)
-      .then((cache) => cache.addAll(PRECACHE_ASSETS))
+      .then(async (cache) => {
+        const basePath = getBasePath();
+        const urlsToCache = PRECACHE_PATHS.map((p) => `${basePath}${p}`);
+
+        // Cache each asset using Promise.allSettled so a single missing asset or 404 does NOT abort installation
+        await Promise.allSettled(
+          urlsToCache.map(async (url) => {
+            try {
+              const res = await fetch(url);
+              if (res.ok) {
+                await cache.put(url, res);
+              }
+            } catch {
+              // Silently ignore individual asset fetch failures during install
+            }
+          })
+        );
+      })
       .then(() => self.skipWaiting())
       .catch((err) => {
-        console.warn("[PWA SW] Precache failed during install:", err);
+        console.warn("[PWA SW] Precache warning during install:", err);
       })
   );
 });
@@ -47,7 +74,7 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-// Fetch: smart network-first with offline fallback for pages, stale-while-revalidate for static assets
+// Fetch: network-first for pages with offline fallback, stale-while-revalidate for static assets
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   const url = new URL(request.url);
@@ -57,8 +84,10 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  const basePath = getBasePath();
+
   // API calls: Network-first, do not fallback to HTML offline page
-  if (url.pathname.startsWith("/api/")) {
+  if (url.pathname.includes("/api/")) {
     event.respondWith(
       fetch(request).catch(() => {
         return new Response(
@@ -94,54 +123,29 @@ self.addEventListener("fetch", (event) => {
           if (cachedResponse) {
             return cachedResponse;
           }
-          const fallback = await caches.match(OFFLINE_FALLBACK_URL);
-          return fallback || new Response("BuckeyeStudy is offline", { status: 503 });
+          const offlineFallback =
+            (await caches.match(`${basePath}/offline`)) ||
+            (await caches.match("/offline")) ||
+            (await caches.match(`${basePath}/`)) ||
+            (await caches.match("/"));
+          return offlineFallback || new Response("BuckeyeStudy is offline", { status: 503 });
         })
     );
     return;
   }
 
-  // Static assets (CSS, JS, images, fonts): Cache-first with stale-while-revalidate
-  const isStaticAsset =
-    url.pathname.startsWith("/_next/static/") ||
-    url.pathname.startsWith("/icons/") ||
-    url.pathname.endsWith(".css") ||
-    url.pathname.endsWith(".js") ||
-    url.pathname.endsWith(".svg") ||
-    url.pathname.endsWith(".png") ||
-    url.pathname.endsWith(".ico") ||
-    url.pathname.endsWith(".woff2");
-
-  if (isStaticAsset) {
-    event.respondWith(
-      caches.match(request).then((cached) => {
-        const networkFetch = fetch(request)
-          .then((response) => {
-            if (response.status === 200) {
-              const copy = response.clone();
-              caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
-            }
-            return response;
-          })
-          .catch(() => cached);
-
-        return cached || networkFetch;
-      })
-    );
-    return;
-  }
-
-  // Default fallback: Network with cache fallback
+  // Static assets (CSS, JS, images, fonts): Cache-first with network fallback
   event.respondWith(
-    fetch(request)
-      .then((response) => {
+    caches.match(request).then((cached) => {
+      if (cached) return cached;
+      return fetch(request).then((response) => {
         if (response.status === 200) {
           const copy = response.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
         }
         return response;
-      })
-      .catch(() => caches.match(request))
+      }).catch(() => cached);
+    })
   );
 });
 
@@ -160,17 +164,16 @@ self.addEventListener("push", (event) => {
     const title = data.title || "BuckeyeStudy Notification";
     const options = {
       body: data.body || "New study group activity at Ohio State.",
-      icon: "/icons/icon-192.png",
-      badge: "/icons/icon.svg",
-      data: { url: data.url || "/" },
+      icon: `${getBasePath()}/icons/icon-192.png`,
+      badge: `${getBasePath()}/icons/icon.svg`,
+      data: { url: data.url || `${getBasePath()}/` },
     };
     event.waitUntil(self.registration.showNotification(title, options));
   } catch {
-    // Plain text fallback
     event.waitUntil(
       self.registration.showNotification("BuckeyeStudy", {
         body: event.data.text(),
-        icon: "/icons/icon-192.png",
+        icon: `${getBasePath()}/icons/icon-192.png`,
       })
     );
   }
@@ -178,7 +181,8 @@ self.addEventListener("push", (event) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const targetUrl = (event.notification.data && event.notification.data.url) || "/";
+  const basePath = getBasePath();
+  const targetUrl = (event.notification.data && event.notification.data.url) || `${basePath}/`;
   event.waitUntil(
     clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
       for (const client of clientList) {

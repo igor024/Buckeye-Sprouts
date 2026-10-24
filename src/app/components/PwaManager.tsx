@@ -58,10 +58,25 @@ export function PwaManager() {
     };
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
 
-    // 5. Register Service Worker in production & local demo
+    // 5. Register Service Worker with dynamic base path awareness (GitHub Pages subpath vs root)
     if ("serviceWorker" in navigator) {
+      const getAppBasePath = () => {
+        if (typeof window === "undefined") return "";
+        if (window.location.hostname.endsWith(".github.io")) {
+          const segments = window.location.pathname.split("/").filter(Boolean);
+          if (segments.length > 0) {
+            return `/${segments[0]}`;
+          }
+        }
+        return "";
+      };
+
+      const basePath = getAppBasePath();
+      const swUrl = `${basePath}/sw.js`;
+      const swScope = `${basePath}/`;
+
       navigator.serviceWorker
-        .register("/sw.js", { scope: "/" })
+        .register(swUrl, { scope: swScope })
         .then((registration) => {
           registration.addEventListener("updatefound", () => {
             const newWorker = registration.installing;
