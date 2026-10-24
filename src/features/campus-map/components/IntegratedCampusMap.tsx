@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { BookOpen, Crosshair, LocateFixed, MapPin, Minus, Plus, X } from "lucide-react";
+import { BookOpen, Crosshair, LocateFixed, MapPin, Minus, Plus, Users, X } from "lucide-react";
 import { createPortal } from "react-dom";
 import {
   CAMPUS_MAP_ARTWORK_SIZE,
@@ -10,11 +10,12 @@ import {
   CAMPUS_MAP_GEO_BOUNDS,
   CAMPUS_MAP_LANDMARKS,
   CAMPUS_MAP_ZOOM_LIMITS,
+  MOCK_STUDY_GROUP_PINS,
   THOMPSON_EAST_ENTRANCE_PLAN,
   type CampusMapView,
   type Coordinates,
   type CampusMapSpot,
-  type ThompsonTable,
+  type StudyGroupMapPin,
 } from "@/types/contracts";
 import "../integrated-campus-map.css";
 
@@ -64,23 +65,6 @@ function planPointToScreen(position: { x: number; y: number }, view: CampusMapVi
     x: plan.left + plan.width * position.x / 100,
     y: plan.top + plan.height * position.y / 100,
   }, view, viewport);
-}
-
-function planTableStyle(table: ThompsonTable, view: CampusMapView, viewport: ViewportSize) {
-  const plan = getPlanGeometry(viewport);
-  const center = planPointToScreen(table, view, viewport);
-  return {
-    left: `${Math.round(center.x)}px`,
-    top: `${Math.round(center.y)}px`,
-    width: `${plan.width * table.width / 100 * view.scale}px`,
-    height: `${plan.height * table.height / 100 * view.scale}px`,
-  };
-}
-
-function tableStatusLabel(table: ThompsonTable): string {
-  if (table.status === "empty") return `${table.label}: available`;
-  if (table.status === "full") return `${table.label}: group is full`;
-  return `${table.label}: group is studying here`;
 }
 
 function maximumMapScale(viewport: ViewportSize, keepThompsonVisible: boolean): number {
@@ -143,23 +127,23 @@ export function IntegratedCampusMap({
   onOpenFloorPlan,
   showLibraryPlan,
   libraryFocusRequest,
-  visibleTables,
+  visibleGroups,
   visibleSpots,
   selectedSpot,
   showRoute,
-  selectedTableId,
-  onSelectTable,
+  selectedGroupId,
+  onSelectGroup,
   onSelectSpot,
 }: {
   onOpenFloorPlan: () => void;
   showLibraryPlan: boolean;
   libraryFocusRequest: number;
-  visibleTables: readonly ThompsonTable[];
+  visibleGroups: StudyGroupMapPin[];
   visibleSpots: CampusMapSpot[];
   selectedSpot: CampusMapSpot | null;
   showRoute: boolean;
-  selectedTableId: string | null;
-  onSelectTable: (table: ThompsonTable, trigger: HTMLElement) => void;
+  selectedGroupId: string | null;
+  onSelectGroup: (group: StudyGroupMapPin, trigger: HTMLElement) => void;
   onSelectSpot: (spot: CampusMapSpot) => void;
 }) {
   const [view, setView] = useState<CampusMapView>({ scale: CAMPUS_MAP_ZOOM_LIMITS.minScale, x: 0, y: 0 });
@@ -452,16 +436,19 @@ export function IntegratedCampusMap({
               <span className="integrated-marker-icon"><BookOpen size={15} /></span><span>Thompson Library</span>
             </button>
           ))}
-          {showLibraryPlan && visibleTables.map((table) => (
+          {showLibraryPlan && visibleGroups.map((group) => (
             <button
-              key={table.id}
+              key={group.id}
               type="button"
-              className={`integrated-table-control${selectedTableId === table.id ? " selected" : ""}`}
-              style={planTableStyle(table, view, mapSize)}
-              onClick={(event) => onSelectTable(table, event.currentTarget)}
-              aria-label={tableStatusLabel(table)}
-              title={tableStatusLabel(table)}
-            />
+              className={`study-group-pin embedded-group-pin${selectedGroupId === group.id ? " selected" : ""}`}
+              style={planMarkerStyle(group)}
+              onClick={(event) => onSelectGroup(group, event.currentTarget)}
+              aria-label={`${group.name}, studying ${group.courseCode}, at ${group.tableLabel}`}
+              title={`${group.name} · ${group.courseCode} · ${group.tableLabel}`}
+            >
+              <span className="study-group-pin-icon"><Users size={16} /></span>
+              <span className="study-group-pin-label">{group.tableLabel}</span>
+            </button>
           ))}
           {showLibraryPlan && visibleSpots.map((spot) => (
             <button
