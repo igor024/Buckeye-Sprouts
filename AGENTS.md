@@ -4,6 +4,35 @@
 
 ---
 
+## 0. HackOHIO 2026 Open Track Rubric (MANDATORY BEFORE CODING)
+
+All agents **MUST** evaluate every implementation decision against the official HackOHIO Open Track Judging Rubric before writing any code:
+
+```
+┌─────────────────────────────────┬─────────────────────────────────┬─────────────────────────────────┐
+│           CURIOSITY             │          CONNECTIONS            │         CREATING VALUE          │
+├─────────────────────────────────┼─────────────────────────────────┼─────────────────────────────────┤
+│ • Innovation                    │ • Communication                 │ • Impact                        │
+│ • Curiosity                     │ • Project Breadth & Complexity  │ • Growth Mindset (Navigating    │
+│                                 │                                 │   Challenges)                   │
+└─────────────────────────────────┴─────────────────────────────────┴─────────────────────────────────┘
+```
+
+### Rubric Directives for Agents:
+1. **Curiosity (Innovation & Curiosity):**
+   - Push beyond standard CRUD apps. Emphasize physical-to-digital hardware integration (1D BuckID barcode scanner, Table QR, GPS Haversine geofence calculation, and ambient cross-session intelligence).
+2. **Connections (Communication & Project Breadth):**
+   - Provide clean, intuitive UI with Scarlet & Gray branding.
+   - **Crucial for Judging:** Every physical hardware feature (GPS, camera barcode scan, room booking) MUST provide a 1-click **"Simulate / Test Mode"** toggle in the UI so judges can experience the full flow in seconds without physical cards or walking.
+   - Maintain seamless end-to-end integration across all 4 workstreams.
+3. **Creating Value (Impact & Growth Mindset / Navigating Challenges):**
+   - Address the authentic campus problem: finding study spots during exam crunches, preventing seat-hogging, and fostering peer study groups.
+   - Demonstrate resilience through graceful fallbacks: offline PWA caching with `/offline` vault, local in-memory fallback state, and deterministic mock adapters.
+
+*Detailed rubric breakdown available in [`HACKATHON_RUBRIC.md`](./HACKATHON_RUBRIC.md).*
+
+---
+
 ## 1. System Overview & Multi-Agent Operating Model
 
 This repository is built using a **Contract-First, Feature-Sliced Architecture**. Multiple autonomous agents (or parallel developers) work simultaneously on isolated domains without colliding on files or altering core contracts without consensus.
@@ -32,6 +61,7 @@ This repository is built using a **Contract-First, Feature-Sliced Architecture**
 ```
 
 ### Global Ground Rules for All Agents
+0. **Mandatory Rubric Consideration:** Before writing code, review how your feature satisfies **Curiosity** (innovation), **Connections** (communication & demo simulator toggles), and **Creating Value** (real student impact & resilient fallbacks).
 1. **Contract Immutability:** Never modify `src/types/contracts.ts` directly unless explicitly prompted. If a field is missing, propose a backward-compatible optional field.
 2. **Strict File Isolation:** You may only create, modify, or delete files inside your designated feature directory or API route.
 3. **Mock-First Fallback:** Supabase or external APIs might have missing environment variables during hackathon evaluations. Every feature must gracefully fall back to in-memory local state or deterministic mock fixtures.
@@ -212,3 +242,8 @@ Before finishing a workstream or pushing code, run the following verification ch
 
 3. **Fallback Resiliency:**
    Disconnect internet/invalidate API keys. The app must remain operable in "Mock Demo Mode" without crashing.
+
+4. **HackOHIO Rubric Compliance:**
+   - **Curiosity:** Feature incorporates innovative functionality (hardware integration, geofencing, ambient AI, photo verification).
+   - **Connections:** UI is polished with Scarlet/Gray tokens and includes 1-click judge simulation toggles.
+   - **Creating Value:** Directly addresses student library pain points and remains resilient under network/hardware failures.

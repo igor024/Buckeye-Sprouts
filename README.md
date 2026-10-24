@@ -4,6 +4,25 @@ A Next.js App Router + TypeScript foundation for an Ohio State study group finde
 This handoff intentionally contains read-only feature previews, deterministic mock
 services, shared contracts, and API stubs. It does not implement the four features.
 
+## HackOHIO 2026 — Open Track Judging Rubric Alignment
+
+> **Crucial for all agents & judges:** BuckeyeStudy is architected directly around the **HackOHIO 2026 Open Track Rubric**. See [`HACKATHON_RUBRIC.md`](./HACKATHON_RUBRIC.md) and [`AGENTS.md`](./AGENTS.md) for full details.
+
+```
+┌─────────────────────────┐  ┌─────────────────────────┐  ┌─────────────────────────┐
+│        CURIOSITY        │  │       CONNECTIONS       │  │     CREATING VALUE      │
+├─────────────────────────┤  ├─────────────────────────┤  ├─────────────────────────┤
+│ • Innovation            │  │ • Communication         │  │ • Impact                │
+│ • Curiosity             │  │ • Project Breadth &     │  │ • Growth Mindset        │
+│                         │  │   Complexity            │  │   (Navigating           │
+│                         │  │                         │  │   Challenges)           │
+└─────────────────────────┘  └─────────────────────────┘  └─────────────────────────┘
+```
+
+- **Curiosity:** Physical-to-digital hardware bridge (camera 1D BuckID barcode & Table QR scanner), Haversine GPS departure geofencing, ambient cross-session intelligence, and visual crowd-density surroundings photos.
+- **Connections:** Polish Scarlet & Gray (`#ba0c2f`) UI, multi-tiered join approval privacy gate, unified 4-workstream contracts, and **1-click Judge Simulation Controls** on all physical features (GPS walking, BuckID swipe, Table QR) for instant demo evaluation without external dependencies.
+- **Creating Value:** Directly solves campus library overcrowding during midterms and finals, eliminates table-hogging, and provides complete offline resiliency (PWA caching with `/offline` vault, emergency offline BuckID pass, deterministic mock fallbacks).
+
 ## Run locally
 
 Requires Node.js 20.9+ and npm. In Windows PowerShell, use `npm.cmd` if script policy
