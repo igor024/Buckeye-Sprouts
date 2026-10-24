@@ -29,6 +29,7 @@ This section is the current user-approved source of truth for the Buckeye Sprout
 - Keep the map's visible location control fixed at 15 × 15 CSS pixels and icon-only, with an accessible name and a transparent hit area for touch.
 - Add a class/course-number search field (for example, `CSE 2221`) and filter the visible group pins as the query changes.
 - Use local demo groups on this floor, such as Jordan's group at Table X for CSE 2221 and Sam's group at Table Y for MATH 1151. Keep them frontend-only and use the Alex, Jordan, and Sam demo profiles.
+- Show table states as **empty**, **busy**, or **very busy**. There are no full tables; users may still join a group at a very busy table.
 - Selecting a group row or map pin opens an information pop-up with:
   - an `X` close button at the top-left;
   - the group name as its heading;
@@ -45,6 +46,7 @@ This section is the current user-approved source of truth for the Buckeye Sprout
 - Provide a small development/demo toggle to exercise both location outcomes:
   - **Existing group:** Show `Join [Host Name]'s Group?`, the same group heading, course/topic study status, and scrolling host-first participant list as Phase 1, plus a confirmation action to join.
   - **No existing group:** Show `Create Group?` and the sequential inputs/actions below.
+- A very busy table does not block joining; do not present a full-table state or reject a join solely because of group busyness.
 - The create flow must include:
   1. Group name defaulting to `[Profile-Name]'s Group`; focusing the input selects all default text for easy replacement.
   2. Searchable study-status/course selection.
@@ -59,7 +61,7 @@ This section is the current user-approved source of truth for the Buckeye Sprout
   - expanded by swiping up: cover the full screen over the map.
 - Place a **red `Leave group` button in the top-right** of the group tab.
 - On host departure, if members remain, transfer host status to the earliest-joined remaining member. If no members remain, close the group posting.
-- Provide a discreet `Simulate Walking Away (GPS Trigger)` action for the mock geofence auto-leave flow.
+- Automatically leave when the user moves more than **150 m** from the group location; provide a discreet `Simulate Walking Away (GPS Trigger)` action for this mock geofence flow.
 - Include an editable shared Group Notebook and an AI Summary / Catch-Up section that summarizes its current mock notes for incoming members.
 - At the end of Phase 3, demonstrate sheet dragging, the leave control, host succession, GPS simulation, and notebook/catch-up UI; wait for approval.
 
@@ -74,6 +76,7 @@ This section is the current user-approved source of truth for the Buckeye Sprout
 
 - Never continue beyond the current phase on the assumption that elapsed time or a preview implies approval.
 - Confirmed for Phase 1: replace the current Groups tab, embed and auto-zoom to the Thompson East Entrance Level 1 plan on the campus map, seed local dummy groups using Alex/Jordan/Sam, keep all clickable group rows visible in the sheet, support drag and selected-tab toggle to hide it plus bottom-bar drag to expand it, make map overlays mostly transparent, use a fixed 15 × 15 px visual location control with a transparent touch hit area, and omit both seat count and table photo. The host appears first but scrolls with the other profiles. Do not ask these resolved questions again.
+- Confirmed table and geofence behavior: tables use empty/busy/very busy states only; users may join at very busy tables; mock GPS auto-leave triggers beyond 150 m from the group location.
 - Keep all mock interactions local to the frontend. Do not claim that simulated scan, membership, GPS, invite, notebook, or AI actions are backed by live services.
 
 ---

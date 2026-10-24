@@ -1,0 +1,13 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/api/ai/feedback/route": "/api/ai/feedback",
+  "/api/ai/summarize/route": "/api/ai/summarize",
+  "/api/rooms/book/route": "/api/rooms/book",
+  "/api/sessions/[id]/join/route": "/api/sessions/[id]/join",
+  "/api/sessions/route": "/api/sessions",
+  "/manifest.webmanifest/route": "/manifest.webmanifest",
+  "/offline/page": "/offline",
+  "/page": "/",
+  "/session/[id]/page": "/session/[id]"
+}

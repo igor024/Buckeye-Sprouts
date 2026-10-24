@@ -1,0 +1,33 @@
+1:"$Sreact.fragment"
+2:"/_next/static/chunks/0umf92h1sb77c.js"
+3:"/_next/static/chunks/189x3-ip-vjcs.js"
+4:"/_next/static/chunks/35w8phpjdo0ho.js"
+5:I[66177,["$2","$3","$4"],"AuthProvider"]
+6:I[19184,["$2","$3","$4"],"PwaManager"]
+7:I[26835,["$2","$3","$4"],"AuthModal"]
+8:I[39756,["$2","$3","$4"],"default"]
+9:I[37457,["$2","$3","$4"],"default"]
+a:I[22016,["$2","$3","$4"],""]
+11:I[97367,["$2","$3","$4"],"OutletBoundary"]
+12:"$Sreact.suspense"
+15:"ViewportBoundary"
+16:I[97367,["$2","$3","$4"],"$15"]
+17:"MetadataBoundary"
+18:I[97367,["$2","$3","$4"],"$17"]
+19:I[27201,["$2","$3","$4"],"IconMark"]
+:HL["/_next/static/chunks/2dry-v4qyldvg.css","style"]
+c:X
+f:X
+f:C
+10:[["children",{"s":"__PAGE__","h":160,"d":{"r":["$","$1","c",{"children":[["$","main",null,{"id":"main","className":"site-width py-24 text-center","children":[["$","p",null,{"className":"eyebrow","children":"SESSION NOT FOUND"}],["$","h1",null,{"className":"text-3xl font-semibold mt-4","children":"This study spot isn't here."}],["$","p",null,{"className":"muted mt-3","children":"Head back to find another group."}],["$","$La",null,{"className":"button-primary mt-6 inline-flex","href":"/","children":"Back to discovery"}]]}],null,["$","$L11",null,{"children":["$","$12",null,{"name":"Next.MetadataOutlet","children":"$@13"}]}]]}],"p":"$@14","v":null,"s":"$c"}}]]
+d:[["children",{"s":"/_not-found","h":96,"d":{"r":["$","$1","c",{"children":[null,["$","$L8",null,{"parallelRouterKey":"children","template":["$","$L9",null,{}]}]]}],"p":"$@e","v":"$f","s":"$c"},"c":"$Q10"}]]
+0:{"t":{"t":{"s":"","h":80,"d":{"r":["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"/_next/static/chunks/2dry-v4qyldvg.css","precedence":"next"}],["$","script","script-0",{"src":"/_next/static/chunks/0umf92h1sb77c.js","async":true}],["$","script","script-1",{"src":"/_next/static/chunks/189x3-ip-vjcs.js","async":true}],["$","script","script-2",{"src":"/_next/static/chunks/35w8phpjdo0ho.js","async":true}]],["$","html",null,{"lang":"en","children":[["$","head",null,{"children":[["$","meta",null,{"name":"mobile-web-app-capable","content":"yes"}],["$","meta",null,{"name":"apple-mobile-web-app-capable","content":"yes"}],["$","meta",null,{"name":"apple-mobile-web-app-status-bar-style","content":"default"}],["$","meta",null,{"name":"theme-color","content":"#d5eab9"}]]}],["$","body",null,{"children":[["$","a",null,{"className":"skip-link","href":"#main","children":"Skip to content"}],["$","$L5",null,{"children":[["$","$L6",null,{}],["$","$L7",null,{}],["$","$L8",null,{"parallelRouterKey":"children","template":["$","$L9",null,{}],"notFound":[["$","main",null,{"id":"main","className":"site-width py-24 text-center","children":[["$","p",null,{"className":"eyebrow","children":"SESSION NOT FOUND"}],["$","h1",null,{"className":"text-3xl font-semibold mt-4","children":"This study spot isn't here."}],["$","p",null,{"className":"muted mt-3","children":"Head back to find another group."}],["$","$La",null,{"className":"button-primary mt-6 inline-flex","href":"/","children":"Back to discovery"}]]}],[]]}],["$","footer",null,{"className":"site-width flex flex-wrap items-center justify-between gap-3 py-7 text-xs text-stone-500 border-t border-stone-200 mt-12","children":[["$","span",null,{"children":"Made for little breakthroughs. Built for Buckeyes."}],["$","span",null,{"children":"Hackathon scaffold · PWA enabled · synthetic data · feature controls coming soon"}]]}]]}]]}]]}]]}],"p":"$@b","v":null,"s":"$c"},"c":"$Qd"},"h":{"r":["$","$1","h",{"children":[["$","meta",null,{"name":"robots","content":"noindex"}],["$","$L16",null,{"children":[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover"}],["$","meta","2",{"name":"theme-color","content":"#d5eab9"}]]}],["$","$L18",null,{"children":[["$","div",null,{"hidden":true,"children":["$","$12",null,{"name":"Next.Metadata","children":[["$","title","0",{"children":"Buckeye Sprouts · Study together"}],["$","meta","1",{"name":"description","content":"Find your study group at Ohio State with Buckeye Sprouts."}],["$","meta","2",{"name":"application-name","content":"Buckeye Sprouts"}],["$","link","3",{"rel":"manifest","href":"/manifest.webmanifest"}],["$","meta","4",{"name":"format-detection","content":"telephone=no"}],["$","meta","5",{"name":"mobile-web-app-capable","content":"yes"}],["$","meta","6",{"name":"apple-mobile-web-app-title","content":"Buckeye Sprouts"}],["$","meta","7",{"name":"apple-mobile-web-app-status-bar-style","content":"default"}],["$","link","8",{"rel":"icon","href":"/favicon.svg","type":"image/svg+xml"}],["$","link","9",{"rel":"icon","href":"/icons/icon-192.png","sizes":"192x192","type":"image/png"}],["$","link","10",{"rel":"icon","href":"/icons/icon-512.png","sizes":"512x512","type":"image/png"}],["$","link","11",{"rel":"apple-touch-icon","href":"/icons/apple-touch-icon.png","sizes":"180x180","type":"image/png"}],["$","$L19","12",{}]]}]}],null]}],null]}],"p":"$@1a","v":null,"s":"$c"}},"a":"$@1b","u":"$@1c","b":"0Isy5fOdV9NJ4XX35Cu6t"}
+13:null
+c:300
+1c:true
+c:C
+1b:0
+e:"$undefined"
+b:"$undefined"
+1a:"$undefined"
+14:"$undefined"

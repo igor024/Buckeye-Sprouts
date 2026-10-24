@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "functions": {
+    "/api/ai/feedback": {},
+    "/api/ai/summarize": {},
+    "/api/rooms/book": {},
+    "/api/sessions": {},
+    "/api/sessions/[id]/join": {}
+  }
+}

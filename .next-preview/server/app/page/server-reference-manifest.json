@@ -1,0 +1,15 @@
+{
+  "node": {
+    "4036f9cc7261978a3ae81ba4c5704a0ad18d419b41": {
+      "workers": {
+        "app/page": {
+          "moduleId": 88859,
+          "async": false
+        }
+      },
+      "exportedName": "updateDemoProfileAction",
+      "filename": "src/features/auth-profiles/actions.ts"
+    }
+  },
+  "edge": {}
+}

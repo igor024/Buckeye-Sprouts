@@ -1,0 +1,13 @@
+{
+  "/_global-error/page": "app/_global-error/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/ai/feedback/route": "app/api/ai/feedback/route.js",
+  "/api/ai/summarize/route": "app/api/ai/summarize/route.js",
+  "/api/rooms/book/route": "app/api/rooms/book/route.js",
+  "/api/sessions/[id]/join/route": "app/api/sessions/[id]/join/route.js",
+  "/api/sessions/route": "app/api/sessions/route.js",
+  "/manifest.webmanifest/route": "app/manifest.webmanifest/route.js",
+  "/offline/page": "app/offline/page.js",
+  "/page": "app/page.js",
+  "/session/[id]/page": "app/session/[id]/page.js"
+}
