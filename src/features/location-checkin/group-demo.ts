@@ -14,23 +14,17 @@ export type Action =
   | { type: "sync-from-db"; groups: DemoStudyGroup[] };
 
 export function createDemoGroupState(initialGroups?: DemoStudyGroup[]): DemoGroupState {
-  if (initialGroups && initialGroups.length > 0) {
-    const dbTableIds = new Set(initialGroups.map((g) => g.tableId));
-    const combined = [
-      ...initialGroups.map((group) => ({
+  if (initialGroups !== undefined) {
+    return {
+      groups: initialGroups.map((group) => ({
         ...group,
         members: [...group.members],
         invitedProfileIds: [...group.invitedProfileIds],
         joinedAtByProfileId: { ...group.joinedAtByProfileId },
       })),
-      ...MOCK_DEMO_STUDY_GROUPS.filter((g) => !dbTableIds.has(g.tableId)).map((group) => ({
-        ...group,
-        members: [...group.members],
-        invitedProfileIds: [...group.invitedProfileIds],
-        joinedAtByProfileId: { ...group.joinedAtByProfileId },
-      })),
-    ];
-    return { groups: combined, activeGroupId: null, notice: "" };
+      activeGroupId: null,
+      notice: "",
+    };
   }
   return {
     groups: MOCK_DEMO_STUDY_GROUPS.map((group) => ({
@@ -56,17 +50,15 @@ export function canJoinDemoGroup(group: DemoStudyGroup, profileId: string) {
 export function demoGroupReducer(state: DemoGroupState, action: Action): DemoGroupState {
   if (action.type === "clear-notice") return { ...state, notice: "" };
   if (action.type === "sync-from-db") {
-    const dbTableIds = new Set(action.groups.map((g) => g.tableId));
-    const merged = [
-      ...action.groups.map((g) => ({
+    return {
+      ...state,
+      groups: action.groups.map((g) => ({
         ...g,
         members: [...g.members],
         invitedProfileIds: [...(g.invitedProfileIds || [])],
         joinedAtByProfileId: { ...g.joinedAtByProfileId },
       })),
-      ...state.groups.filter((g) => !dbTableIds.has(g.tableId)),
-    ];
-    return { ...state, groups: merged };
+    };
   }
   if (action.type === "join") {
     const group = state.groups.find((item) => item.id === action.groupId);

@@ -135,14 +135,16 @@ export function TableRoutingView({ tableId: initialTableId }: { tableId: string 
   const handleQuickDemoSignIn = async (demoEmail: string, demoName: string) => {
     setIsSigningIn(true);
     setAuthError(null);
+    setEmail(demoEmail);
+    setPassword("buckeye2026");
     try {
       const res = await signIn(demoEmail, "buckeye2026");
       if (res.error) {
-        // Fallback for demo when Supabase network isn't configured
-        console.log(`[Demo] Signed in locally as ${demoName}`);
+        setAuthError(res.error);
+        console.warn(`[Demo] Sign in failed for ${demoName}:`, res.error);
       }
-    } catch {
-      // Ignored for demo resilience
+    } catch (err) {
+      setAuthError(err instanceof Error ? err.message : "Authentication failed.");
     } finally {
       setIsSigningIn(false);
     }
@@ -303,6 +305,22 @@ export function TableRoutingView({ tableId: initialTableId }: { tableId: string 
                 className="button-secondary text-xs py-2 px-3 hover:border-red-800"
               >
                 Sign in as Jordan Lee (Math)
+              </button>
+              <button
+                type="button"
+                disabled={isSigningIn}
+                onClick={() => handleQuickDemoSignIn("sam.patel@osu.edu", "Sam Patel")}
+                className="button-secondary text-xs py-2 px-3 hover:border-red-800"
+              >
+                Sign in as Sam Patel (CSE)
+              </button>
+              <button
+                type="button"
+                disabled={isSigningIn}
+                onClick={() => handleQuickDemoSignIn("brutus.buckeye@osu.edu", "Brutus Buckeye")}
+                className="button-secondary text-xs py-2 px-3 hover:border-red-800"
+              >
+                Sign in as Brutus Buckeye
               </button>
             </div>
           </div>

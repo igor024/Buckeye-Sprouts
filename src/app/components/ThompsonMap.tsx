@@ -34,16 +34,16 @@ type MapTab = "groups" | "join" | "notes" | "me";
 
 export function ThompsonMap({
   sessions: _sessions,
-  initialGroups,
+  initialGroups = [],
   profile,
   profilePanel,
-  locationPanel,
+  locationPanel: _locationPanel,
 }: {
   sessions: SessionPreview[];
   initialGroups?: DemoStudyGroup[];
   profile: ProfilePreview | null;
   profilePanel: ReactNode;
-  locationPanel: ReactNode;
+  locationPanel?: ReactNode;
 }) {
   const [tab, setTab] = useState<MapTab>("groups");
   const [expanded, setExpanded] = useState(false);
@@ -60,10 +60,19 @@ export function ThompsonMap({
   const [readerLocation, setReaderLocation] = useState<DemoReaderLocation | null>(null);
   const activeGroup = groupState.groups.find((group) => group.id === groupState.activeGroupId) ?? null;
   const viewer: ProfilePreview = profile ?? MOCK_PROFILES[0];
-  const tables: ThompsonTable[] = useMemo(() => THOMPSON_EAST_ENTRANCE_TABLES.map((table) => {
-    const group = groupState.groups.find((item) => item.tableId === table.id);
-    return { ...table, groupId: group?.id, status: group ? table.status === "empty" ? "busy" : table.status : "empty" };
-  }), [groupState.groups]);
+  const tables: ThompsonTable[] = useMemo(() => {
+    return THOMPSON_EAST_ENTRANCE_TABLES.map((table) => {
+      const group = groupState.groups.find((item) => item.tableId === table.id);
+      return {
+        ...table,
+        groupId: group ? group.id : undefined,
+        status: group
+          ? (group.inviteOnly || (group.members && group.members.length >= 3) ? "very-busy" : "busy")
+          : "empty",
+        showInSearch: Boolean(group),
+      };
+    });
+  }, [groupState.groups]);
   const [carmenOpen, setCarmenOpen] = useState(false);
   const [draftNotebookContent, setDraftNotebookContent] = useState(MOCK_NOTEBOOKS[0]?.content ?? "");
   const notebookContent = activeGroup?.notebookContent ?? draftNotebookContent;
@@ -89,7 +98,7 @@ export function ThompsonMap({
   // Directly query Supabase from the browser and subscribe to realtime table updates
   useEffect(() => {
     fetchGroupsDirectFromSupabase().then((live) => {
-      if (live && live.length > 0) {
+      if (live) {
         dispatchGroup({ type: "sync-from-db", groups: live });
       }
     });
@@ -138,13 +147,29 @@ export function ThompsonMap({
 
   const visibleGroups = useMemo(() => {
     const normalizedQuery = groupQuery.trim().toLocaleLowerCase();
-    return tables
-      .filter((table) => (table.showInSearch || table.groupId?.startsWith("local-") || table.groupId?.includes("-")) && table.groupId)
-      .flatMap((table) => {
-        const group = groupState.groups.find((item) => item.id === table.groupId);
-        return group ? [{ table, group }] : [];
+    return groupState.groups
+      .filter((group) => {
+        if (!normalizedQuery) return true;
+        return (
+          group.courseCode.toLocaleLowerCase().includes(normalizedQuery) ||
+          group.name.toLocaleLowerCase().includes(normalizedQuery) ||
+          group.topic.toLocaleLowerCase().includes(normalizedQuery)
+        );
       })
-      .filter(({ group }) => !normalizedQuery || group.courseCode.toLocaleLowerCase().includes(normalizedQuery) || group.name.toLocaleLowerCase().includes(normalizedQuery) || group.topic.toLocaleLowerCase().includes(normalizedQuery));
+      .map((group) => {
+        const table = tables.find((t) => t.id === group.tableId) ?? {
+          id: group.tableId,
+          label: `Table ${group.tableId}`,
+          status: "busy" as const,
+          x: 50,
+          y: 50,
+          width: 5,
+          height: 5,
+          groupId: group.id,
+          showInSearch: true,
+        };
+        return { table, group };
+      });
   }, [groupQuery, tables, groupState.groups]);
 
   const selectedTable = tables.find((table) => table.id === selectedTableId) ?? null;
@@ -329,7 +354,7 @@ export function ThompsonMap({
             }}
           ><NotebookPanel notebook={currentNotebook} sessionId={activeGroup.id} courseCode={activeGroup.courseCode} memberCount={activeGroup.members.length + 1} currentUser={viewer} floorLevel="Level 1" onStartNewNote={() => setExpanded(true)} onNotebookContentChange={setNotebookContent} /></CurrentGroupPanel>}
           {tab === "notes" && <div className="map-feature-panel"><NotebookPanel notebook={currentNotebook} sessionId={currentNotebook.sessionId} courseCode={activeGroup?.courseCode ?? "CSE 2221"} memberCount={activeGroup ? activeGroup.members.length + 1 : undefined} currentUser={viewer} floorLevel="Level 1" onStartNewNote={() => setExpanded(true)} onNotebookContentChange={setNotebookContent} /></div>}
-          {tab === "me" && <div className="map-feature-panel">{profile ? <><div className="map-user-greeting">Hi, {profile.name.split(" ")[0]}</div>{profilePanel}{locationPanel}</> : <p className="map-hint">Your study profile is not available.</p>}</div>}
+          {tab === "me" && <div className="map-feature-panel">{profile ? <><div className="map-user-greeting">Hi, {profile.name.split(" ")[0]}</div>{profilePanel}</> : <p className="map-hint">Your study profile is not available.</p>}</div>}
         </div>
       </section>}
 

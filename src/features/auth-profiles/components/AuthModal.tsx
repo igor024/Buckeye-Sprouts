@@ -62,7 +62,7 @@ export function AuthModal() {
 
   const handleQuickDemoFill = () => {
     setEmail("alex.morgan@osu.edu");
-    setPassword("Password123!");
+    setPassword("buckeye2026");
     setError(null);
   };
 

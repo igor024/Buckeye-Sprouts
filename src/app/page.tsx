@@ -1,6 +1,5 @@
 import { ProfileCard } from "@/features/auth-profiles/components/ProfileCard";
 import { authProfilesService } from "@/features/auth-profiles/services";
-import { LocationStatus } from "@/features/location-checkin/components/LocationStatus";
 import { sessionsDiscoveryService } from "@/features/sessions-discovery/services";
 import { ThompsonMap } from "@/app/components/ThompsonMap";
 import { fetchLiveMapGroups } from "@/lib/server-groups";
@@ -21,7 +20,6 @@ export default async function DashboardPage() {
         initialGroups={liveGroups}
         profile={profile}
         profilePanel={<ProfileCard profile={profile} />}
-        locationPanel={<LocationStatus />}
       />
     </main>
   );
