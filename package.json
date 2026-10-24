@@ -6,9 +6,10 @@
     "node": ">=20.9.0"
   },
   "scripts": {
-    "dev": "next dev",
+    "sync:rooms": "node scripts/sync-room-ids.mjs",
+    "dev": "node scripts/sync-room-ids.mjs && next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "node scripts/sync-room-ids.mjs && next start",
     "check:foundation": "node scripts/check-foundation.mjs",
     "typecheck": "tsc --noEmit",
     "smoke": "node scripts/smoke.mjs"
