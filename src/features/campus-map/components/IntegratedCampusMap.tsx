@@ -67,8 +67,8 @@ function planPointToScreen(position: { x: number; y: number }, view: CampusMapVi
   }, view, viewport);
 }
 
-function maximumMapScale(viewport: ViewportSize): number {
-  if (viewport.width <= 0 || viewport.height <= 0) return CAMPUS_MAP_ZOOM_LIMITS.maxScale;
+function maximumMapScale(viewport: ViewportSize, keepThompsonVisible: boolean): number {
+  if (!keepThompsonVisible || viewport.width <= 0 || viewport.height <= 0) return CAMPUS_MAP_ZOOM_LIMITS.maxScale;
   const plan = getPlanGeometry(viewport);
   return Math.max(CAMPUS_MAP_ZOOM_LIMITS.minScale, Math.min(
     CAMPUS_MAP_ZOOM_LIMITS.maxScale,
@@ -79,7 +79,7 @@ function maximumMapScale(viewport: ViewportSize): number {
 
 function clampMapView(view: CampusMapView, viewport: ViewportSize, keepThompsonVisible: boolean): CampusMapView {
   if (viewport.width <= 0 || viewport.height <= 0) return view;
-  const scale = Math.min(maximumMapScale(viewport), Math.max(CAMPUS_MAP_ZOOM_LIMITS.minScale, view.scale));
+  const scale = Math.min(maximumMapScale(viewport, keepThompsonVisible), Math.max(CAMPUS_MAP_ZOOM_LIMITS.minScale, view.scale));
   const maxPanX = (scale - 1) * viewport.width / 2;
   const maxPanY = (scale - 1) * viewport.height / 2;
   let minX = -maxPanX;
@@ -193,7 +193,7 @@ export function IntegratedCampusMap({
     libraryPlanCentered.current = true;
     libraryFocusHandled.current = libraryFocusRequest;
     const { width, height } = viewportSize;
-    const scale = Math.min(CAMPUS_MAP_ZOOM_LIMITS.focusScale, maximumMapScale(viewportSize));
+    const scale = Math.min(CAMPUS_MAP_ZOOM_LIMITS.focusScale, maximumMapScale(viewportSize, true));
     const mapCenter = { x: width / 2, y: height / 2 };
     const libraryPoint = getPlanGeometry(viewportSize).center;
     const targetPoint = { x: width / 2, y: height * 0.29 };
@@ -220,7 +220,7 @@ export function IntegratedCampusMap({
 
   const changeZoom = (factor: number) => setView((current) => clampMapView({
     ...current,
-    scale: Math.min(maximumMapScale(viewportSize), Math.max(CAMPUS_MAP_ZOOM_LIMITS.minScale, current.scale * factor)),
+    scale: Math.min(maximumMapScale(viewportSize, showLibraryPlan), Math.max(CAMPUS_MAP_ZOOM_LIMITS.minScale, current.scale * factor)),
   }, viewportSize, showLibraryPlan));
   const resetMap = () => setView(clampMapView({ scale: CAMPUS_MAP_ZOOM_LIMITS.minScale, x: 0, y: 0 }, viewportSize, showLibraryPlan));
 
@@ -255,7 +255,7 @@ export function IntegratedCampusMap({
       const oldCenter = { x: (oldA.x + oldB.x) / 2, y: (oldA.y + oldB.y) / 2 };
       const newCenter = { x: (newA.x + newB.x) / 2, y: (newA.y + newB.y) / 2 };
       setView((current) => {
-        const scale = Math.min(maximumMapScale(viewportSize), Math.max(CAMPUS_MAP_ZOOM_LIMITS.minScale, current.scale * ratio));
+        const scale = Math.min(maximumMapScale(viewportSize, showLibraryPlan), Math.max(CAMPUS_MAP_ZOOM_LIMITS.minScale, current.scale * ratio));
         const boundedRatio = scale / current.scale;
         const center = { x: viewportSize.width / 2, y: viewportSize.height / 2 };
         return clampMapView({
@@ -342,7 +342,7 @@ export function IntegratedCampusMap({
     const screenPoint = planPointToScreen(position, view, mapSize);
     return { left: `${Math.round(screenPoint.x)}px`, top: `${Math.round(screenPoint.y)}px` };
   };
-  const maxScale = maximumMapScale(mapSize);
+  const maxScale = maximumMapScale(mapSize, showLibraryPlan);
 
   return (
     <div className="integrated-campus-map" aria-label="Illustrated Ohio State campus map with Thompson Library">
