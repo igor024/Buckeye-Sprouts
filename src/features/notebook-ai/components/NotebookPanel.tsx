@@ -1,4 +1,4 @@
-import type { SharedNotebook } from "@/types/contracts";
+import type { ProfilePreview, SharedNotebook } from "@/types/contracts";
 import { CollectiveGroupNotebook } from "./CollectiveGroupNotebook";
 
 interface NotebookPanelProps {
@@ -7,6 +7,9 @@ interface NotebookPanelProps {
   sessionId?: string;
   courseCode?: string;
   className?: string;
+  memberCount?: number;
+  floorLevel?: string;
+  currentUser?: ProfilePreview | null;
   onStartNewNote?: () => void;
   onNotebookContentChange?: (content: string) => void;
 }
@@ -17,6 +20,9 @@ export function NotebookPanel({
   sessionId,
   courseCode,
   className,
+  memberCount,
+  floorLevel,
+  currentUser,
   onStartNewNote,
   onNotebookContentChange,
 }: NotebookPanelProps) {
@@ -27,6 +33,9 @@ export function NotebookPanel({
       sessionId={sessionId}
       courseCode={courseCode || "CSE 2221"}
       className={className}
+      memberCount={memberCount}
+      floorLevel={floorLevel}
+      currentUser={currentUser}
       onStartNewNote={onStartNewNote}
       onNotebookContentChange={onNotebookContentChange}
     />

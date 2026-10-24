@@ -15,41 +15,15 @@ import {
   type Coordinates,
   type CampusMapSpot,
   type ThompsonTable,
+  type DemoReaderLocation,
+  type CampusMapArtPoint as Point,
+  type CampusMapViewport as ViewportSize,
 } from "@/types/contracts";
+import { artworkPointToViewport, getPlanGeometry, resolveDemoReaderLocation } from "../map-geometry";
 import "../integrated-campus-map.css";
-
-type Point = { x: number; y: number };
-type ViewportSize = { width: number; height: number };
 
 // The same minimum fraction on each axis guarantees the configured visible area.
 const MIN_VISIBLE_AXIS_FRACTION = Math.sqrt(CAMPUS_MAP_ZOOM_LIMITS.minThompsonVisibleArea);
-
-/** Match the nested campus SVG's xMidYMid slice mapping for every viewport size. */
-function artworkPointToViewport(point: Point, viewport: ViewportSize): Point {
-  const artworkScale = Math.max(
-    viewport.width / CAMPUS_MAP_ARTWORK_SIZE.width,
-    viewport.height / CAMPUS_MAP_ARTWORK_SIZE.height,
-  );
-  const renderedWidth = CAMPUS_MAP_ARTWORK_SIZE.width * artworkScale;
-  const renderedHeight = CAMPUS_MAP_ARTWORK_SIZE.height * artworkScale;
-  return {
-    x: (viewport.width - renderedWidth) / 2 + point.x * artworkScale,
-    y: (viewport.height - renderedHeight) / 2 + point.y * artworkScale,
-  };
-}
-
-function getPlanGeometry(viewport: ViewportSize) {
-  const width = Math.min(
-    viewport.width * THOMPSON_EAST_ENTRANCE_PLAN.mapOverlayWidthRatio,
-    THOMPSON_EAST_ENTRANCE_PLAN.mapOverlayMaxWidth,
-  );
-  const height = width * THOMPSON_EAST_ENTRANCE_PLAN.sourceSize.height / THOMPSON_EAST_ENTRANCE_PLAN.sourceSize.width;
-  const center = artworkPointToViewport({
-    x: CAMPUS_MAP_ARTWORK_SIZE.width * THOMPSON_EAST_ENTRANCE_PLAN.campusPosition.x / 100,
-    y: CAMPUS_MAP_ARTWORK_SIZE.height * THOMPSON_EAST_ENTRANCE_PLAN.campusPosition.y / 100,
-  }, viewport);
-  return { width, height, center, left: center.x - width / 2, top: center.y - height / 2 };
-}
 
 function mapPointToScreen(point: Point, view: CampusMapView, viewport: ViewportSize): Point {
   return {
@@ -151,6 +125,7 @@ export function IntegratedCampusMap({
   selectedTableId,
   onSelectTable,
   onSelectSpot,
+  onReaderLocationChange,
 }: {
   onOpenFloorPlan: () => void;
   showLibraryPlan: boolean;
@@ -162,6 +137,7 @@ export function IntegratedCampusMap({
   selectedTableId: string | null;
   onSelectTable: (table: ThompsonTable, trigger: HTMLElement) => void;
   onSelectSpot: (spot: CampusMapSpot) => void;
+  onReaderLocationChange?: (location: DemoReaderLocation) => void;
 }) {
   const [view, setView] = useState<CampusMapView>({ scale: CAMPUS_MAP_ZOOM_LIMITS.minScale, x: 0, y: 0 });
   const [viewportSize, setViewportSize] = useState<ViewportSize>({ width: 0, height: 0 });
@@ -351,6 +327,12 @@ export function IntegratedCampusMap({
     height: mapSize.height / view.scale,
   };
   const planGeometry = getPlanGeometry(mapSize);
+  useEffect(() => {
+    onReaderLocationChange?.(resolveDemoReaderLocation(
+      locationState === "live" || locationState === "demo" ? userPoint : null,
+      locationState === "live" ? "device" : "demo", mapSize,
+    ));
+  }, [userPoint, locationState, mapSize.width, mapSize.height, onReaderLocationChange]);
   const markerStyle = (worldPoint: Point) => {
     const screenPoint = mapPointToScreen(artworkPointToViewport(worldPoint, mapSize), view, mapSize);
     return { left: `${Math.round(screenPoint.x)}px`, top: `${Math.round(screenPoint.y)}px` };

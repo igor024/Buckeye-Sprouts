@@ -1,19 +1,21 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent, ReactNode } from "react";
 import { BookOpen, MapPin, Plus, Search, Star, Users, X } from "lucide-react";
 import {
   MOCK_NOTEBOOKS,
   MOCK_PROFILES,
-  MOCK_THOMPSON_TABLE_GROUPS,
   THOMPSON_EAST_ENTRANCE_TABLES,
   type ProfilePreview,
   type SessionPreview,
   type SharedNotebook,
   type ThompsonTable,
+  type DemoReaderLocation,
 } from "@/types/contracts";
-import { GroupJoinManager } from "@/features/location-checkin/components/GroupJoinManager";
+import { CurrentGroupPanel, GroupJoinManager } from "@/features/location-checkin/components/GroupJoinManager";
+import { createDemoGroupId, createDemoGroupState, demoGroupReducer } from "@/features/location-checkin/group-demo";
+import { GroupRoster, ProfileAvatar } from "@/app/components/GroupRoster";
 import { NotebookPanel } from "@/features/notebook-ai/components/NotebookPanel";
 import { CarmenAiChatbot } from "@/features/notebook-ai/components/CarmenAiChatbot";
 import { MOCK_CARMEN_STUDENTS } from "@/features/notebook-ai/mock-carmen-data";
@@ -39,9 +41,22 @@ export function ThompsonMap({
   const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
   const [closingTable, setClosingTable] = useState(false);
   const [libraryFocusRequest, setLibraryFocusRequest] = useState(0);
-  const [joinStage, setJoinStage] = useState("idle");
+  const [groupState, dispatchGroup] = useReducer(demoGroupReducer, undefined, createDemoGroupState);
+  const [readerLocation, setReaderLocation] = useState<DemoReaderLocation | null>(null);
+  const activeGroup = groupState.groups.find((group) => group.id === groupState.activeGroupId) ?? null;
+  const viewer: ProfilePreview = profile ?? MOCK_PROFILES[0];
+  const tables: ThompsonTable[] = useMemo(() => THOMPSON_EAST_ENTRANCE_TABLES.map((table) => {
+    const group = groupState.groups.find((item) => item.tableId === table.id);
+    return { ...table, groupId: group?.id, status: group ? table.status === "empty" ? "busy" : table.status : "empty" };
+  }), [groupState.groups]);
   const [carmenOpen, setCarmenOpen] = useState(false);
-  const [notebookContent, setNotebookContent] = useState(MOCK_NOTEBOOKS[0]?.content ?? "");
+  const [draftNotebookContent, setDraftNotebookContent] = useState(MOCK_NOTEBOOKS[0]?.content ?? "");
+  const notebookContent = activeGroup?.notebookContent ?? draftNotebookContent;
+  const setNotebookContent = (content: string) => {
+    if (activeGroup) dispatchGroup({ type: "notebook", content });
+    else setDraftNotebookContent(content);
+  };
+  const showSheet = tab !== "join" || activeGroup !== null;
   const sheetStart = useRef<number | null>(null);
   const tabBarStart = useRef<{ pointerId: number; y: number } | null>(null);
   const sheetDragged = useRef(false);
@@ -67,20 +82,20 @@ export function ThompsonMap({
 
   const visibleGroups = useMemo(() => {
     const normalizedQuery = groupQuery.trim().toLocaleLowerCase();
-    return THOMPSON_EAST_ENTRANCE_TABLES
-      .filter((table) => table.showInSearch && table.groupId)
+    return tables
+      .filter((table) => (table.showInSearch || table.groupId?.startsWith("local-")) && table.groupId)
       .flatMap((table) => {
-        const group = MOCK_THOMPSON_TABLE_GROUPS.find((item) => item.id === table.groupId);
+        const group = groupState.groups.find((item) => item.id === table.groupId);
         return group ? [{ table, group }] : [];
       })
       .filter(({ group }) => !normalizedQuery || group.courseCode.toLocaleLowerCase().includes(normalizedQuery));
-  }, [groupQuery]);
-  const selectedTable = THOMPSON_EAST_ENTRANCE_TABLES.find((table) => table.id === selectedTableId) ?? null;
+  }, [groupQuery, tables, groupState.groups]);
+  const selectedTable = tables.find((table) => table.id === selectedTableId) ?? null;
   const selectedGroup = selectedTable?.groupId
-    ? MOCK_THOMPSON_TABLE_GROUPS.find((group) => group.id === selectedTable.groupId) ?? null
+    ? groupState.groups.find((group) => group.id === selectedTable.groupId) ?? null
     : null;
   const currentNotebook: SharedNotebook = {
-    sessionId: "local-current-group",
+    sessionId: activeGroup?.id ?? "local-draft-notebook",
     content: notebookContent,
     lastUpdatedBy: profile?.id ?? MOCK_PROFILES[0].id,
     aiSummary: "A local catch-up is generated from this group’s current shared notes.",
@@ -92,11 +107,13 @@ export function ThompsonMap({
 
   useEffect(() => {
     const expandNotesForNewNote = () => {
-      if (tab === "notes") setExpanded(true);
+      if (tab === "notes" || (tab === "join" && activeGroup)) setExpanded(true);
     };
     window.addEventListener("buckeye:open-new-note", expandNotesForNewNote);
     return () => window.removeEventListener("buckeye:open-new-note", expandNotesForNewNote);
-  }, [tab]);
+  }, [tab, activeGroup?.id]);
+
+  useEffect(() => { setExpanded(false); setCarmenOpen(false); }, [activeGroup?.id]);
 
   useEffect(() => {
     if (!selectedTable) return;
@@ -177,6 +194,7 @@ export function ThompsonMap({
   const endTabBarGesture = (event: ReactPointerEvent<HTMLDivElement>) => {
     const start = tabBarStart.current;
     if (!start || start.pointerId !== event.pointerId) return;
+    if (!showSheet) { tabBarStart.current = null; return; }
     const delta = event.clientY - start.y;
     if (delta < -35) {
       setGroupSheetHidden(false);
@@ -202,16 +220,20 @@ export function ThompsonMap({
         onOpenFloorPlan={() => setLibraryFocusRequest((request) => request + 1)}
         showLibraryPlan
         libraryFocusRequest={libraryFocusRequest}
-        visibleTables={THOMPSON_EAST_ENTRANCE_TABLES}
+        visibleTables={groupQuery.trim() && tab === "groups" ? tables.filter((table) => {
+          const group = groupState.groups.find((item) => item.id === table.groupId);
+          return group?.courseCode.toLowerCase().includes(groupQuery.trim().toLowerCase());
+        }) : tables}
         visibleSpots={[]}
         selectedSpot={null}
         showRoute={false}
         selectedTableId={selectedTableId}
         onSelectTable={openTable}
         onSelectSpot={() => undefined}
+        onReaderLocationChange={setReaderLocation}
       />
 
-      <section id="map-info-sheet" inert={groupSheetHidden && tab === "groups"} className={`map-info-sheet${expanded ? " sheet-expanded" : ""}${tab === "groups" ? " group-search-sheet" : ""}${tab === "join" && joinStage === "current" ? " current-group-sheet" : ""}${groupSheetHidden && tab === "groups" ? " group-sheet-hidden" : ""}`} aria-label={tab === "groups" ? "Study group search" : tab === "join" ? "Join or manage a study group" : tab === "notes" ? "Shared notebook" : "Your study profile"}>
+      {showSheet && <section id="map-info-sheet" inert={groupSheetHidden && tab === "groups"} className={`map-info-sheet${expanded ? " sheet-expanded" : ""}${tab === "groups" ? " group-search-sheet" : ""}${tab === "join" && activeGroup ? " current-group-sheet" : ""}${groupSheetHidden && tab === "groups" ? " group-sheet-hidden" : ""}`} aria-label={tab === "groups" ? "Study group search" : tab === "join" ? "Join or manage a study group" : tab === "notes" ? "Shared notebook" : "Your study profile"}>
         <button type="button" className="sheet-swipe-handle" onPointerDown={beginSheetSwipe} onPointerUp={endSheetSwipe} onPointerCancel={() => { sheetStart.current = null; }} aria-expanded={expanded} aria-controls="map-sheet-content" aria-label={expanded ? "Collapse panel" : "Expand panel"} onClick={() => { if (sheetDragged.current) { sheetDragged.current = false; return; } setExpanded((value) => !value); }}>
           <span />
         </button>
@@ -220,11 +242,12 @@ export function ThompsonMap({
             <p className="sheet-eyebrow">OHIO STATE · THOMPSON LIBRARY · LEVEL 1</p>
             <h1 className="paper-title truncate">{tab === "groups" ? "Group Search" : tab === "join" ? "Your Group" : tab === "notes" ? "Shared Notes" : "Your Study Profile"}</h1>
           </div>
-          {tab === "join" && joinStage === "current" && (
+          {tab === "join" && activeGroup && <div className="current-group-header-actions">
             <button type="button" className="group-carmen-trigger" onClick={() => setCarmenOpen(true)} aria-label="Open Carmen study suggestions" title="Carmen study suggestions">
               <Star size={18} className="fill-amber-300" />
             </button>
-          )}
+            <button type="button" className="group-leave-button" onClick={() => dispatchGroup({ type: "leave", profileId: viewer.id })}>Leave group</button>
+          </div>}
           {tab === "notes" && <button type="button" className="notes-new-button" onClick={() => { setExpanded(true); window.dispatchEvent(new CustomEvent("buckeye:open-new-note")); }} aria-label="Create a new group note" title="New note"><Plus size={18} /></button>}
         </div>
         <div id="map-sheet-content" className="map-sheet-content">
@@ -237,13 +260,22 @@ export function ThompsonMap({
             </ul>
             {visibleGroups.length === 0 && <p className="map-hint group-no-results" role="status">No study groups match “{groupQuery}”. Try a course number such as CSE 2221 or MATH 1151.</p>}
           </>}
-          <div hidden={tab !== "join"}>
-            <GroupJoinManager currentUserId={profile?.id} currentUserName={profile?.name || "Alex Morgan"} notebookContent={notebookContent} onNotebookContentChange={setNotebookContent} onStageChange={(stage) => { setJoinStage(stage); if (stage === "existing" || stage === "create") setExpanded(true); if (stage === "current") setExpanded(false); }} />
-          </div>
-          {tab === "notes" && <div className="map-feature-panel"><NotebookPanel notebook={currentNotebook} sessionId={currentNotebook.sessionId} courseCode="CSE 2221" onStartNewNote={() => setExpanded(true)} onNotebookContentChange={setNotebookContent} /></div>}
+          {tab === "join" && activeGroup && <CurrentGroupPanel
+            group={activeGroup} table={tables.find((table) => table.id === activeGroup.tableId)!} profileId={viewer.id} notice={groupState.notice}
+            onInvite={(profileId) => dispatchGroup({ type: "invite", profileId, hostId: viewer.id })}
+            onGpsLeave={() => dispatchGroup({ type: "leave", profileId: viewer.id, gps: true })}
+            onEnd={() => dispatchGroup({ type: "end", hostId: viewer.id })}
+          ><NotebookPanel notebook={currentNotebook} sessionId={activeGroup.id} courseCode={activeGroup.courseCode} memberCount={activeGroup.members.length + 1} currentUser={viewer} floorLevel="Level 1" onStartNewNote={() => setExpanded(true)} onNotebookContentChange={setNotebookContent} /></CurrentGroupPanel>}
+          {tab === "notes" && <div className="map-feature-panel"><NotebookPanel notebook={currentNotebook} sessionId={currentNotebook.sessionId} courseCode={activeGroup?.courseCode ?? "CSE 2221"} memberCount={activeGroup ? activeGroup.members.length + 1 : undefined} currentUser={viewer} floorLevel="Level 1" onStartNewNote={() => setExpanded(true)} onNotebookContentChange={setNotebookContent} /></div>}
           {tab === "me" && <div className="map-feature-panel">{profile ? <><div className="map-user-greeting">Hi, {profile.name.split(" ")[0]}</div>{profilePanel}{locationPanel}</> : <p className="map-hint">Your study profile is not available.</p>}</div>}
         </div>
-      </section>
+      </section>}
+
+      <GroupJoinManager visible={tab === "join"} profile={viewer} groups={groupState.groups} activeGroup={activeGroup} tables={tables} readerLocation={readerLocation} notice={groupState.notice}
+        onStart={() => dispatchGroup({ type: "clear-notice" })}
+        onJoin={(groupId) => dispatchGroup({ type: "join", groupId, profile: viewer, now: Date.now() })}
+        onCreate={(input) => dispatchGroup({ type: "create", input, profile: viewer, id: createDemoGroupId(), now: Date.now() })}
+      />
 
       <nav className="map-service-tabs" aria-label="Map app navigation">
         <button className={tab === "groups" ? "active" : ""} aria-current={tab === "groups" ? "page" : undefined} aria-expanded={tab === "groups" && !groupSheetHidden} aria-controls="map-info-sheet" type="button" onClick={openGroupSearch}><Users size={24} aria-hidden="true" /><span>Groups</span></button>
@@ -252,7 +284,7 @@ export function ThompsonMap({
         <button className={tab === "me" ? "active" : ""} aria-current={tab === "me" ? "page" : undefined} type="button" onClick={() => selectTab("me")}><span className="service-avatar" aria-hidden="true">{profile?.name.slice(0, 1) || "?"}</span><span>Me</span></button>
       </nav>
 
-      {tab === "join" && joinStage === "current" && currentStudent && <CarmenAiChatbot studentProfile={currentStudent} courseCode="CSE 2221" notebookContent={notebookContent} isOpenExternal={carmenOpen} onToggleExternal={() => setCarmenOpen((open) => !open)} onInsertToNotebook={(text) => setNotebookContent((content) => `${content}\n\n${text}`.trim())} />}
+      {tab === "join" && activeGroup && currentStudent && <CarmenAiChatbot studentProfile={currentStudent} courseCode={activeGroup.courseCode} notebookContent={notebookContent} isOpenExternal={carmenOpen} onToggleExternal={() => setCarmenOpen((open) => !open)} onInsertToNotebook={(text) => setNotebookContent(`${notebookContent}\n\n${text}`.trim())} />}
 
       {selectedTable && <div className={`group-info-backdrop${closingTable ? " is-closing" : ""}`} role="presentation" onClick={closeTable}>
         <section className="group-info-dialog" role="dialog" aria-modal="true" aria-labelledby="group-info-title" aria-describedby="group-info-status" onClick={(event) => event.stopPropagation()}>
@@ -262,17 +294,9 @@ export function ThompsonMap({
             <h2 id="group-info-title">{selectedGroup ? selectedGroup.name : "Available table"}</h2>
             <p id="group-info-status">{selectedGroup ? `${selectedGroup.courseCode} · ${selectedGroup.topic}` : "No study group is at this table right now."}</p>
           </div>
-          {selectedGroup && <ul className="group-profile-list" tabIndex={0} aria-label="Group host and members">
-            <li className="group-profile-row"><ProfileAvatar profile={selectedGroup.host} /><span className="group-profile-name">{selectedGroup.host.name}</span><span className="group-profile-role">Host</span></li>
-            {selectedGroup.members.map((member) => <li key={member.id} className="group-profile-row"><ProfileAvatar profile={member} /><span className="group-profile-name">{member.name}</span><span className="group-profile-role">Member</span></li>)}
-          </ul>}
+          {selectedGroup && <GroupRoster group={selectedGroup} />}
         </section>
       </div>}
     </div>
   );
-}
-
-function ProfileAvatar({ profile }: { profile: ProfilePreview }) {
-  const initials = profile.name.split(/\s+/).map((part) => part[0]).slice(0, 2).join("").toLocaleUpperCase();
-  return <span className="group-profile-avatar">{profile.avatarUrl ? <img src={profile.avatarUrl} alt="" /> : <span aria-hidden="true">{initials}</span>}</span>;
 }

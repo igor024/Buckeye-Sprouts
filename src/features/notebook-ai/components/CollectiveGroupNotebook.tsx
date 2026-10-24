@@ -12,6 +12,7 @@ export function CollectiveGroupNotebook({
   notebook,
   locked = false,
   currentUser,
+  memberCount = 3,
   courseCode = "CSE 2221",
   libraryName = "Thompson Library",
   floorLevel = "Floor 3",
@@ -46,7 +47,7 @@ export function CollectiveGroupNotebook({
           </span>
         </div>
         <span className="text-[10px] font-medium text-stone-500 bg-stone-100/90 px-2 py-0.5 rounded-full border border-stone-200/60 shrink-0">
-          3 Buckeyes active
+          {memberCount} {memberCount === 1 ? "Buckeye" : "Buckeyes"} active
         </span>
       </div>
 

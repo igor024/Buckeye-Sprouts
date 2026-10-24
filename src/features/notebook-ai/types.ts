@@ -102,6 +102,7 @@ export interface AIReadinessAssessment {
 }
 
 export interface CollectiveGroupNotebookProps {
+  memberCount?: number;
   sessionId?: string;
   notebook?: SharedNotebook | null;
   locked?: boolean;

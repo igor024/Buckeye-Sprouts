@@ -4,11 +4,11 @@ Use this guide for app routes and shared app chrome under `src/app/`. Preserve t
 
 ## Visual direction
 
-- Take inspiration from Apple Find My's calm, map-first mobile composition: a full-bleed campus map, restrained labels, location markers, and a softly elevated translucent sheet anchored over the map.
+- Take inspiration from Apple Find My's calm, map-first mobile composition: a full-bleed campus map, restrained labels, location markers, and a softly elevated sheet anchored over the map. The latest user-approved surfaces are solid grid paper, as recorded in the root `AGENTS.md`.
 - Translate the visual language into Buckeye Sprouts' own identity. Use warm campus greens, pale river blue, soft ivory, charcoal text, and Buckeye scarlet only as a small accent. Do not reproduce Apple's logo, exact map tiles, text, or proprietary interface assets.
 - Make the campus map the visual canvas. Keep controls compact and legible, with rounded capsules, subtle borders, and soft shadows. Use generous spacing and clear text hierarchy.
-- The people/groups sheet should feel like translucent frosted glass over the map, with a visible grabber, simple rows, circular avatars or category icons, muted location details, and fine dividers.
-- Keep map overlays mostly transparent so the underlying map remains clearly visible. Use a translucent tint and restrained blur for the Group Search sheet, bottom navigation, group detail modal, and future map-layered UI; avoid opaque surfaces.
+- Use solid grid-paper sheets with a visible grabber, simple rows, circular avatars, muted location details and fine dividers. Use squiggle dividers beneath tab/note titles; do not restore frosted glass or backdrop blur.
+- Keep the map visible around the sheets through placement and sizing. Group Search, bottom navigation and dialogs follow the same paper surface direction. Sheets and bottom navigation share `--map-panel-width`, with a safe-area-aware 12px gap above navigation. Portal dialogs outside transformed sheets and constrain them above navigation.
 - Use a compact, icon-led bottom navigation on mobile. Keep tap targets comfortable and provide visible selected, hover, focus, and disabled states.
 - Favor a natural, polished interface over generic marketing hero panels, heavy card grids, dense badges, or large blocks of decorative copy.
 
@@ -27,7 +27,7 @@ Use this guide for app routes and shared app chrome under `src/app/`. Preserve t
 
 - Design mobile first. Keep the map recognizable behind the drawer; make long lists scroll within the sheet without covering navigation.
 - On larger screens, retain the map-first composition and give the sheet a readable maximum width rather than stretching every row edge to edge.
-- Use semantic landmarks and headings, descriptive accessible names for icon-only controls, keyboard-visible focus rings, and sufficient contrast over glass and map backgrounds.
+- Use semantic landmarks and headings, descriptive accessible names for icon-only controls, keyboard-visible focus rings, and sufficient contrast over paper and map backgrounds.
 - Respect `prefers-reduced-motion` and safe-area insets on notched devices.
 - Never rely on color alone to convey live, selected, or available states.
 
@@ -36,6 +36,7 @@ Use this guide for app routes and shared app chrome under `src/app/`. Preserve t
 - Prefer local CSS and lightweight vector/CSS map artwork over external map tiles or remote photos for scaffold screens.
 - Keep map positions illustrative unless connected to an authorized map provider. Do not expose exact tables, private session coordinates, or private photos in public discovery UI.
 - Reuse the existing feature components and shared contracts when composing app routes; keep feature behavior inside its owning feature folder.
+- Keep the map mounted when switching tabs. The unjoined Group state has only a standalone reader action, with no sliding sheet; the joined state reuses the draggable current-group sheet. See the root `AGENTS.md` implementation handoff for state ownership, simulated reader behavior and verification notes.
 
 ## Indoor map behavior
 

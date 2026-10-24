@@ -56,6 +56,7 @@ export function CarmenAiChatbot({
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const activeCourse = studentProfile.courses.find((course) => course.courseCode === courseCode);
 
   useEffect(() => {
     const handleOpen = () => {
@@ -93,7 +94,7 @@ export function CarmenAiChatbot({
     if (!userQuery) setInputText("");
     setIsTyping(true);
 
-    // Contextual AI intelligence matching Carmen Canvas & group notes
+    // Scripted suggestions use local mock courses and the current group notes.
     setTimeout(() => {
       let aiReply = "";
       let carmenBadge = "Demo response · mock course/group data";
@@ -105,21 +106,32 @@ export function CarmenAiChatbot({
         aiReply = `Here is a simulated study suggestion for ${courseCode}, based on the demo course and group notes:\n\n1. Review recursive base cases, including zero or empty inputs.\n2. Ask a group member to check your \`reverseQueue()\` base case.\n3. Try a NaturalNumber recursion practice problem.`;
         carmenBadge = "Simulated suggestion · demo data";
         suggestedActionText = "### Carmen AI Focus Topic\n- **Target:** Base case testing for recursion\n- **Rule:** If input is 0 or null, return immediately before recursive step.";
+        if (courseCode !== "CSE 2221") {
+          const topic = activeCourse?.flaggedTopic ?? "the current topic in your shared notes";
+          aiReply = `Here is a simulated study suggestion for ${courseCode}:\n\n1. Review ${topic}.\n2. Compare a worked example with a group member.\n3. Record any unanswered questions in your shared notes.`;
+          suggestedActionText = `### ${courseCode} study focus\nReview ${topic}, then compare a worked example together.`;
+        }
       } else if (lower.includes("quiz") || lower.includes("test")) {
         aiReply = `Here is a Carmen exam-style practice problem for ${studentProfile.name}:\n\n**Question:** Consider the recursive method:\n\`\`\`java\nint mystery(int n) {\n  if (n <= 1) return 1;\n  return n * mystery(n - 1);\n}\n\`\`\`\nWhat happens if \`mystery(-3)\` is called? How would you fix the base case to safeguard against negative inputs?`;
         carmenBadge = "Simulated practice prompt · demo data";
         suggestedActionText = "### Practice Problem (Carmen Exam Bank)\nTrace `mystery(-3)`. The base case `n <= 1` immediately returns 1, avoiding infinite recursion!";
+        if (courseCode !== "CSE 2221") {
+          aiReply = `Simulated ${courseCode} practice: choose a concept from your current group notes, explain it in your own words, and work through an example together. What assumptions does your solution rely on?`;
+          suggestedActionText = `### ${courseCode} practice\nExplain a concept from the group notes and compare an example solution.`;
+        }
       } else if (lower.includes("error") || lower.includes("mistake") || lower.includes("check")) {
         aiReply = notebookContent.trim()
           ? `Here is a simulated review of the current group notes:\n\n${notebookContent.slice(0, 500)}`
           : "There are no shared group notes to review yet. Add a note, then ask for another simulated review.";
         carmenBadge = "Simulated notes feedback · demo data";
       } else if (lower.includes("deadline") || lower.includes("carmen") || lower.includes("homework")) {
-        const course = studentProfile.courses[0];
-        aiReply = `📅 **Sample course reminders for ${studentProfile.name}:**\n\n• **${course?.courseCode}**: ${course?.nextAssignment.title} (Due: ${course?.nextAssignment.dueDate})\n• Midterm 2: Recursion, Sequence3, and XMLTree.`;
+        aiReply = activeCourse
+          ? `Sample ${courseCode} reminder for ${studentProfile.name}: ${activeCourse.nextAssignment.title} (Due: ${activeCourse.nextAssignment.dueDate}). This is mock course data.`
+          : `No assignment reminders are supplied for the ${courseCode} demo course. Review your shared group notebook to decide what to study next.`;
         carmenBadge = "Simulated reminders · mock course data";
       } else {
         aiReply = `For the ${courseCode} demo course, try tracing recursive steps with your group and compare each base case. This is a simulated suggestion using sample course content.`;
+        if (courseCode !== "CSE 2221") aiReply = `For the ${courseCode} demo course, compare a worked example and discuss ${activeCourse?.flaggedTopic ?? "the current group notes"}. This is a simulated suggestion using sample course content.`;
       }
 
       const botMsg: ChatMessage = {
@@ -205,10 +217,10 @@ export function CarmenAiChatbot({
           <div className="bg-amber-50/80 px-3.5 py-1.5 border-b border-amber-200/50 flex items-center justify-between text-[10px] text-amber-900">
             <span className="flex items-center gap-1.5 font-medium">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              Demo course: {studentProfile.courses[0]?.courseCode} ({studentProfile.courses[0]?.instructor})
+              Demo course: {courseCode}{activeCourse ? ` (${activeCourse.instructor})` : ""}
             </span>
             <span className="text-amber-800/80 font-mono">
-              Grade: {studentProfile.courses[0]?.currentGrade}
+              {activeCourse ? `Grade: ${activeCourse.currentGrade}` : "Mock data"}
             </span>
           </div>
 

@@ -31,6 +31,19 @@ export interface CampusMapArtPoint {
   y: number;
 }
 
+export interface CampusMapViewport {
+  width: number;
+  height: number;
+}
+
+/** A simulated reader resolves an illustrative table, never a physical NFC tag. */
+export interface DemoReaderLocation {
+  tableId: string;
+  point: CampusMapArtPoint;
+  source: "device" | "demo";
+  usedFallback: boolean;
+}
+
 export interface CampusMapBuilding extends CampusMapArtPoint {
   w: number;
   h: number;
@@ -116,7 +129,40 @@ export interface ThompsonTableGroup {
   topic: string;
   host: ProfilePreview;
   members: ProfilePreview[];
+  inviteOnly?: boolean;
+  invitedProfileIds?: string[];
 }
+
+/** Frontend-only membership, invitations and notes for the table-reader demo. */
+export interface DemoStudyGroup extends ThompsonTableGroup {
+  tableId: string;
+  inviteOnly: boolean;
+  invitedProfileIds: string[];
+  joinedAtByProfileId: Record<string, number>;
+  notebookContent: string;
+}
+
+export interface DemoGroupState {
+  groups: DemoStudyGroup[];
+  activeGroupId: string | null;
+  notice: string;
+}
+
+export interface DemoCreateGroupInput {
+  tableId: string;
+  name: string;
+  courseCode: string;
+  inviteOnly: boolean;
+}
+
+export const DEMO_READER_DELAY_MS = 3000;
+export const DEMO_GROUP_COURSES = [
+  { code: "CSE 2221", name: "Software I" },
+  { code: "CSE 2231", name: "Software II" },
+  { code: "MATH 1151", name: "Calculus I" },
+  { code: "MATH 1172", name: "Engineering Math" },
+  { code: "ENGR 1181", name: "Fundamentals of Engineering" },
+] as const;
 
 /** User-facing occupancy states for the colored Thompson table controls. */
 export type ThompsonTableStatus = "empty" | "busy" | "very-busy";
@@ -517,7 +563,7 @@ const TABLE_GROUP_TOPICS = [
 ] as const;
 
 function toTableGroup(group: StudyGroupMapPin): ThompsonTableGroup {
-  return { id: group.id, name: group.name, courseCode: group.courseCode, topic: group.topic, host: group.host, members: group.members };
+  return { id: group.id, name: group.name, courseCode: group.courseCode, topic: group.topic, host: group.host, members: group.members, inviteOnly: group.id === "sam-math-1151", invitedProfileIds: [] };
 }
 
 function createDemoTableGroup(table: ThompsonTable, index: number): ThompsonTableGroup {
@@ -535,6 +581,15 @@ export const MOCK_THOMPSON_TABLE_GROUPS: readonly ThompsonTableGroup[] = THOMPSO
     if (table.groupId === MOCK_STUDY_GROUP_PINS[1].id) return toTableGroup(MOCK_STUDY_GROUP_PINS[1]);
     return createDemoTableGroup(table, index);
   });
+
+export const MOCK_DEMO_STUDY_GROUPS: readonly DemoStudyGroup[] = MOCK_THOMPSON_TABLE_GROUPS.map((group) => ({
+  ...group,
+  tableId: THOMPSON_EAST_ENTRANCE_TABLES.find((table) => table.groupId === group.id)!.id,
+  inviteOnly: group.inviteOnly ?? false,
+  invitedProfileIds: [...(group.invitedProfileIds ?? [])],
+  joinedAtByProfileId: Object.fromEntries([group.host, ...group.members].map((member, index) => [member.id, index + 1])),
+  notebookContent: `## ${group.courseCode} study notes\n[note] ${group.host.name} · Shared\n${group.topic}.`,
+}));
 
 /** Local floor plan artwork and its illustrative, normalized room positions. */
 export const THOMPSON_EAST_ENTRANCE_PLAN = {

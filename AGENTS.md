@@ -8,6 +8,7 @@ This section is the current user-approved source of truth for the Buckeye Sprout
 - **Core concept:** Students publish where they are sitting in a library and what course they are studying so classmates can find and join them.
 - **Hackathon needs:** A functional, polished prototype for communication, breadth, and impact. Physical BuckID/NFC and live GPS behaviors must have clear frontend simulation controls so judges can demonstrate those flows without hardware.
 - **Current visual foundation:** Follow the existing `src/app/AGENTS.md` phone-first, calm, map-first style. Do not invent or redesign layouts beyond the specifications and decisions the user approves.
+- **Latest approved UI overrides:** Use solid grid-paper surfaces, squiggle dividers beneath tab/note titles, no frosted glass, and matched panel/navigation widths with a 12px gap. These decisions supersede older translucent-glass and overlapping-navigation instructions.
 
 ## Scope and check-in protocol
 
@@ -25,7 +26,7 @@ This section is the current user-approved source of truth for the Buckeye Sprout
 - Show the Thompson Library East Entrance / Oval floor plan (Level 1) as part of the same pannable and zoomable campus map surface, with nearby campus streets/landmarks still visible. Auto-zoom to Thompson when Group Search opens.
 - Use the provided Level 1 SVG so the plan stays vector-sharp. Keep zoom and map-pan bounds in `src/types/contracts.ts`: scale 1.0 minimum, 3.6 absolute maximum, and a viewport-aware cap while the plan is open so at least 50% of its area remains visible. Do not expose blank space past the campus drawing. Align the plan and location/group/room markers through the same `xMidYMid slice` artwork projection; render clickable controls in an unscaled marker layer so text and icons remain crisp at every zoom.
 - While Group Search is active, keep the course search and all matching clickable group rows in the bottom sheet. Dragging the sheet down tucks it beneath the bottom navigation and fades it out; dragging up from the bottom navigation reveals and expands it. Clicking Groups while it is selected toggles the sheet closed; clicking it again reopens the sheet.
-- Keep the Group Search sheet and bottom navigation mostly transparent so the campus and embedded floor plan remain visible beneath them. Keep future UI layered over the map similarly translucent.
+- Use solid grid-paper sheets and bottom navigation, following the latest approved UI overrides. Keep the surrounding map visible through placement and sheet sizing.
 - Keep the map canvas mounted as a persistent layer while switching bottom-navigation pages. Tab changes must not reset its camera, pan/zoom, floor-plan visibility, location, or selection; change map state only through direct user map interactions.
 - Support pinch-to-zoom on the map, respecting the existing zoom and pan bounds.
 - Keep the map's visible location control fixed at 15 × 15 CSS pixels and icon-only, with an accessible name and a transparent hit area for touch.
@@ -43,11 +44,12 @@ This section is the current user-approved source of truth for the Buckeye Sprout
 
 ## Phase 2 — Group Join/Create, State 1 (not in a group)
 
-- The bottom-navigation tab for joining/creating a group initially shows only one primary action: `Tap BuckID Reader` (or an equivalent visual scan trigger).
-- Activating it shows a clear scanning/loading state that simulates a BuckID/NFC or QR table-reader interaction.
-- Provide a small development/demo toggle to exercise both location outcomes:
-  - **Existing group:** Show `Join [Host Name]'s Group?`, the same group heading, course/topic study status, and scrolling host-first participant list as Phase 1, plus a confirmation action to join.
-  - **No existing group:** Show `Create Group?` and the sequential inputs/actions below.
+- Selecting Group while not in a group shows only a standalone `Tap BuckID Reader` action over the persistent map; do not open a sliding sheet in this state.
+- Activating it opens an animated, explicitly simulated reader popup for three seconds. Do not implement NFC, barcode or camera scanning. Disable repeated activation and cancel pending scans when closed or when switching tabs.
+- Resolve the nearest Thompson Level 1 table from the displayed location using the same unzoomed floor-plan projection as the map. If location is unavailable or outside the campus drawing, use and visibly label the existing Thompson demo location. Do not request GPS automatically.
+- Resolve these outcomes from shared local table/group state, rather than an outcome toggle:
+  - **Existing group:** Show a grid-paper `Join [Host Name]'s Group?` popup, the same group heading, course/topic study status, and scrolling host-first participant list as Phase 1, plus explicit confirmation to join. Invite-only groups require an invitation; a simulated tap does not bypass it.
+  - **No existing group:** Show a grid-paper `Create Group?` popup with sequential steps: name, searchable course selection, then Invite only and Create. Create at the resolved table, never a hardcoded table.
 - A very busy table does not block joining; do not present a full-table state or reject a join solely because of group busyness.
 - The create flow must include:
   1. Group name defaulting to `[Profile-Name]'s Group`; focusing the input selects all default text for easy replacement.
@@ -60,8 +62,10 @@ This section is the current user-approved source of truth for the Buckeye Sprout
 
 - Replace the join/create tab content with a draggable current-group sheet over the map:
   - collapsed: cover only the lower part of the screen and leave the map visible;
-  - expanded by swiping up: cover the full screen over the map.
+  - expanded by swiping up: fill the available screen above navigation, retaining the 12px gap.
 - Place a **red `Leave group` button in the top-right** of the group tab.
+- Keep the bottom-bar Group label unchanged. Once joined, selecting it opens current-group details without scanning again. Leaving returns to the standalone reader action.
+- Keep membership, host succession, invitations, occupancy and notebook content synchronized across Group Search, Group, Notes and map popups in frontend state only.
 - On host departure, if members remain, transfer host status to the earliest-joined remaining member. If no members remain, close the group posting.
 - Automatically leave when the user moves more than **150 m** from the group location; provide a discreet `Simulate Walking Away (GPS Trigger)` action for this mock geofence flow.
 - Include an editable shared Group Notebook and an AI Summary / Catch-Up section that summarizes its current mock notes for incoming members.
@@ -72,24 +76,82 @@ This section is the current user-approved source of truth for the Buckeye Sprout
 
 ### Existing notebook implementation status
 
-- `NotebookPanel` currently mounts `CollectiveGroupNotebook` in the Notes tab. Its `notebook` prop is passed as `null` from the home page, and the visible notes/catch-up panels are not yet connected to the selected group's notebook state.
-- `AppleNotesManager`, `CatchMeUpBanner`, and `CarmenAiChatbot` provide reusable UI. The current catch-up copy is fixed demo text; the chatbot uses scripted Carmen-style replies and currently opens from a star pill in the Notes heading rather than the circular star control required in the current-group view.
+- `NotebookPanel` mounts `CollectiveGroupNotebook` in Notes and the current-group view. Both use the active group's local notebook state, course and participant count.
+- `AppleNotesManager` has one note type with no category selector or badges. `CatchMeUpBanner` summarizes the current mock notes; `CarmenAiChatbot` uses scripted course replies and opens from a circular star in the current-group heading.
 - `NotebookEditor`, `PadletBoard`, `GroupAgendaChecklist`, `StickyUnitTaskPadlet`, `IndividualAiRecommendations`, and `AmbientTopicBanner` also exist. Treat these as existing prototype pieces, not completed Phase 3 requirements unless they are needed to satisfy the approved notebook/catch-up behavior.
-- Connect editable notes and catch-up to the active group's frontend-only mock state before marking the Phase 3 notebook requirement complete. Keep any optional AI endpoints and persistence behavior within the approved frontend/mock scope.
+- Editable notes and catch-up now consume the active group's frontend-only mock state through the existing notebook components. Preserve that connection. Keep any optional AI endpoints and persistence behavior within the approved frontend/mock scope.
 
 ## Phase 4 — Invite-only host, State 3
 
 - Only when the current user is the host of an invite-only group, show a host invite search within the current-group view.
 - The host must be able to search a student by profile ID or name and grant an invitation to join.
+- Grant an invitation separately from membership: the invited student still confirms joining at the simulated reader.
 - Do not show this control for other roles or non-invite-only groups.
 - At the end of Phase 4, show and verify the role/visibility behavior and ask about any remaining edge cases.
 
 ## Phase gates and unresolved choices
 
 - Never continue beyond the current phase on the assumption that elapsed time or a preview implies approval.
-- Confirmed for Phase 1: replace the current Groups tab, embed and auto-zoom to the Thompson East Entrance Level 1 plan on the campus map, seed local dummy groups using Alex/Jordan/Sam, keep all clickable group rows visible in the sheet, support drag and selected-tab toggle to hide it plus bottom-bar drag to expand it, make map overlays mostly transparent, use a fixed 15 × 15 px visual location control with a transparent touch hit area, and omit both seat count and table photo. The host appears first but scrolls with the other profiles. Do not ask these resolved questions again.
+- Confirmed for Phase 1: replace the current Groups tab, embed and auto-zoom to the Thompson East Entrance Level 1 plan on the campus map, seed local dummy groups using Alex/Jordan/Sam, keep all clickable group rows visible in the sheet, support drag and selected-tab toggle to hide it plus bottom-bar drag to expand it, use the latest solid grid-paper surfaces, use a fixed 15 × 15 px visual location control with a transparent touch hit area, and omit both seat count and table photo. The host appears first but scrolls with the other profiles. Do not ask these resolved questions again.
 - Confirmed table and geofence behavior: tables use empty/busy/very busy states only; users may join at very busy tables; mock GPS auto-leave triggers beyond 150 m from the group location.
 - Keep all mock interactions local to the frontend. Do not claim that simulated scan, membership, GPS, invite, notebook, or AI actions are backed by live services.
+
+## Implementation handoff — 2026-10-24
+
+This records the implemented prototype and prior verification, not approval of a new phase or proof that every phase requirement is complete. The user authorized the reader/group implementation plan and then requested this documentation update. Preserve the implemented flows while waiting for further direction; do not restart Phase 0 solely because a new session begins.
+
+### Approved presentation decisions
+
+- Preserve the phone-first, iOS-inspired campus-map composition. The local reference is `reference/image.webp`; prefer the reference directory over an expired Discord attachment URL.
+- Notes has one note type, with no category selector or category badges. Do not restore the removed legacy note categories or their terminology.
+- Use subtle sage grid-paper backgrounds and squiggle dividers beneath tab and note titles. These dividers implement the requested scratched-out title treatment. Do not reintroduce frosted glass or backdrop blur.
+- All tab sheets and bottom navigation share `--map-panel-width: min(588px, calc(100% - 32px))`. Keep their edges aligned across tabs rather than tuning widths independently.
+- Navigation and panels/dialogs retain a 12px gap through the shared safe-area-aware CSS variables (`--app-panel-bottom`, `--app-popup-bottom`). Keep long content internally scrollable and the root map viewport fixed.
+- Reader, note-editor and Carmen dialogs use body portals so sheet transforms and clipping do not interfere with positioning. Preserve keyboard focus handling, Escape/close controls and reduced-motion support.
+
+### Code ownership and shared state
+
+- `src/types/contracts.ts` owns shared map/domain types and fixtures, including `DemoStudyGroup`, `DemoGroupState`, `DemoCreateGroupInput`, `DemoReaderLocation`, `CampusMapViewport`, `MOCK_DEMO_STUDY_GROUPS`, `DEMO_GROUP_COURSES` and the 3000ms reader delay. Import these rather than copying profiles or group shapes into features.
+- `src/features/campus-map/components/ThompsonMap.tsx` owns the shared group reducer and composes the persistent map, search, Group, Notes and popups. Table occupancy and visible group data derive from this state. Preserve map mounting/camera state across tab changes.
+- `src/features/location-checkin/group-demo.ts` owns pure local join/create/leave/invite/notebook/end-session transitions. It clones fixtures so interactions cannot mutate the canonical seed data.
+- `src/features/campus-map/map-geometry.ts` owns `artworkPointToViewport`, `getPlanGeometry` and `resolveDemoReaderLocation`. `IntegratedCampusMap` uses these same helpers and reports reader location to the shell.
+- `src/features/location-checkin/components/GroupJoinManager.tsx` owns the reader animation and sequential dialogs; its exported `CurrentGroupPanel` renders the active group and host invitation controls.
+- `src/app/components/GroupRoster.tsx` is the common host-first scrolling roster for discovery and reader/current-group details. Empty avatar URLs fall back to initials.
+
+### Reader and membership behavior to preserve
+
+- A user without an active group sees only the standalone `Tap BuckID Reader` action on Group. It opens a clearly simulated three-second popup; it never accesses NFC, barcode or camera APIs.
+- Cancel the pending timer when the dialog closes, the tab changes or the component unmounts; prevent repeated activation. Reduced motion suppresses animation without shortening the three-second simulation.
+- Resolve the nearest table from the latest displayed location using the shared unzoomed floor-plan projection. Camera pan/zoom must not change which table is nearest. Missing, invalid or out-of-artwork coordinates use the visibly labeled Thompson demo location. GPS remains an explicit user action.
+- The projection depends on viewport dimensions because the embedded plan has a responsive width cap. Do not replace it with raw latitude/longitude distance or compare coordinates from different spaces.
+- An existing posting opens an explicit join confirmation, not automatic membership. Invite-only access is enforced in the reducer as well as the UI. Very busy tables remain joinable.
+- An empty table opens name, searchable course, then privacy/Create steps. The default name is selected on focus and click only while it still equals the profile-based default. Require a selected course; create at the resolved table.
+- New group IDs retain the `local-` prefix. Use `createDemoGroupId()`, whose fallback supports ordinary HTTP/LAN previews where `crypto.randomUUID` may be unavailable.
+- Joining/creating opens the draggable current-group sheet; selecting Group again shows details without scanning. Keep the Group navigation label and top-right red `Leave group` control.
+- Invitations are grants, not membership. Only an invite-only host can search the canonical demo profiles by name/ID and invite them. Confirmation at the reader still adds the member and consumes the invitation.
+- Host departure transfers ownership to the earliest-joined remaining member; ordinary member departure preserves the host. The last member leaving closes the posting even if unused invitations remain. Remaining groups retain their notebook content.
+- The GPS departure control currently simulates moving over 150m and dispatches the same leave transition. Do not describe this as a verified automatic live geofence; actual distance-based automatic departure remains a separate requirement to audit before claiming Phase 3 complete.
+- State is in memory and resets on reload. No cross-device membership, invitation delivery or durable group notebook persistence is provided by this flow.
+
+### Notebook and Carmen integration
+
+- Reuse `NotebookPanel` / `CollectiveGroupNotebook` in Group and Notes. Both consume the active group's notebook content, course, viewer, Level 1 and actual participant count; pre-group notes have a separate local draft.
+- Starting a new note expands the owning sheet. Catch-up reflects current mock notes; edits made in Group must be visible in Notes and vice versa.
+- The circular star in the current-group heading opens Carmen. Its banner, reminders and scripted suggestions use the active group's course, with an honest fallback when mock data is absent. Do not reuse CSE recursion replies for unrelated courses.
+- Carmen is explicitly simulated and uses existing mock course/profile data. Do not connect Canvas or add new AI/backend services as part of maintenance on this flow.
+
+### Verification and development lessons
+
+- Use `npm.cmd` in this Windows PowerShell environment; `npm.ps1` is blocked by execution policy. Existing dependencies are sufficient; no browser test framework was added.
+- Relevant checks: `node scripts/check-group-demo.mjs`, `npm.cmd run typecheck`, `npm.cmd run build`, and `git diff --check`. These passed for the implementation before this documentation-only update.
+- The group check covers nearest-table projection at multiple viewport sizes, fallback location, valid table/course creation, invitation gating, invitation versus membership, duplicate joins, host succession, group closure, notebook retention, very-busy joins, fixture immutability and ID generation without crypto support.
+- Prior browser checks verified three-second timing, cancellation/tab switching, no NFC access or automatic GPS request, both reader outcomes, selected default name, course filtering, invite visibility, synchronized notes/search/map details, Carmen course context, leave/GPS simulation and persistent map state.
+- Responsive checks covered 320×568, 375×667, 390×844, 473×1024 and 1440×900, plus short viewports, safe-area insets and reduced motion. Check panel/navigation clearance again when changing heights, portals or safe-area variables.
+- Browser screenshots, `results.json` and the ad hoc CDP script are under ignored `out/reader-review/`; these are local review artifacts, not committed tests. The script uses a configured local preview port, which may need updating. Do not assume an old preview server still exists or serves the latest build.
+- If using headless Chrome for local checks, launch a dedicated profile under ignored `out/`, use an unused debugging port and close only that browser afterward. Do not reuse an unrelated existing debugging service. In this environment `--disable-gpu` was needed for reliable CDP touch events; reconnecting CDP may reset viewport emulation.
+- Keep browser profiles and screenshots outside `.next/`, which production builds replace. Do not stop unrelated processes just to reclaim a preview port.
+- Restricted-network builds may log an existing SessionsDB `fetch failed` message and still succeed through the mock fallback. Distinguish that known fallback from a new build failure; do not add database work to silence it.
+- Existing staged work may belong to the user. Preserve index state and unrelated changes; do not commit or reset them without instruction.
 
 ---
 # BuckeyeStudy — Multi-Agent System Architecture & Directives (`AGENTS.md`)
