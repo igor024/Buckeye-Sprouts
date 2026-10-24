@@ -7,7 +7,6 @@ import {
   ChevronRight,
   Code2,
   BookOpen,
-  AlertTriangle,
   HelpCircle,
 } from "lucide-react";
 
@@ -16,7 +15,7 @@ export interface GroupNote {
   title: string;
   content: string;
   authorName: string;
-  category: "concept" | "code" | "gotcha" | "question";
+  category: "concept" | "code" | "question";
   createdAt: string;
 }
 
@@ -40,7 +39,7 @@ function parseNotebook(content: string): GroupNote[] {
       id: `shared-${index}-${heading}`,
       title: heading.replace(/^##\s*/, "").trim() || "Study note",
       content: meta ? text.slice(meta[0].length) : text,
-      category: (meta?.[1] as GroupNote["category"]) || "concept",
+      category: meta?.[1] === "gotcha" ? "question" : (meta?.[1] as GroupNote["category"]) || "concept",
       authorName: meta?.[2] || "Group",
       createdAt: meta?.[3] || "Shared",
     };
@@ -112,13 +111,6 @@ export function AppleNotesManager({ onNoteAdded, notebookContent = "", onNoteboo
             <span>Code</span>
           </span>
         );
-      case "gotcha":
-        return (
-          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200/80">
-            <AlertTriangle size={10} />
-            <span>Exam Trap</span>
-          </span>
-        );
       case "question":
         return (
           <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-blue-800 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200/80">
@@ -181,14 +173,14 @@ export function AppleNotesManager({ onNoteAdded, notebookContent = "", onNoteboo
           </button>
           <button
             type="button"
-            onClick={() => setSelectedCategory("gotcha")}
+            onClick={() => setSelectedCategory("question")}
             className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
-              selectedCategory === "gotcha"
+              selectedCategory === "question"
                 ? "bg-white text-amber-800 shadow-2xs"
                 : "text-stone-500 hover:text-stone-800"
             }`}
           >
-            Traps
+            Questions
           </button>
         </div>
 
@@ -298,7 +290,7 @@ export function AppleNotesManager({ onNoteAdded, notebookContent = "", onNoteboo
             <form onSubmit={handleCreateNote} className="space-y-3">
               {/* Category Segmented Control */}
               <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5">
-                {(["concept", "gotcha", "code", "question"] as const).map((cat) => (
+                {(["concept", "code", "question"] as const).map((cat) => (
                   <button
                     key={cat}
                     type="button"
@@ -309,7 +301,7 @@ export function AppleNotesManager({ onNoteAdded, notebookContent = "", onNoteboo
                         : "bg-stone-100 text-stone-600 hover:bg-stone-200"
                     }`}
                   >
-                    {cat === "gotcha" ? "Exam Trap" : cat}
+                    {cat}
                   </button>
                 ))}
               </div>

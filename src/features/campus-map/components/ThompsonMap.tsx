@@ -37,6 +37,7 @@ export function ThompsonMap({
   const [groupSheetHidden, setGroupSheetHidden] = useState(false);
   const [groupQuery, setGroupQuery] = useState("");
   const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
+  const [closingTable, setClosingTable] = useState(false);
   const [libraryFocusRequest, setLibraryFocusRequest] = useState(0);
   const [joinStage, setJoinStage] = useState("idle");
   const [carmenOpen, setCarmenOpen] = useState(false);
@@ -47,6 +48,22 @@ export function ThompsonMap({
   const tabBarDragged = useRef(false);
   const tableCloseButton = useRef<HTMLButtonElement>(null);
   const tableTrigger = useRef<HTMLElement | null>(null);
+  const tableCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const closeTable = () => {
+    if (tableCloseTimer.current !== null) return;
+    setClosingTable(true);
+    const delay = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 160;
+    tableCloseTimer.current = setTimeout(() => {
+      setSelectedTableId(null);
+      setClosingTable(false);
+      tableCloseTimer.current = null;
+    }, delay);
+  };
+
+  useEffect(() => () => {
+    if (tableCloseTimer.current !== null) clearTimeout(tableCloseTimer.current);
+  }, []);
 
   const visibleGroups = useMemo(() => {
     const normalizedQuery = groupQuery.trim().toLocaleLowerCase();
@@ -86,7 +103,19 @@ export function ThompsonMap({
     tableCloseButton.current?.focus();
     const opener = tableTrigger.current;
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setSelectedTableId(null);
+      if (event.key === "Escape") closeTable();
+      if (event.key === "Tab") {
+        const controls = document.querySelectorAll<HTMLElement>('.group-info-dialog button, .group-info-dialog [tabindex="0"]');
+        const first = controls[0];
+        const last = controls[controls.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last?.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first?.focus();
+        }
+      }
     };
     window.addEventListener("keydown", closeOnEscape);
     return () => {
@@ -182,8 +211,8 @@ export function ThompsonMap({
         onSelectSpot={() => undefined}
       />
 
-      <section className={`map-info-sheet${expanded ? " sheet-expanded" : ""}${tab === "groups" ? " group-search-sheet" : ""}${tab === "join" && joinStage === "current" ? " current-group-sheet" : ""}${groupSheetHidden && tab === "groups" ? " group-sheet-hidden" : ""}`} aria-label={tab === "groups" ? "Study group search" : tab === "join" ? "Join or manage a study group" : tab === "notes" ? "Shared notebook" : "Your study profile"}>
-        <button type="button" className="sheet-swipe-handle" onPointerDown={beginSheetSwipe} onPointerUp={endSheetSwipe} onPointerCancel={endSheetSwipe} aria-label={expanded ? "Collapse panel" : "Expand panel"} onClick={() => { if (sheetDragged.current) { sheetDragged.current = false; return; } setExpanded((value) => !value); }}>
+      <section id="map-info-sheet" inert={groupSheetHidden && tab === "groups"} className={`map-info-sheet${expanded ? " sheet-expanded" : ""}${tab === "groups" ? " group-search-sheet" : ""}${tab === "join" && joinStage === "current" ? " current-group-sheet" : ""}${groupSheetHidden && tab === "groups" ? " group-sheet-hidden" : ""}`} aria-label={tab === "groups" ? "Study group search" : tab === "join" ? "Join or manage a study group" : tab === "notes" ? "Shared notebook" : "Your study profile"}>
+        <button type="button" className="sheet-swipe-handle" onPointerDown={beginSheetSwipe} onPointerUp={endSheetSwipe} onPointerCancel={() => { sheetStart.current = null; }} aria-expanded={expanded} aria-controls="map-sheet-content" aria-label={expanded ? "Collapse panel" : "Expand panel"} onClick={() => { if (sheetDragged.current) { sheetDragged.current = false; return; } setExpanded((value) => !value); }}>
           <span />
         </button>
         <div className="sheet-heading">
@@ -198,15 +227,15 @@ export function ThompsonMap({
           )}
           {tab === "notes" && <button type="button" className="notes-new-button" onClick={() => { setExpanded(true); window.dispatchEvent(new CustomEvent("buckeye:open-new-note")); }} aria-label="Create a new group note" title="New note"><Plus size={18} /></button>}
         </div>
-        <div className="map-sheet-content">
+        <div id="map-sheet-content" className="map-sheet-content">
           {tab === "groups" && <>
-            <label className="map-search group-search-field"><Search size={18} /><input value={groupQuery} onChange={(event) => setGroupQuery(event.target.value)} placeholder="Search by course number (e.g., CSE 2221)" aria-label="Search study groups by course number" /></label>
-            <div className="map-group-list" role="list" aria-label="Study groups on Thompson Library Level 1">
-              {visibleGroups.map(({ table, group }) => <button className="map-group-row" type="button" key={group.id} onClick={(event) => openTable(table, event.currentTarget)}>
-                <span className="group-icon"><Users size={19} /></span><span className="group-row-copy"><strong>{group.name}</strong><small>{group.courseCode} · {group.topic}</small></span><span className="group-table-label"><MapPin size={13} />{table.label}</span>
-              </button>)}
-            </div>
-            {visibleGroups.length === 0 && <p className="map-hint group-no-results">No study groups match “{groupQuery}”. Try a course number such as CSE 2221 or MATH 1151.</p>}
+            <label className="map-search group-search-field"><Search size={19} aria-hidden="true" /><input type="search" value={groupQuery} onChange={(event) => setGroupQuery(event.target.value)} placeholder="Search courses, e.g. CSE 2221" aria-label="Search study groups by course number" /></label>
+            <ul className="map-group-list" aria-label="Study groups on Thompson Library Level 1">
+              {visibleGroups.map(({ table, group }) => <li key={group.id}><button className="map-group-row" type="button" onClick={(event) => openTable(table, event.currentTarget)}>
+                <ProfileAvatar profile={group.host} /><span className="group-row-copy"><strong>{group.name}</strong><small>{group.courseCode} · {group.topic}</small><span className="group-table-label"><MapPin size={12} aria-hidden="true" />{table.label}</span></span>
+              </button></li>)}
+            </ul>
+            {visibleGroups.length === 0 && <p className="map-hint group-no-results" role="status">No study groups match “{groupQuery}”. Try a course number such as CSE 2221 or MATH 1151.</p>}
           </>}
           <div hidden={tab !== "join"}>
             <GroupJoinManager currentUserId={profile?.id} currentUserName={profile?.name || "Alex Morgan"} notebookContent={notebookContent} onNotebookContentChange={setNotebookContent} onStageChange={(stage) => { setJoinStage(stage); if (stage === "existing" || stage === "create") setExpanded(true); if (stage === "current") setExpanded(false); }} />
@@ -217,24 +246,23 @@ export function ThompsonMap({
       </section>
 
       <nav className="map-service-tabs" aria-label="Map app navigation">
-        <span className="map-tabs-grabber" aria-hidden="true" />
-        <button className={tab === "groups" ? "active" : ""} type="button" onClick={openGroupSearch}><Users size={20} /><span>Groups</span></button>
-        <button className={tab === "join" ? "active" : ""} type="button" onClick={() => selectTab("join")} aria-label="Join or manage a group"><Plus size={21} /><span>Group</span></button>
-        <button className={tab === "notes" ? "active" : ""} type="button" onClick={() => selectTab("notes")}><BookOpen size={20} /><span>Notes</span></button>
-        <button className={tab === "me" ? "active" : ""} type="button" onClick={() => selectTab("me")}><span className="service-avatar">{profile?.name.slice(0, 1) || "?"}</span><span>Me</span></button>
+        <button className={tab === "groups" ? "active" : ""} aria-current={tab === "groups" ? "page" : undefined} aria-expanded={tab === "groups" && !groupSheetHidden} aria-controls="map-info-sheet" type="button" onClick={openGroupSearch}><Users size={24} aria-hidden="true" /><span>Groups</span></button>
+        <button className={tab === "join" ? "active" : ""} aria-current={tab === "join" ? "page" : undefined} type="button" onClick={() => selectTab("join")} aria-label="Join or manage a group"><Plus size={25} aria-hidden="true" /><span>Group</span></button>
+        <button className={tab === "notes" ? "active" : ""} aria-current={tab === "notes" ? "page" : undefined} type="button" onClick={() => selectTab("notes")}><BookOpen size={24} aria-hidden="true" /><span>Notes</span></button>
+        <button className={tab === "me" ? "active" : ""} aria-current={tab === "me" ? "page" : undefined} type="button" onClick={() => selectTab("me")}><span className="service-avatar" aria-hidden="true">{profile?.name.slice(0, 1) || "?"}</span><span>Me</span></button>
       </nav>
 
       {tab === "join" && joinStage === "current" && currentStudent && <CarmenAiChatbot studentProfile={currentStudent} courseCode="CSE 2221" notebookContent={notebookContent} isOpenExternal={carmenOpen} onToggleExternal={() => setCarmenOpen((open) => !open)} onInsertToNotebook={(text) => setNotebookContent((content) => `${content}\n\n${text}`.trim())} />}
 
-      {selectedTable && <div className="group-info-backdrop" role="presentation" onClick={() => setSelectedTableId(null)}>
+      {selectedTable && <div className={`group-info-backdrop${closingTable ? " is-closing" : ""}`} role="presentation" onClick={closeTable}>
         <section className="group-info-dialog" role="dialog" aria-modal="true" aria-labelledby="group-info-title" aria-describedby="group-info-status" onClick={(event) => event.stopPropagation()}>
-          <button ref={tableCloseButton} type="button" className="group-info-close" onClick={() => setSelectedTableId(null)} aria-label="Close table information"><X size={20} /></button>
+          <button ref={tableCloseButton} type="button" className="group-info-close" onClick={closeTable} aria-label="Close table information"><X size={20} /></button>
           <div className="group-info-heading">
             <p className="group-info-eyebrow">{selectedTable.label} · {selectedTable.status === "empty" ? "EMPTY" : selectedTable.status === "very-busy" ? "VERY BUSY" : "BUSY"}</p>
             <h2 id="group-info-title">{selectedGroup ? selectedGroup.name : "Available table"}</h2>
             <p id="group-info-status">{selectedGroup ? `${selectedGroup.courseCode} · ${selectedGroup.topic}` : "No study group is at this table right now."}</p>
           </div>
-          {selectedGroup && <ul className="group-profile-list" aria-label="Group host and members">
+          {selectedGroup && <ul className="group-profile-list" tabIndex={0} aria-label="Group host and members">
             <li className="group-profile-row"><ProfileAvatar profile={selectedGroup.host} /><span className="group-profile-name">{selectedGroup.host.name}</span><span className="group-profile-role">Host</span></li>
             {selectedGroup.members.map((member) => <li key={member.id} className="group-profile-row"><ProfileAvatar profile={member} /><span className="group-profile-name">{member.name}</span><span className="group-profile-role">Member</span></li>)}
           </ul>}
