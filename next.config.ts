@@ -8,6 +8,17 @@ const nextConfig: NextConfig = {
   // Lets local preview sessions route generated files away from OneDrive placeholders.
   distDir: process.env.BUCKEYE_NEXT_DIST_DIR || ".next",
   poweredByHeader: false,
+  ...(!isExport ? {
+    async headers() {
+      return [{ source: "/sw.js", headers: [{ key: "Cache-Control", value: "no-cache, no-store, must-revalidate" }] }];
+    },
+  } : {}),
+  ...(!isExport && process.env.NODE_ENV === "development" ? {
+    async rewrites() {
+      // Replace even an already-installed production worker during local development.
+      return { beforeFiles: [{ source: "/sw.js", destination: "/sw-dev.js" }] };
+    },
+  } : {}),
   ...(isExport
     ? {
         output: "export",

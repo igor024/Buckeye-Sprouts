@@ -59,6 +59,13 @@ absolute `typescript.js` path as an argument.
 
 ## Progressive Web App (PWA)
 
+Development (`npm run dev`) keeps requests on the network and does not register an
+offline service worker. Existing BuckeyeStudy workers are replaced with a cleanup
+worker that retires them and removes only the app's asset caches, preventing stale
+JavaScript from causing hydration mismatches. Production builds retain offline
+caching; use `npm run build` and `npm start` to test that behavior locally. Run
+`node scripts/check-service-worker.mjs` for worker lifecycle and offline checks.
+
 BuckeyeStudy is configured as a standalone Progressive Web App designed for resilient campus use in low-connectivity areas (e.g., Thompson quiet stacks or 18th Avenue basement):
 
 - **Web App Manifest**: Configured via `src/app/manifest.ts` and `public/manifest.json` with Ohio State scarlet branding (`#ba0c2f`), maskable icons, and quick-action shortcuts.

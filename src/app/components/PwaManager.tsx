@@ -58,7 +58,7 @@ export function PwaManager() {
     };
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
 
-    // 5. Register Service Worker with dynamic base path awareness (GitHub Pages subpath vs root)
+    // 5. Keep development bundles on the network; retain offline caching in production.
     if ("serviceWorker" in navigator) {
       const getAppBasePath = () => {
         if (typeof window === "undefined") return "";
@@ -75,23 +75,34 @@ export function PwaManager() {
       const swUrl = `${basePath}/sw.js`;
       const swScope = `${basePath}/`;
 
-      navigator.serviceWorker
-        .register(swUrl, { scope: swScope })
-        .then((registration) => {
-          registration.addEventListener("updatefound", () => {
-            const newWorker = registration.installing;
-            if (newWorker) {
-              newWorker.addEventListener("statechange", () => {
-                if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
-                  setSwUpdateAvailable(true);
-                }
-              });
-            }
-          });
-        })
-        .catch((error) => {
-          console.warn("[BuckeyeStudy PWA] Service worker registration error:", error);
+      const configureWorker = async () => {
+        if (process.env.NODE_ENV !== "production") {
+          const registration = await navigator.serviceWorker.getRegistration(swScope);
+          const worker = registration?.active ?? registration?.waiting ?? registration?.installing;
+          if (registration?.scope === new URL(swScope, window.location.href).href
+            && worker?.scriptURL === new URL(swUrl, window.location.href).href) {
+            // /sw.js serves a cache-free retirement worker in development. It claims
+            // open tabs before unregistering so their old fetch handler is replaced.
+            await registration.update();
+          }
+          return;
+        }
+
+        const registration = await navigator.serviceWorker.register(swUrl, { scope: swScope, updateViaCache: "none" });
+        registration.addEventListener("updatefound", () => {
+          const newWorker = registration.installing;
+          if (newWorker) {
+            newWorker.addEventListener("statechange", () => {
+              if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+                setSwUpdateAvailable(true);
+              }
+            });
+          }
         });
+      };
+      void configureWorker().catch((error) => {
+        console.warn("[BuckeyeStudy PWA] Service worker setup error:", error);
+      });
     }
 
     return () => {

@@ -86,14 +86,14 @@ export function GroupJoinManager({ visible, profile, groups, activeGroup, tables
       {notice && <p role="status" className="reader-notice">{notice}</p>}
       <button type="button" className="reader-tap-button" disabled={!readerLocation} onClick={scan}><Nfc size={24} aria-hidden="true" />Tap BuckID Reader</button>
     </div>}
-    {stage !== "idle" && <ReaderDialog key={stage} title={stage === "scanning" ? "Simulating a reader tap…" : stage === "existing" ? `Join ${group?.host.name.split(" ")[0] ?? "the host"}'s Group?` : "Create Group?"} onClose={cancel}>
+    {stage !== "idle" && <ReaderDialog key={stage} title={stage === "scanning" ? "Tap your BuckID" : stage === "existing" ? `Join ${group?.host.name.split(" ")[0] ?? "the host"}'s Group?` : "Create Group?"} onClose={cancel}>
       {stage === "scanning" ? <div className="reader-scanning" role="status" aria-live="polite">
         <div className="reader-animation" aria-hidden="true"><span /><span /><span /><Nfc size={42} /></div>
-        <p>Finding your table…</p><p className="reader-caption">Three-second demo · no NFC data is read.</p>
-        <div className="reader-progress" role="progressbar" aria-label="Three-second reader simulation"><span /></div>
+        <p>Finding your table…</p>
+        <div className="reader-progress" role="progressbar" aria-label="BuckID reader progress"><span /></div>
         <button type="button" className="reader-secondary" onClick={cancel}>Cancel</button>
       </div> : <>
-        <p className="reader-caption reader-location">{sourceText} · {table?.label}</p>
+        <p className="reader-caption reader-location">{stage === "create" ? "Thompson Library · Level 1" : sourceText} · {table?.label}</p>
         {stage === "existing" && (group ? <>
           <h3 className="reader-group-name">{group.name}</h3><p className="reader-study-status">{group.courseCode} · {group.topic}</p>
           <p className="reader-caption">{table?.status === "very-busy" ? "Very busy" : "Busy"} · {group.inviteOnly ? "Invite only" : "Open group"}</p>
