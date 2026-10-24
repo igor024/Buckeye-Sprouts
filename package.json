@@ -2,7 +2,9 @@
   "name": "buckeye-study",
   "version": "0.1.0",
   "private": true,
-  "engines": { "node": ">=20.9.0" },
+  "engines": {
+    "node": ">=20.9.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -13,6 +15,7 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.0",
+    "@next/swc-linux-x64-gnu": "^16.4.3",
     "@supabase/supabase-js": "^2.90.0",
     "ai": "^6.0.0",
     "html5-qrcode": "^2.3.8",
