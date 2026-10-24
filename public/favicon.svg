@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ba0c2f" />
+      <stop offset="100%" stop-color="#8c0720" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.25" />
+    </filter>
+  </defs>
+  <!-- Background -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
+  
+  <g filter="url(#shadow)" fill="#ffffff" transform="translate(256, 256)">
+    <!-- Graduation Cap Mortarboard -->
+    <polygon points="0,-140 160,-75 0,-10 -160,-75" />
+    <!-- Skull Cap Base -->
+    <path d="M-90,-60 L-90,-10 C-90,30 90,30 90,-10 L90,-60 Z" />
+    <!-- Tassel Button & String -->
+    <circle cx="0" cy="-75" r="8" fill="#ffd100" />
+    <path d="M0,-75 Q -80,-55 -115,-10" stroke="#ffd100" stroke-width="6" fill="none" stroke-linecap="round" />
+    <circle cx="-115" cy="-10" r="10" fill="#ffd100" />
+
+    <!-- Open Book -->
+    <!-- Left Page -->
+    <path d="M-15,40 C-60,30 -120,35 -145,50 L-145,150 C-120,135 -60,130 -15,140 Z" fill="#ffffff" />
+    <line x1="-125" y1="75" x2="-35" y2="68" stroke="#ba0c2f" stroke-width="4" stroke-linecap="round" opacity="0.4" />
+    <line x1="-125" y1="95" x2="-35" y2="88" stroke="#ba0c2f" stroke-width="4" stroke-linecap="round" opacity="0.4" />
+    <line x1="-125" y1="115" x2="-55" y2="108" stroke="#ba0c2f" stroke-width="4" stroke-linecap="round" opacity="0.4" />
+
+    <!-- Right Page -->
+    <path d="M15,40 C60,30 120,35 145,50 L145,150 C120,135 60,130 15,140 Z" fill="#ffffff" />
+    <line x1="35" y1="68" x2="125" y2="75" stroke="#ba0c2f" stroke-width="4" stroke-linecap="round" opacity="0.4" />
+    <line x1="35" y1="88" x2="125" y2="95" stroke="#ba0c2f" stroke-width="4" stroke-linecap="round" opacity="0.4" />
+    <line x1="35" y1="108" x2="105" y2="115" stroke="#ba0c2f" stroke-width="4" stroke-linecap="round" opacity="0.4" />
+  </g>
+</svg>

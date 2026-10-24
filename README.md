@@ -38,6 +38,16 @@ boundaries, and fixture references. It cannot replace a full-project build. In a
 restricted offline environment, it can use an existing compiler by passing its
 absolute `typescript.js` path as an argument.
 
+## Progressive Web App (PWA)
+
+BuckeyeStudy is configured as a standalone Progressive Web App designed for resilient campus use in low-connectivity areas (e.g., Thompson quiet stacks or 18th Avenue basement):
+
+- **Web App Manifest**: Configured via `src/app/manifest.ts` and `public/manifest.json` with Ohio State scarlet branding (`#ba0c2f`), maskable icons, and quick-action shortcuts.
+- **Service Worker (`public/sw.js`)**: Provides asset caching, smart network-first navigation with offline fallback, and notification listeners for room booking updates.
+- **Offline Vault (`/offline`)**: Dedicated offline fallback page featuring an emergency offline BuckID barcode pass and a local persistent scratchpad.
+- **Installation & Testing UI (`PwaManager.tsx`)**: Exposes native PWA install triggers for Chrome/Edge/iOS and a judge-friendly **"Simulate Offline"** button to evaluate offline behavior without disabling device network adapters.
+
+
 ## Shared boundaries
 
 `src/types/contracts.ts` is the single source of truth for domain models, safe view
