@@ -2,14 +2,15 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent, ReactNode } from "react";
-import Link from "next/link";
-import { ArrowLeft, BookOpen, MapPin, Route, Search, Users, X } from "lucide-react";
+import { BookOpen, MapPin, Route, Search, Users, X } from "lucide-react";
 import {
-  MOCK_STUDY_GROUP_PINS,
+  MOCK_THOMPSON_TABLE_GROUPS,
+  THOMPSON_EAST_ENTRANCE_TABLES,
   THOMPSON_EAST_ENTRANCE_PLAN,
   type CampusMapSpot,
   type ProfilePreview,
   type SessionPreview,
+  type ThompsonTable,
 } from "@/types/contracts";
 import { IntegratedCampusMap } from "./IntegratedCampusMap";
 
@@ -34,7 +35,7 @@ export function ThompsonMap({
   const [groupSheetHidden, setGroupSheetHidden] = useState(false);
   const [query, setQuery] = useState("");
   const [groupQuery, setGroupQuery] = useState("");
-  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+  const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
   const [selectedSpot, setSelectedSpot] = useState<CampusMapSpot | null>(null);
   const [showRoute, setShowRoute] = useState(false);
   const [libraryFocusRequest, setLibraryFocusRequest] = useState(0);
@@ -54,28 +55,35 @@ export function ThompsonMap({
 
   const visibleGroups = useMemo(() => {
     const normalizedQuery = groupQuery.trim().toLocaleLowerCase();
-    return MOCK_STUDY_GROUP_PINS.filter((group) =>
-      !normalizedQuery || group.courseCode.toLocaleLowerCase().includes(normalizedQuery),
-    );
+    return THOMPSON_EAST_ENTRANCE_TABLES
+      .filter((table) => table.showInSearch && table.groupId)
+      .flatMap((table) => {
+        const group = MOCK_THOMPSON_TABLE_GROUPS.find((item) => item.id === table.groupId);
+        return group ? [{ table, group }] : [];
+      })
+      .filter(({ group }) => !normalizedQuery || group.courseCode.toLocaleLowerCase().includes(normalizedQuery));
   }, [groupQuery]);
   const showLibraryPlan = tab === "groups" || (tab === "places" && floorPlanOpen);
-  const groupsOnMap = tab === "groups" ? visibleGroups : [];
+  const tablesOnMap = tab === "groups" ? THOMPSON_EAST_ENTRANCE_TABLES : [];
   const spotsOnMap = tab === "places" && floorPlanOpen ? visibleSpots : [];
-  const selectedGroup = MOCK_STUDY_GROUP_PINS.find((group) => group.id === selectedGroupId) ?? null;
+  const selectedTable = THOMPSON_EAST_ENTRANCE_TABLES.find((table) => table.id === selectedTableId) ?? null;
+  const selectedGroup = selectedTable?.groupId
+    ? MOCK_THOMPSON_TABLE_GROUPS.find((group) => group.id === selectedTable.groupId) ?? null
+    : null;
 
   useEffect(() => {
-    if (!selectedGroup) return;
+    if (!selectedTable) return;
     groupCloseButton.current?.focus();
     const opener = groupTrigger.current;
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setSelectedGroupId(null);
+      if (event.key === "Escape") setSelectedTableId(null);
     };
     window.addEventListener("keydown", closeOnEscape);
     return () => {
       window.removeEventListener("keydown", closeOnEscape);
       opener?.focus();
     };
-  }, [selectedGroup]);
+  }, [selectedTable]);
 
   const openFloorPlan = () => {
     setTab("places");
@@ -99,9 +107,9 @@ export function ThompsonMap({
     setShowRoute(false);
   };
 
-  const openGroup = (groupId: string, trigger: HTMLElement) => {
+  const openTable = (table: ThompsonTable, trigger: HTMLElement) => {
     groupTrigger.current = trigger;
-    setSelectedGroupId(groupId);
+    setSelectedTableId(table.id);
   };
 
   const selectSpot = (spot: CampusMapSpot) => {
@@ -176,20 +184,14 @@ export function ThompsonMap({
         onOpenFloorPlan={openFloorPlan}
         showLibraryPlan={showLibraryPlan}
         libraryFocusRequest={libraryFocusRequest}
-        visibleGroups={groupsOnMap}
+        visibleTables={tablesOnMap}
         visibleSpots={spotsOnMap}
         selectedSpot={selectedSpot}
         showRoute={showRoute}
-        selectedGroupId={selectedGroupId}
-        onSelectGroup={(group, trigger) => openGroup(group.id, trigger)}
+        selectedTableId={selectedTableId}
+        onSelectTable={openTable}
         onSelectSpot={selectSpot}
       />
-
-      <header className="map-service-header">
-        <Link href="/" className="map-back" aria-label="Buckeye Sprouts home"><ArrowLeft size={18} /></Link>
-        <div className="map-service-title"><strong>Buckeye Sprouts</strong><span>Ohio State · Columbus campus</span></div>
-        <span className="map-level-badge integrated-campus-badge">OSU</span>
-      </header>
 
       {!showLibraryPlan && <button type="button" className="integrated-library-shortcut" onClick={openFloorPlan}>
         <BookOpen size={16} /><span>Thompson Library</span><span className="integrated-shortcut-detail">Floor plan</span>
@@ -208,8 +210,8 @@ export function ThompsonMap({
           {tab === "groups" && <>
             <label className="map-search group-search-field"><Search size={18} /><input value={groupQuery} onChange={(event) => setGroupQuery(event.target.value)} placeholder="Search by course number (e.g., CSE 2221)" aria-label="Search study groups by course number" /></label>
             <div className="map-group-list" role="list" aria-label="Study groups on Thompson Library Level 1">
-              {visibleGroups.map((group) => <button className="map-group-row" type="button" key={group.id} onClick={(event) => openGroup(group.id, event.currentTarget)}>
-                <span className="group-icon"><Users size={19} /></span><span className="group-row-copy"><strong>{group.name}</strong><small>{group.courseCode} · {group.topic}</small></span><span className="group-table-label"><MapPin size={13} />{group.tableLabel}</span>
+              {visibleGroups.map(({ table, group }) => <button className="map-group-row" type="button" key={group.id} onClick={(event) => openTable(table, event.currentTarget)}>
+                <span className="group-icon"><Users size={19} /></span><span className="group-row-copy"><strong>{group.name}</strong><small>{group.courseCode} · {group.topic}</small></span><span className="group-table-label"><MapPin size={13} />{table.label}</span>
               </button>)}
             </div>
             {visibleGroups.length === 0 && <p className="map-hint group-no-results">No study groups match “{groupQuery}”. Try a course number such as CSE 2221 or MATH 1151.</p>}
@@ -234,14 +236,18 @@ export function ThompsonMap({
         <button className={tab === "me" ? "active" : ""} type="button" onClick={() => { setTab("me"); setFloorPlanOpen(false); setGroupSheetHidden(false); setExpanded(false); }}><span className="service-avatar">{profile?.name.slice(0, 1) || "?"}</span><span>Me</span></button>
       </nav>
 
-      {selectedGroup && <div className="group-info-backdrop" role="presentation" onClick={() => setSelectedGroupId(null)}>
+      {selectedTable && <div className="group-info-backdrop" role="presentation" onClick={() => setSelectedTableId(null)}>
         <section className="group-info-dialog" role="dialog" aria-modal="true" aria-labelledby="group-info-title" aria-describedby="group-info-status" onClick={(event) => event.stopPropagation()}>
-          <button ref={groupCloseButton} type="button" className="group-info-close" onClick={() => setSelectedGroupId(null)} aria-label="Close group information"><X size={20} /></button>
-          <div className="group-info-heading"><p className="group-info-eyebrow">STUDY GROUP</p><h2 id="group-info-title">{selectedGroup.name}</h2><p id="group-info-status">{selectedGroup.courseCode} · {selectedGroup.topic}</p></div>
-          <ul className="group-profile-list" aria-label="Group host and members">
+          <button ref={groupCloseButton} type="button" className="group-info-close" onClick={() => setSelectedTableId(null)} aria-label="Close table information"><X size={20} /></button>
+          <div className="group-info-heading">
+            <p className="group-info-eyebrow">{selectedTable.label} · {selectedTable.status === "empty" ? "AVAILABLE" : selectedTable.status === "full" ? "GROUP IS FULL" : "GROUP IS HERE"}</p>
+            <h2 id="group-info-title">{selectedGroup ? selectedGroup.name : "Available table"}</h2>
+            <p id="group-info-status">{selectedGroup ? `${selectedGroup.courseCode} · ${selectedGroup.topic}` : "No study group is at this table right now."}</p>
+          </div>
+          {selectedGroup && <ul className="group-profile-list" aria-label="Group host and members">
             <li className="group-profile-row"><ProfileAvatar profile={selectedGroup.host} /><span className="group-profile-name">{selectedGroup.host.name}</span><span className="group-profile-role">Host</span></li>
             {selectedGroup.members.map((member) => <li key={member.id} className="group-profile-row"><ProfileAvatar profile={member} /><span className="group-profile-name">{member.name}</span><span className="group-profile-role">Member</span></li>)}
-          </ul>
+          </ul>}
         </section>
       </div>}
     </div>
