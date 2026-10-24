@@ -9,7 +9,13 @@ import {
   type SessionDetail,
 } from "@/types/contracts";
 import { createSessionSchema } from "./create-session-schema";
-import { fetchDbSessionDetail, fetchDbSessions, getSupabaseAdminClient, insertDbSession } from "./db";
+import {
+  fetchDbSessionDetail,
+  fetchDbSessions,
+  findDbActiveSessionByTable,
+  getSupabaseAdminClient,
+  insertDbSession,
+} from "./db";
 
 export class SessionInputValidationError extends Error {
   constructor() {
@@ -52,6 +58,10 @@ function nextDemoSessionId() {
 export interface ExtendedSessionsDiscoveryService extends SessionsDiscoveryService {
   createSession(input: CreateSessionInput, verifiedHostId?: string): Promise<SessionPreview>;
   getSession(sessionId: string, viewerId?: string | null): Promise<SessionDetail | null>;
+  getActiveSessionByTable(
+    tableId: string,
+    libraryName?: string
+  ): Promise<{ sessionId: string; session: SessionPreview; hostName?: string } | null>;
 }
 
 /**
@@ -183,5 +193,37 @@ export const sessionsDiscoveryService: ExtendedSessionsDiscoveryService = {
       return { storagePath: "" };
     }
     return { storagePath };
+  },
+
+  async getActiveSessionByTable(tableId: string, libraryName: string = "Thompson Library") {
+    const cleanId = (tableId || "").trim();
+    if (!cleanId) return null;
+
+    // 1. Check live database first if configured
+    if (isSupabaseConfigured) {
+      const dbMatch = await findDbActiveSessionByTable(cleanId, libraryName);
+      if (dbMatch) {
+        return dbMatch;
+      }
+    }
+
+    // 2. Check local mock store (case-insensitive)
+    const norm = cleanId.toLowerCase();
+    const mock = mockStore.sessions.find(
+      (s) =>
+        (s.tableId.toLowerCase() === norm ||
+          (norm === "150b-1" && s.id === "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa")) &&
+        s.status === "active"
+    );
+
+    if (mock) {
+      return {
+        sessionId: mock.id,
+        session: toSessionPreview(mock),
+        hostName: "Alex Morgan",
+      };
+    }
+
+    return null;
   },
 };

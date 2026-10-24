@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Thompson Library • Physical Table QR Code Anchors</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background: #f4f3ef;
+      color: #282724;
+      padding: 24px;
+    }
+    .header {
+      max-width: 1200px;
+      margin: 0 auto 24px auto;
+      background: white;
+      padding: 24px;
+      border-radius: 12px;
+      border: 1px solid #e2ded5;
+    }
+    .header h1 {
+      font-size: 24px;
+      color: #ba0c2f;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .header p {
+      color: #57534e;
+      font-size: 14px;
+      margin-top: 6px;
+    }
+    .print-button {
+      margin-top: 14px;
+      background: #ba0c2f;
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .card {
+      background: white;
+      border: 2px solid #ba0c2f;
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      page-break-inside: avoid;
+      position: relative;
+    }
+    .badge-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .tag {
+      background: #fdf2f2;
+      color: #ba0c2f;
+      border: 1px solid #fed7d7;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .floor-tag {
+      background: #f5f5f4;
+      color: #57534e;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 8px;
+    }
+    .table-id {
+      font-size: 26px;
+      font-weight: 800;
+      color: #1c1917;
+      letter-spacing: -0.02em;
+    }
+    .room-name {
+      font-size: 13px;
+      color: #78716c;
+      margin-top: 2px;
+      margin-bottom: 14px;
+      font-weight: 500;
+    }
+    .qr-frame {
+      background: #ffffff;
+      border: 2px solid #e7e5e4;
+      border-radius: 12px;
+      padding: 10px;
+      display: inline-block;
+      margin-bottom: 12px;
+    }
+    .qr-frame img {
+      display: block;
+      width: 180px;
+      height: 180px;
+    }
+    .instructions {
+      font-size: 11px;
+      color: #44403c;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+    .subtext {
+      font-size: 9px;
+      color: #a8a29e;
+      margin-top: 6px;
+      word-break: break-all;
+    }
+    @media print {
+      body { background: white; padding: 0; }
+      .header, .print-button { display: none; }
+      .grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+        max-width: 100%;
+      }
+      .card {
+        box-shadow: none;
+        border: 2px dashed #ba0c2f;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>BuckeyeStudy • Thompson Library QR Anchors</h1>
+    <p>Contains all <strong>72 tables</strong>. Base URL: <code>http://localhost:3000</code></p>
+    <p>Each card is pre-configured to route directly to the active study session, or prompt instant creation if the table is open.</p>
+    <button class="print-button" onclick="window.print()">🖨️ Print All Cards / Save as PDF</button>
+  </div>
+
+  <div class="grid">
+    
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 150b-1</div>
+      <div class="room-name">Room 150B • Table 1</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F150b-1" alt="QR code for Table 150b-1" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/150b-1</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 150b-2</div>
+      <div class="room-name">Room 150B • Table 2</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F150b-2" alt="QR code for Table 150b-2" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/150b-2</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 150a-1</div>
+      <div class="room-name">Room 150A • Table 1</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F150a-1" alt="QR code for Table 150a-1" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/150a-1</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 150a-2</div>
+      <div class="room-name">Room 150A • Table 2</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F150a-2" alt="QR code for Table 150a-2" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/150a-2</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 150a-3</div>
+      <div class="room-name">Room 150A • Table 3</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F150a-3" alt="QR code for Table 150a-3" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/150a-3</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 150a-4</div>
+      <div class="room-name">Room 150A • Table 4</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F150a-4" alt="QR code for Table 150a-4" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/150a-4</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 150a-5</div>
+      <div class="room-name">Room 150A • Table 5</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F150a-5" alt="QR code for Table 150a-5" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/150a-5</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 150a-6</div>
+      <div class="room-name">Room 150A • Table 6</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F150a-6" alt="QR code for Table 150a-6" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/150a-6</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 110-1</div>
+      <div class="room-name">Room 110 • Table 1</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F110-1" alt="QR code for Table 110-1" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/110-1</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 110-2</div>
+      <div class="room-name">Room 110 • Table 2</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F110-2" alt="QR code for Table 110-2" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/110-2</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 110-3</div>
+      <div class="room-name">Room 110 • Table 3</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F110-3" alt="QR code for Table 110-3" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/110-3</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 110-4</div>
+      <div class="room-name">Room 110 • Table 4</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F110-4" alt="QR code for Table 110-4" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/110-4</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 140-1</div>
+      <div class="room-name">Room 140 • Table 1</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F140-1" alt="QR code for Table 140-1" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/140-1</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 140-2</div>
+      <div class="room-name">Room 140 • Table 2</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F140-2" alt="QR code for Table 140-2" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/140-2</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 140-3</div>
+      <div class="room-name">Room 140 • Table 3</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F140-3" alt="QR code for Table 140-3" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/140-3</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 140-4</div>
+      <div class="room-name">Room 140 • Table 4</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F140-4" alt="QR code for Table 140-4" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/140-4</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 140-5</div>
+      <div class="room-name">Room 140 • Table 5</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F140-5" alt="QR code for Table 140-5" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/140-5</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 140-6</div>
+      <div class="room-name">Room 140 • Table 6</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F140-6" alt="QR code for Table 140-6" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/140-6</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 140-7</div>
+      <div class="room-name">Room 140 • Table 7</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F140-7" alt="QR code for Table 140-7" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/140-7</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 140-8</div>
+      <div class="room-name">Room 140 • Table 8</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F140-8" alt="QR code for Table 140-8" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/140-8</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 140-9</div>
+      <div class="room-name">Room 140 • Table 9</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F140-9" alt="QR code for Table 140-9" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/140-9</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 140-10</div>
+      <div class="room-name">Room 140 • Table 10</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F140-10" alt="QR code for Table 140-10" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/140-10</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 140-11</div>
+      <div class="room-name">Room 140 • Table 11</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F140-11" alt="QR code for Table 140-11" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/140-11</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 140-12</div>
+      <div class="room-name">Room 140 • Table 12</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F140-12" alt="QR code for Table 140-12" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/140-12</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 140-13</div>
+      <div class="room-name">Room 140 • Table 13</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F140-13" alt="QR code for Table 140-13" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/140-13</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 140-14</div>
+      <div class="room-name">Room 140 • Table 14</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F140-14" alt="QR code for Table 140-14" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/140-14</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 140-15</div>
+      <div class="room-name">Room 140 • Table 15</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F140-15" alt="QR code for Table 140-15" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/140-15</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 140-16</div>
+      <div class="room-name">Room 140 • Table 16</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F140-16" alt="QR code for Table 140-16" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/140-16</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 145-1</div>
+      <div class="room-name">Room 145 • Table 1</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F145-1" alt="QR code for Table 145-1" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/145-1</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 145-2</div>
+      <div class="room-name">Room 145 • Table 2</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F145-2" alt="QR code for Table 145-2" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/145-2</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 145-3</div>
+      <div class="room-name">Room 145 • Table 3</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F145-3" alt="QR code for Table 145-3" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/145-3</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 145-4</div>
+      <div class="room-name">Room 145 • Table 4</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F145-4" alt="QR code for Table 145-4" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/145-4</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 145-5</div>
+      <div class="room-name">Room 145 • Table 5</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F145-5" alt="QR code for Table 145-5" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/145-5</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 145-6</div>
+      <div class="room-name">Room 145 • Table 6</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F145-6" alt="QR code for Table 145-6" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/145-6</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 145-7</div>
+      <div class="room-name">Room 145 • Table 7</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F145-7" alt="QR code for Table 145-7" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/145-7</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 145-8</div>
+      <div class="room-name">Room 145 • Table 8</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F145-8" alt="QR code for Table 145-8" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/145-8</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 145-9</div>
+      <div class="room-name">Room 145 • Table 9</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F145-9" alt="QR code for Table 145-9" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/145-9</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 145-10</div>
+      <div class="room-name">Room 145 • Table 10</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F145-10" alt="QR code for Table 145-10" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/145-10</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 145-11</div>
+      <div class="room-name">Room 145 • Table 11</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F145-11" alt="QR code for Table 145-11" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/145-11</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 145-12</div>
+      <div class="room-name">Room 145 • Table 12</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F145-12" alt="QR code for Table 145-12" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/145-12</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 145-13</div>
+      <div class="room-name">Room 145 • Table 13</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F145-13" alt="QR code for Table 145-13" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/145-13</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 145-14</div>
+      <div class="room-name">Room 145 • Table 14</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F145-14" alt="QR code for Table 145-14" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/145-14</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 145-15</div>
+      <div class="room-name">Room 145 • Table 15</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F145-15" alt="QR code for Table 145-15" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/145-15</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 145-16</div>
+      <div class="room-name">Room 145 • Table 16</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F145-16" alt="QR code for Table 145-16" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/145-16</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 165-1</div>
+      <div class="room-name">Room 165 • Table 1</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F165-1" alt="QR code for Table 165-1" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/165-1</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 165-2</div>
+      <div class="room-name">Room 165 • Table 2</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F165-2" alt="QR code for Table 165-2" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/165-2</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 165-3</div>
+      <div class="room-name">Room 165 • Table 3</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F165-3" alt="QR code for Table 165-3" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/165-3</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 165-4</div>
+      <div class="room-name">Room 165 • Table 4</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F165-4" alt="QR code for Table 165-4" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/165-4</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 165-5</div>
+      <div class="room-name">Room 165 • Table 5</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F165-5" alt="QR code for Table 165-5" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/165-5</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 165-6</div>
+      <div class="room-name">Room 165 • Table 6</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F165-6" alt="QR code for Table 165-6" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/165-6</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 165-7</div>
+      <div class="room-name">Room 165 • Table 7</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F165-7" alt="QR code for Table 165-7" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/165-7</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 165-8</div>
+      <div class="room-name">Room 165 • Table 8</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F165-8" alt="QR code for Table 165-8" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/165-8</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 165-9</div>
+      <div class="room-name">Room 165 • Table 9</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F165-9" alt="QR code for Table 165-9" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/165-9</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 165-10</div>
+      <div class="room-name">Room 165 • Table 10</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F165-10" alt="QR code for Table 165-10" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/165-10</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 160-1</div>
+      <div class="room-name">Room 160 • Table 1</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F160-1" alt="QR code for Table 160-1" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/160-1</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 160-2</div>
+      <div class="room-name">Room 160 • Table 2</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F160-2" alt="QR code for Table 160-2" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/160-2</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 160-3</div>
+      <div class="room-name">Room 160 • Table 3</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F160-3" alt="QR code for Table 160-3" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/160-3</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 160-4</div>
+      <div class="room-name">Room 160 • Table 4</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F160-4" alt="QR code for Table 160-4" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/160-4</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 160-5</div>
+      <div class="room-name">Room 160 • Table 5</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F160-5" alt="QR code for Table 160-5" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/160-5</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 160-6</div>
+      <div class="room-name">Room 160 • Table 6</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F160-6" alt="QR code for Table 160-6" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/160-6</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 160-7</div>
+      <div class="room-name">Room 160 • Table 7</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F160-7" alt="QR code for Table 160-7" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/160-7</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 160-8</div>
+      <div class="room-name">Room 160 • Table 8</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F160-8" alt="QR code for Table 160-8" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/160-8</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 160-9</div>
+      <div class="room-name">Room 160 • Table 9</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F160-9" alt="QR code for Table 160-9" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/160-9</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 160-10</div>
+      <div class="room-name">Room 160 • Table 10</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F160-10" alt="QR code for Table 160-10" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/160-10</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 105-1</div>
+      <div class="room-name">Room 105 • Table 1</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F105-1" alt="QR code for Table 105-1" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/105-1</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 105-2</div>
+      <div class="room-name">Room 105 • Table 2</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F105-2" alt="QR code for Table 105-2" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/105-2</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 105-3</div>
+      <div class="room-name">Room 105 • Table 3</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F105-3" alt="QR code for Table 105-3" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/105-3</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 105-4</div>
+      <div class="room-name">Room 105 • Table 4</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F105-4" alt="QR code for Table 105-4" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/105-4</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 105-5</div>
+      <div class="room-name">Room 105 • Table 5</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F105-5" alt="QR code for Table 105-5" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/105-5</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 105-6</div>
+      <div class="room-name">Room 105 • Table 6</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F105-6" alt="QR code for Table 105-6" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/105-6</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 105-7</div>
+      <div class="room-name">Room 105 • Table 7</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F105-7" alt="QR code for Table 105-7" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/105-7</div>
+    </div>
+
+    <div class="card">
+      <div class="badge-bar">
+        <span class="tag">Thompson Library</span>
+        <span class="floor-tag">Floor 1</span>
+      </div>
+      <div class="table-id">Table 105-8</div>
+      <div class="room-name">Room 105 • Table 8</div>
+      <div class="qr-frame">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=http%3A%2F%2Flocalhost%3A3000%2Ftable%2F105-8" alt="QR code for Table 105-8" loading="lazy" />
+      </div>
+      <div class="instructions">
+        Scan with your phone camera to join the group or start a study session here.
+      </div>
+      <div class="subtext">http://localhost:3000/table/105-8</div>
+    </div>
+  </div>
+</body>
+</html>

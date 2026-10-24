@@ -227,3 +227,53 @@ export async function insertDbSession(input: CreateSessionInput, hostId: string)
 
   return mapDbSessionToPreview(row);
 }
+
+export async function findDbActiveSessionByTable(
+  tableId: string,
+  libraryName: string = "Thompson Library"
+): Promise<{ sessionId: string; session: SessionPreview; hostName?: string } | null> {
+  const client = getSupabaseAdminClient();
+  if (!client) return null;
+
+  try {
+    const { data, error } = await client.rpc("lookup_active_session_by_table", {
+      p_table_id: tableId,
+      p_library_name: libraryName,
+    });
+
+    if (error) {
+      console.warn("[SessionsDB] lookup_active_session_by_table RPC error:", error.message);
+      return null;
+    }
+
+    if (Array.isArray(data) && data.length > 0) {
+      const row = data[0];
+      return {
+        sessionId: row.session_id,
+        hostName: row.host_name || undefined,
+        session: {
+          id: row.session_id,
+          hostId: "",
+          title: row.title,
+          subtitle: row.subtitle || "",
+          courseCode: row.course_code,
+          libraryName: row.library_name,
+          floor: row.floor || undefined,
+          zone: row.zone || undefined,
+          totalSeats: row.total_seats,
+          availableSeats: row.available_seats,
+          requiresApproval: row.requires_approval,
+          status: row.status,
+          createdAt: row.created_at,
+          aiTopicTags: [],
+        },
+      };
+    }
+
+    return null;
+  } catch (err) {
+    console.warn("[SessionsDB] Exception looking up table session:", err);
+    return null;
+  }
+}
+
