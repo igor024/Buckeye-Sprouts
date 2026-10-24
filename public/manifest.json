@@ -10,6 +10,24 @@
   "background_color": "#d5eab9",
   "theme_color": "#d5eab9",
   "categories": ["education", "productivity", "utilities"],
+  "handle_links": "preferred",
+  "prefer_related_applications": true,
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "./manifest.json",
+      "id": "buckeye-sprouts"
+    }
+  ],
+  "launch_handler": {
+    "client_mode": ["focus-existing", "navigate-new"]
+  },
+  "protocol_handlers": [
+    {
+      "protocol": "web+buckeyesprouts",
+      "url": "./?app_open=%s"
+    }
+  ],
   "icons": [
     {
       "src": "icons/icon-192.png",

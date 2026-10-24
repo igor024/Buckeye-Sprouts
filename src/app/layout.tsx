@@ -63,7 +63,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           </div>
         </header>
         {children}
-        <footer className="site-width flex flex-wrap items-center justify-between gap-3 py-7 text-xs text-stone-500 border-t border-stone-200 mt-12"><span>Made for little breakthroughs. Built for Buckeyes.</span><span>Hackathon scaffold · PWA enabled · synthetic data · feature controls coming soon</span></footer>
+        <footer className="site-width flex flex-wrap items-center justify-between gap-3 py-7 text-xs text-stone-500 border-t border-stone-200 mt-12"><span>Made for little breakthroughs. Built for Buckeyes.</span><span>Hackathon scaffold · BuckeyeStudy / Buckeye Sprouts PWA · synthetic data</span></footer>
       </body>
     </html>
   );
