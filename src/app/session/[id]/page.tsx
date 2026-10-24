@@ -9,6 +9,11 @@ import { locationCheckInService } from "@/features/location-checkin/services";
 import { NotebookPanel } from "@/features/notebook-ai/components/NotebookPanel";
 import { notebookAIService } from "@/features/notebook-ai/services";
 
+export async function generateStaticParams() {
+  const sessions = await sessionsDiscoveryService.listSessions();
+  return sessions.map((session) => ({ id: session.id }));
+}
+
 export default async function SessionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const detail = await sessionsDiscoveryService.getSession(id);

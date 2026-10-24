@@ -47,6 +47,16 @@ BuckeyeStudy is configured as a standalone Progressive Web App designed for resi
 - **Offline Vault (`/offline`)**: Dedicated offline fallback page featuring an emergency offline BuckID barcode pass and a local persistent scratchpad.
 - **Installation & Testing UI (`PwaManager.tsx`)**: Exposes native PWA install triggers for Chrome/Edge/iOS and a judge-friendly **"Simulate Offline"** button to evaluate offline behavior without disabling device network adapters.
 
+## Deploy to GitHub Pages
+
+This repository is configured for automated static export deployment to GitHub Pages via GitHub Actions (`.github/workflows/deploy.yml`):
+
+1. On GitHub, navigate to **Settings** > **Pages** for your repository (`igor024/hackohio2026`).
+2. Under **Build and deployment** > **Source**, select **GitHub Actions**.
+3. Push changes to `main`. The workflow automatically runs foundation checks, type checks, builds the static export (`output: export` with repository `basePath`), and deploys to `https://igor024.github.io/hackohio2026/`.
+4. *Note on static hosting:* GitHub Pages serves static files (HTML/JS/CSS/PWA assets). Serverless POST route handlers (`/api/ai/*`, `/api/rooms/book`) require an active Node server (or full-stack host like Vercel). For static deployment, client services continue to use built-in mock fixtures.
+
+
 
 ## Shared boundaries
 
