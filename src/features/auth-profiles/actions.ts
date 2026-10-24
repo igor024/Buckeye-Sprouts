@@ -13,13 +13,13 @@ export async function updateDemoProfileAction(input: UpdateProfileInput) {
 }
 
 export async function requestDemoJoinAction(sessionId: string) {
-  const request = requestDemoJoinAs(sessionId, demoRequesterId);
+  const request = await requestDemoJoinAs(sessionId, demoRequesterId);
   revalidatePath(`/session/${sessionId}`);
   return request;
 }
 
 export async function getDemoJoinStatusAction(sessionId: string) {
-  return getDemoJoinStatus(sessionId, demoRequesterId);
+  return await getDemoJoinStatus(sessionId, demoRequesterId);
 }
 
 export async function reviewDemoJoinAction(requestId: string, decision: "approved" | "rejected") {
