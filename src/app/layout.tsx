@@ -5,7 +5,7 @@ import "./globals.css";
 import { PwaManager } from "./components/PwaManager";
 
 export const viewport: Viewport = {
-  themeColor: "#ba0c2f",
+  themeColor: "#d5eab9",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
@@ -14,14 +14,14 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "BuckeyeStudy · Better together",
-  description: "Find your study group at Ohio State. A BuckeyeStudy hackathon scaffold.",
-  applicationName: "BuckeyeStudy",
+  title: "Buckeye Sprouts · Study together",
+  description: "Find your study group at Ohio State with Buckeye Sprouts.",
+  applicationName: "Buckeye Sprouts",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "BuckeyeStudy",
+    title: "Buckeye Sprouts",
   },
   formatDetection: {
     telephone: false,
@@ -45,14 +45,14 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="theme-color" content="#ba0c2f" />
+        <meta name="theme-color" content="#d5eab9" />
       </head>
       <body>
         <a className="skip-link" href="#main">Skip to content</a>
         <PwaManager />
         <header className="site-header">
           <div className="site-width flex flex-wrap items-center justify-between gap-4 py-5">
-            <Link href="/" className="flex items-center gap-3" aria-label="BuckeyeStudy home"><span className="brand-mark"><GraduationCap size={24} /></span><span className="text-xl font-bold tracking-tight">Buckeye<span className="text-red-800">Study</span></span></Link>
+            <Link href="/" className="flex items-center gap-3" aria-label="Buckeye Sprouts home"><span className="brand-mark"><GraduationCap size={24} /></span><span className="text-xl font-bold tracking-tight">Buckeye<span className="text-red-800"> Sprouts</span></span></Link>
             <nav aria-label="Main navigation" className="flex items-center gap-5 sm:gap-7 text-sm font-medium">
               <Link href="/" className="nav-link"><LayoutGrid size={16} />Discover</Link>
               <Link href="/session/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" className="nav-link"><BookOpen size={16} />My session</Link>
@@ -68,4 +68,5 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     </html>
   );
 }
+
 

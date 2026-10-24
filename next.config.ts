@@ -5,6 +5,8 @@ const repoName = process.env.GITHUB_REPOSITORY?.split("/")[1] || "hackohio2026";
 const basePath = process.env.BASE_PATH || (isExport && process.env.GITHUB_ACTIONS ? `/${repoName}` : "");
 
 const nextConfig: NextConfig = {
+  // Lets local preview sessions route generated files away from OneDrive placeholders.
+  distDir: process.env.BUCKEYE_NEXT_DIST_DIR || ".next",
   poweredByHeader: false,
   ...(isExport
     ? {

@@ -4,16 +4,16 @@ export const dynamic = "force-static";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "BuckeyeStudy · Library Seat Finder & Notes",
-    short_name: "BuckeyeStudy",
+    name: "Buckeye Sprouts",
+    short_name: "Buckeye Sprouts",
     description: "Real-time Ohio State library study sessions, seat finder, BuckID check-in, and collaborative study notebook.",
     start_url: "./",
     id: "./",
     scope: "./",
     display: "standalone",
     orientation: "portrait-primary",
-    background_color: "#f8f7f4",
-    theme_color: "#ba0c2f",
+    background_color: "#d5eab9",
+    theme_color: "#d5eab9",
     categories: ["education", "productivity", "utilities"],
     icons: [
       {
@@ -71,3 +71,5 @@ export default function manifest(): MetadataRoute.Manifest {
     ],
   };
 }
+
+
