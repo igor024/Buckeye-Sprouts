@@ -299,13 +299,25 @@ export function ThompsonMap({
 
       {selectedTable && <div className={`group-info-backdrop${closingTable ? " is-closing" : ""}`} role="presentation" onClick={closeTable}>
         <section className="group-info-dialog" role="dialog" aria-modal="true" aria-labelledby="group-info-title" aria-describedby="group-info-status" onClick={(event) => event.stopPropagation()}>
-          <button ref={tableCloseButton} type="button" className="group-info-close" onClick={closeTable} aria-label="Close table information"><X size={20} /></button>
-          <div className="group-info-heading">
-            <p className="group-info-eyebrow">{selectedTable.label} · {selectedTable.status === "empty" ? "EMPTY" : selectedTable.status === "very-busy" ? "VERY BUSY" : "BUSY"}</p>
-            <h2 id="group-info-title">{selectedGroup ? selectedGroup.name : "Available table"}</h2>
-            <p id="group-info-status">{selectedGroup ? `${selectedGroup.courseCode} · ${selectedGroup.topic}` : "No study group is at this table right now."}</p>
-          </div>
-          {selectedGroup && <GroupRoster group={selectedGroup} />}
+          {selectedGroup ? <>
+            <img className="group-info-notebook-art" src="/illustrations/notebook2.png" width="1066" height="1439" alt="" aria-hidden="true" />
+            <div className="group-info-notebook-content">
+              <div className="group-info-heading group-info-notebook-heading">
+                <p className="group-info-eyebrow">{selectedTable.label} · {selectedTable.status === "very-busy" ? "VERY BUSY" : "BUSY"}</p>
+                <h2 id="group-info-title">{selectedGroup.name}</h2>
+                <p id="group-info-status">{selectedGroup.courseCode} · {selectedGroup.topic}</p>
+              </div>
+              <GroupRoster group={selectedGroup} variant="notebook" />
+            </div>
+            <button ref={tableCloseButton} type="button" className="group-info-notebook-close" onClick={closeTable} aria-label="Close group popup" />
+          </> : <>
+            <button ref={tableCloseButton} type="button" className="group-info-close" onClick={closeTable} aria-label="Close table information"><X size={20} /></button>
+            <div className="group-info-heading">
+              <p className="group-info-eyebrow">{selectedTable.label} · EMPTY</p>
+              <h2 id="group-info-title">Available table</h2>
+              <p id="group-info-status">No study group is at this table right now.</p>
+            </div>
+          </>}
         </section>
       </div>}
     </div>

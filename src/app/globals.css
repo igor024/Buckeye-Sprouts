@@ -301,6 +301,8 @@ body:has(.thompson-map-app) #main { width: 100%; max-width: none; margin: 0; pad
 .reader-notice { padding: 12px; margin: 0 0 12px; border: 1px solid var(--paper-border); border-radius: 14px; background: var(--paper-surface); color: #43594c; font-size: 13px; line-height: 1.5; }
 .reader-dialog-panel { position: relative; padding-top: 64px; background-image: var(--paper-grid); background-size: var(--paper-grid-size) var(--paper-grid-size); }
 .reader-dialog-panel > h2 { margin: 0 0 16px; font-size: 26px; line-height: 1.2; font-weight: 700; letter-spacing: -.035em; }
+.reader-dialog-panel:has(> .reader-scanning) > h2 { text-align: center; }
+.reader-dialog-panel:has(> .reader-group-name) > :is(h2, h3, p) { text-align: center; }
 .reader-close { position: absolute; top: 12px; left: 12px; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; color: #545b60; background: #e9eae3; cursor: pointer; }
 .reader-caption { margin: 10px 0; font-size: 12px; line-height: 1.5; color: #545b60; }
 .reader-location { padding-bottom: 12px; border-bottom: 1px solid var(--paper-border); }
