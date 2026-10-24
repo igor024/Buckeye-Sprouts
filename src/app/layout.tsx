@@ -3,6 +3,9 @@ import Link from "next/link";
 import { ArrowUpRight, BookOpen, CloudOff, GraduationCap, LayoutGrid, MapPin } from "lucide-react";
 import "./globals.css";
 import { PwaManager } from "./components/PwaManager";
+import { AuthProvider } from "@/features/auth-profiles/context/AuthContext";
+import { AuthModal } from "@/features/auth-profiles/components/AuthModal";
+import { AuthButton } from "@/features/auth-profiles/components/AuthButton";
 
 export const viewport: Viewport = {
   themeColor: "#ba0c2f",
@@ -49,21 +52,33 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       </head>
       <body>
         <a className="skip-link" href="#main">Skip to content</a>
-        <PwaManager />
-        <header className="site-header">
-          <div className="site-width flex flex-wrap items-center justify-between gap-4 py-5">
-            <Link href="/" className="flex items-center gap-3" aria-label="BuckeyeStudy home"><span className="brand-mark"><GraduationCap size={24} /></span><span className="text-xl font-bold tracking-tight">Buckeye<span className="text-red-800">Study</span></span></Link>
-            <nav aria-label="Main navigation" className="flex items-center gap-5 sm:gap-7 text-sm font-medium">
-              <Link href="/" className="nav-link"><LayoutGrid size={16} />Discover</Link>
-              <Link href="/session/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" className="nav-link"><BookOpen size={16} />My session</Link>
-              <Link href="/offline" className="nav-link text-stone-500 hover:text-red-800"><CloudOff size={15} />Offline vault</Link>
-              <span className="hidden md:inline-flex items-center gap-1.5 text-xs text-stone-500"><MapPin size={14} />Columbus campus</span>
-            </nav>
-            <span className="demo-badge">Local demo <ArrowUpRight size={12} /></span>
-          </div>
-        </header>
-        {children}
-        <footer className="site-width flex flex-wrap items-center justify-between gap-3 py-7 text-xs text-stone-500 border-t border-stone-200 mt-12"><span>Made for little breakthroughs. Built for Buckeyes.</span><span>Hackathon scaffold · PWA enabled · synthetic data · feature controls coming soon</span></footer>
+        <AuthProvider>
+          <PwaManager />
+          <AuthModal />
+          <header className="site-header">
+            <div className="site-width flex flex-wrap items-center justify-between gap-4 py-5">
+              <Link href="/" className="flex items-center gap-3" aria-label="BuckeyeStudy home">
+                <span className="brand-mark"><GraduationCap size={24} /></span>
+                <span className="text-xl font-bold tracking-tight">Buckeye<span className="text-red-800">Study</span></span>
+              </Link>
+              <nav aria-label="Main navigation" className="flex items-center gap-5 sm:gap-7 text-sm font-medium">
+                <Link href="/" className="nav-link"><LayoutGrid size={16} />Discover</Link>
+                <Link href="/session/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" className="nav-link"><BookOpen size={16} />My session</Link>
+                <Link href="/offline" className="nav-link text-stone-500 hover:text-red-800"><CloudOff size={15} />Offline vault</Link>
+                <span className="hidden md:inline-flex items-center gap-1.5 text-xs text-stone-500"><MapPin size={14} />Columbus campus</span>
+              </nav>
+              <div className="flex items-center gap-2.5">
+                <AuthButton />
+                <span className="demo-badge hidden sm:inline-flex">Local demo <ArrowUpRight size={12} /></span>
+              </div>
+            </div>
+          </header>
+          {children}
+          <footer className="site-width flex flex-wrap items-center justify-between gap-3 py-7 text-xs text-stone-500 border-t border-stone-200 mt-12">
+            <span>Made for little breakthroughs. Built for Buckeyes.</span>
+            <span>Hackathon scaffold · Live Supabase Auth · PWA enabled</span>
+          </footer>
+        </AuthProvider>
       </body>
     </html>
   );

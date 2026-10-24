@@ -1,35 +1,99 @@
 # BuckeyeStudy — Multi-Agent System Architecture & Directives (`AGENTS.md`)
-**HackOHIO 2026 Project Architecture**  
+
+**HackOHIO 2026 Project Architecture & Maximum Score Directives**  
 **Project:** BuckeyeStudy (Real-Time Library Seat Finder, BuckID/QR Check-In & AI Study Notebook)
 
 ---
 
-## 0. HackOHIO 2026 Open Track Rubric (MANDATORY BEFORE CODING)
+## 0. HackOHIO 2026 Rubric Optimization Directives (MANDATORY TARGET: 30/30)
 
-All agents **MUST** evaluate every implementation decision against the official HackOHIO Open Track Judging Rubric before writing any code:
+Every agent implementing any feature in this repository **must** optimize their code, user interface, and demo hooks to achieve the maximum score (**5/5 Accomplished**) across all six judging criteria from the official HackOHIO Open Track Rubric.
 
 ```
 ┌─────────────────────────────────┬─────────────────────────────────┬─────────────────────────────────┐
 │           CURIOSITY             │          CONNECTIONS            │         CREATING VALUE          │
 ├─────────────────────────────────┼─────────────────────────────────┼─────────────────────────────────┤
-│ • Innovation                    │ • Communication                 │ • Impact                        │
-│ • Curiosity                     │ • Project Breadth & Complexity  │ • Growth Mindset (Navigating    │
-│                                 │                                 │   Challenges)                   │
+│ 1. Innovation (5/5)             │ 3. Communications (5/5)         │ 5. Impact (5/5)                 │
+│ 2. Curiosity (5/5)              │ 4. Breadth & Complexity (5/5)   │ 6. Navigating Challenges (5/5)  │
 └─────────────────────────────────┴─────────────────────────────────┴─────────────────────────────────┘
 ```
 
-### Rubric Directives for Agents:
-1. **Curiosity (Innovation & Curiosity):**
-   - Push beyond standard CRUD apps. Emphasize physical-to-digital hardware integration (1D BuckID barcode scanner, Table QR, GPS Haversine geofence calculation, and ambient cross-session intelligence).
-2. **Connections (Communication & Project Breadth):**
-   - Provide clean, intuitive UI with Scarlet & Gray branding.
-   - **Crucial for Judging:** Every physical hardware feature (GPS, camera barcode scan, room booking) MUST provide a 1-click **"Simulate / Test Mode"** toggle in the UI so judges can experience the full flow in seconds without physical cards or walking.
-   - Maintain seamless end-to-end integration across all 4 workstreams.
-3. **Creating Value (Impact & Growth Mindset / Navigating Challenges):**
-   - Address the authentic campus problem: finding study spots during exam crunches, preventing seat-hogging, and fostering peer study groups.
-   - Demonstrate resilience through graceful fallbacks: offline PWA caching with `/offline` vault, local in-memory fallback state, and deterministic mock adapters.
+### Criterion 1: Innovation (Target: 5/5 — Accomplished)
+* **Rubric Standard:** *Based on research and analysis of currently accepted solutions to identify strengths/weaknesses, and explored one or more new or alternative successful solutions.*
+* **What Judges Ask:** *"How did your team challenge commonly accepted ideas and what did you do differently in your project?"*
+* **Agent Implementation Requirements:**
+  1. **Critique Existing Systems:** Document and contrast against existing solutions (e.g., OSU LibCal, GroupMe, Discord). LibCal is static, siloed, does not show real-time seat availability, ignores walk-in table sharing, and causes "ghost bookings."
+  2. **The Reinvention:** BuckeyeStudy shifts library study space from static room reservations to a decentralized, real-time peer network powered by:
+     - Optical BuckID / QR table anchors.
+     - Surroundings verification photos to assess crowding before walking across campus.
+     - Location-gated peer approval to eliminate social anxiety and ensure psychological safety.
+  3. **Code Directive:** Keep comparative analysis metrics in code comments and UI tooltips (e.g., displaying "Saved 25 mins of room searching vs. standard reservation portals").
 
-*Detailed rubric breakdown available in [`HACKATHON_RUBRIC.md`](./HACKATHON_RUBRIC.md).*
+---
+
+### Criterion 2: Curiosity (Target: 5/5 — Accomplished)
+* **Rubric Standard:** *Worked together to identify knowledge gaps, asking unique or new questions, and acted on that plan to explore and create project outcomes.*
+* **What Judges Ask:** *"Can you share examples of questions your team asked while exploring possibilities? Show us something unique, beautiful, or clever in your project."*
+* **Agent Implementation Requirements:**
+  1. **Artful Technical Application:** Implement the "Ambient AI Topic Matcher" and the Haversine Geofence departure monitor:
+     $$d = 2r \arcsin\left(\sqrt{\sin^2\left(\frac{\Delta \varphi}{2}\right) + \cos(\varphi_1)\cos(\varphi_2)\sin^2\left(\frac{\Delta \lambda}{2}\right)}\right)$$
+  2. **Non-Obvious Questions Asked & Solved:**
+     - *"Why must joining a study group feel socially intimidating?"* $\rightarrow$ Solved via two-way profile inspection + mutual approval before location reveal.
+     - *"Why should you start from scratch when joining an active table?"* $\rightarrow$ Solved via the AI "Catch Me Up" live synthesis banner.
+     - *"Can an entire library floor passively broadcast what subjects are being studied without invading privacy?"* $\rightarrow$ Solved via ambient semantic topic clustering on shared notebooks.
+
+---
+
+### Criterion 3: Communications (Target: 5/5 — Accomplished)
+* **Rubric Standard:** *Communicates idea through a fully functional prototype of essential elements, supplemented by clear diagrams, visual state representations, and intuitive presentation.*
+* **What Judges Ask:** *"Can you show me your visual representation and how it explains your concept? What part of your presentation shows off your work best?"*
+* **Agent Implementation Requirements:**
+  1. **Zero-Friction Judge Simulator (CRITICAL):** Judges will not walk outside or bring spare BuckIDs. **Every** physical component must have a prominent, Scarlet-and-Gray demo control bar:
+     - `[ Simulate BuckID Scan ]` (Injects pre-computed OSU 1D barcode data).
+     - `[ Simulate Table QR Scan ]` (Locks user to Thompson Floor 3 Table 412).
+     - `[ Simulate Walking to High St (180m away) ]` (Triggers GPS auto-checkout and frees table).
+     - `[ Simulate 3-Person Quorum ]` (Fires automated room booking trigger).
+  2. **Visual Hierarchy:** Clean, responsive UI with Ohio State brand tokens (Scarlet `#BA0C2F`, Gray `#A7B1B7`, Dark Gray `#3F4443`). Include real-time status pills: `Waiting Approval`, `Table Locked`, `Active Geofence`.
+
+---
+
+### Criterion 4: Project Breadth and Complexity (Target: 5/5 — Accomplished)
+* **Rubric Standard:** *Synthesize ideas from a wide variety of domains (humanities, engineering, physical sciences, computing) into a non-trivial innovation; demonstrates future scalability (10x growth).*
+* **What Judges Ask:** *"How did you use information from different areas to explore new ideas? What was the most complicated piece to build? What changes if this scales 10X?"*
+* **Agent Implementation Requirements:**
+  1. **Cross-Disciplinary Synthesis:**
+     - **Hardware & Optics (Engineering):** HTML5 1D Barcode optics reading the physical Codabar/Code128 format on student IDs + Web NFC reader.
+     - **Spatial Mathematics (Science):** Geodesic coordinate tracking and threshold hysteresis to eliminate indoor GPS bounce.
+     - **Cognitive & Social Sciences (Humanities):** Peer-assisted learning theory (Vygotsky's Zone of Proximal Development) applied through AI Socratic tutoring, reducing barrier-to-entry for STEM collaborative study.
+  2. **10X Scalability Architecture:**
+     - Multi-campus schema support (`campusId`: Columbus, Newark, Mansfield, Lima, Marion, Wooster).
+     - Headless webhook integration ready to connect to OSU LibCal APIs.
+     - Edge-cached state to support 65,000+ active students during exam weeks.
+
+---
+
+### Criterion 5: Impact (Target: 5/5 — Accomplished)
+* **Rubric Standard:** *Provides a solution with tangible social, academic, and operational value; addresses well-defined user needs with clear adoption potential and feasibility.*
+* **What Judges Ask:** *"What does your project do, or who might it help? What user needs did you keep in mind while working on this? Did you get any feedback from your target audience?"*
+* **Agent Implementation Requirements:**
+  1. **Authentic Pain Points Addressed:**
+     - Eradicates the "lone studier at a 6-person table" inefficiency across Thompson and 18th Ave libraries during midterm and finals crunches.
+     - Directly supports high-attrition OSU foundation courses (e.g., CSE 2221/2231, MATH 1151/1172, ENGR 1181) by allowing peers to cluster by course number in real time.
+  2. **Measurable Outcomes:** Real-time seat occupancy counters, immediate reduction in idle seat time, and instant group study onboarding.
+
+---
+
+### Criterion 6: Navigating Challenges (Target: 5/5 — Accomplished)
+* **Rubric Standard:** *Demonstrates reflection on technical/design barriers, pivots strategically based on failures, and implements alternatives to create a more successful solution.*
+* **What Judges Ask:** *"Name one thing that you struggled with or that didn't work at all and how you pivoted. How did you test your ideas and make changes based on results?"*
+* **Agent Implementation Requirements:**
+  Agents must document in code and deliver the following strategic architectural pivots:
+  1. **Challenge 1: BuckID Security Isolation:** OSU's physical NFC chips are encrypted with proprietary university keys inaccessible to standard mobile browsers.  
+     $\rightarrow$ **The Pivot:** Pivoted to scanning the optical 1D barcode on the reverse side of the BuckID via camera + fallback Web NFC serial reading, creating an accessible zero-install solution.
+  2. **Challenge 2: Indoor GPS Inaccuracy & Drift:** GPS drifts significantly inside multi-story concrete structures like Thompson Stacks.  
+     $\rightarrow$ **The Pivot:** Anchored seat location deterministically via physical Table QR codes, using GPS strictly as a coarse-grained geofence departure boundary ($>150\text{ m}$) with a 2-cycle hysteresis filter.
+  3. **Challenge 3: Offline & Network Dropouts:** University Wi-Fi frequently drops in basement study stacks.  
+     $\rightarrow$ **The Pivot:** Built resilient local state caching and offline fallback mock stores so notebooks never lose user data.
 
 ---
 
@@ -243,7 +307,10 @@ Before finishing a workstream or pushing code, run the following verification ch
 3. **Fallback Resiliency:**
    Disconnect internet/invalidate API keys. The app must remain operable in "Mock Demo Mode" without crashing.
 
-4. **HackOHIO Rubric Compliance:**
-   - **Curiosity:** Feature incorporates innovative functionality (hardware integration, geofencing, ambient AI, photo verification).
-   - **Connections:** UI is polished with Scarlet/Gray tokens and includes 1-click judge simulation toggles.
-   - **Creating Value:** Directly addresses student library pain points and remains resilient under network/hardware failures.
+4. **HackOHIO Rubric Compliance Checklist:**
+   - [ ] **Innovation (5/5):** Challenges static booking systems with real-time peer discovery, physical table binding, and crowd visuals.
+   - [ ] **Curiosity (5/5):** Implements ambient AI discovery and mathematical geofencing to answer novel questions on peer proximity and study anxiety.
+   - [ ] **Communications (5/5):** Interactive Scarlet & Gray UI with 1-click simulation toggles for judges (GPS, BuckID scan, room booking).
+   - [ ] **Breadth & Complexity (5/5):** Fuses optics (barcodes), spatial math (Haversine), cognitive science (peer pedagogy), and a 10x multi-campus scalability plan.
+   - [ ] **Impact (5/5):** Directly addresses library seat hoarding and study group isolation for 65,000+ Ohio State students.
+   - [ ] **Navigating Challenges (5/5):** Explicitly documents pivots on encrypted NFC hardware, indoor GPS drift, and resilient offline fallbacks.
