@@ -3,17 +3,13 @@
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import {
-  ArrowRight,
-  CheckCircle2,
   Download,
-  ExternalLink,
-  Rocket,
-  RotateCcw,
+  WifiOff,
+  CheckCircle2,
+  X,
   Smartphone,
   Sparkles,
   Wifi,
-  WifiOff,
-  X,
 } from "lucide-react";
 
 interface BeforeInstallPromptEvent extends Event {
@@ -26,125 +22,43 @@ export function PwaManager() {
   const [isStandalone, setIsStandalone] = useState(false);
   const [isIos, setIsIos] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
-  const [isAppInstalled, setIsAppInstalled] = useState(false);
-  const [showRedirectModal, setShowRedirectModal] = useState(false);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
   const [showIosInstructions, setShowIosInstructions] = useState(false);
   const [swUpdateAvailable, setSwUpdateAvailable] = useState(false);
   const [simulatedOffline, setSimulatedOffline] = useState(false);
-  const [countdown, setCountdown] = useState<number | null>(null);
-  const [redirectAttempted, setRedirectAttempted] = useState(false);
   const [, startTransition] = useTransition();
 
-  // Launch the installed app via the registered protocol handler
-  const handleLaunchApp = (customPath?: string) => {
-    if (typeof window === "undefined") return;
-    const target = customPath || window.location.pathname + window.location.search + window.location.hash;
-    const protocolUrl = `web+buckeyesprouts://${encodeURIComponent(target || "/")}`;
-
-    setRedirectAttempted(true);
-
-    try {
-      window.location.href = protocolUrl;
-    } catch (err) {
-      console.warn("[PwaManager] Protocol launch error:", err);
-    }
-  };
-
   useEffect(() => {
-    // 1. Check standalone display mode (running inside the installed PWA)
+    // 1. Check standalone mode
     const isStandaloneMode =
       window.matchMedia("(display-mode: standalone)").matches ||
       (window.navigator as unknown as { standalone?: boolean }).standalone === true;
     setIsStandalone(isStandaloneMode);
 
-    // 2. If running inside standalone app, record install flag and clean up redirect query params
-    if (isStandaloneMode) {
-      localStorage.setItem("buckeye_pwa_installed", "true");
-      setIsAppInstalled(true);
-
-      const url = new URL(window.location.href);
-      if (url.searchParams.has("app_open") || url.searchParams.has("pwa_redirect")) {
-        url.searchParams.delete("app_open");
-        url.searchParams.delete("pwa_redirect");
-        window.history.replaceState({}, "", url.pathname + url.search + url.hash);
-      }
-      return;
-    }
-
-    // 3. User is in a regular browser tab: check if app is installed
-    const savedInstallState = localStorage.getItem("buckeye_pwa_installed") === "true";
-    let detectedInstalled = savedInstallState;
-
-    // Check navigator.getInstalledRelatedApps (Chromium, Edge, Android)
-    if ("getInstalledRelatedApps" in navigator) {
-      const navWithApps = navigator as unknown as {
-        getInstalledRelatedApps: () => Promise<Array<{ id?: string; platform?: string; url?: string }>>;
-      };
-
-      navWithApps
-        .getInstalledRelatedApps()
-        .then((apps) => {
-          if (Array.isArray(apps) && apps.length > 0) {
-            setIsAppInstalled(true);
-            localStorage.setItem("buckeye_pwa_installed", "true");
-            triggerAutoRedirect();
-          }
-        })
-        .catch((err) => {
-          console.warn("[PwaManager] getInstalledRelatedApps:", err);
-        });
-    }
-
-    if (savedInstallState) {
-      setIsAppInstalled(true);
-      triggerAutoRedirect();
-    }
-
-    // Helper: Initiate auto-redirect modal if not opted out for this session
-    function triggerAutoRedirect() {
-      const stayInBrowser = sessionStorage.getItem("buckeye_stay_in_browser") === "1";
-      const redirectDone = sessionStorage.getItem("buckeye_redirect_triggered") === "1";
-      const autoRedirectPref = localStorage.getItem("buckeye_auto_redirect_app") !== "false";
-
-      if (!stayInBrowser && !redirectDone && autoRedirectPref) {
-        setShowRedirectModal(true);
-        setCountdown(2); // 2-second countdown before launching
-      }
-    }
-
-    // 4. Listen for native app installation event
-    const handleAppInstalled = () => {
-      localStorage.setItem("buckeye_pwa_installed", "true");
-      setIsAppInstalled(true);
-      setShowInstallBanner(false);
-      setShowIosInstructions(false);
-    };
-    window.addEventListener("appinstalled", handleAppInstalled);
-
-    // 5. iOS device check
+    // 2. Check iOS device
     const userAgent = window.navigator.userAgent.toLowerCase();
     const isAppleIos = /iphone|ipad|ipod/.test(userAgent) && !isStandaloneMode;
     setIsIos(isAppleIos);
 
-    // 6. Online/offline listeners
+    // 3. Online/offline listeners
     setIsOnline(navigator.onLine);
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
 
-    // 7. Capture beforeinstallprompt for native PWA installation
+    // 4. Capture beforeinstallprompt for native PWA installation
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      if (!sessionStorage.getItem("buckeye_pwa_install_dismissed") && !detectedInstalled) {
+      // Only show banner if dismissed flag not in sessionStorage
+      if (!sessionStorage.getItem("buckeye_pwa_install_dismissed")) {
         setShowInstallBanner(true);
       }
     };
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
 
-    // 8. Register Service Worker with base path awareness
+    // 5. Register Service Worker with dynamic base path awareness (GitHub Pages subpath vs root)
     if ("serviceWorker" in navigator) {
       const getAppBasePath = () => {
         if (typeof window === "undefined") return "";
@@ -176,34 +90,16 @@ export function PwaManager() {
           });
         })
         .catch((error) => {
-          console.warn("[Buckeye Sprouts PWA] Service worker registration error:", error);
+          console.warn("[BuckeyeStudy PWA] Service worker registration error:", error);
         });
     }
 
     return () => {
-      window.removeEventListener("appinstalled", handleAppInstalled);
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
     };
   }, []);
-
-  // Countdown timer for auto-redirect modal
-  useEffect(() => {
-    if (countdown === null || countdown <= 0) return;
-
-    const timer = setTimeout(() => {
-      if (countdown === 1) {
-        sessionStorage.setItem("buckeye_redirect_triggered", "1");
-        handleLaunchApp();
-        setCountdown(0);
-      } else {
-        setCountdown((c) => (c !== null ? c - 1 : null));
-      }
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, [countdown]);
 
   const handleInstallClick = async () => {
     if (deferredPrompt) {
@@ -211,19 +107,11 @@ export function PwaManager() {
       const choice = await deferredPrompt.userChoice;
       if (choice.outcome === "accepted") {
         setShowInstallBanner(false);
-        setIsAppInstalled(true);
-        localStorage.setItem("buckeye_pwa_installed", "true");
       }
       setDeferredPrompt(null);
     } else if (isIos) {
       setShowIosInstructions(true);
     }
-  };
-
-  const handleStayInBrowser = () => {
-    setShowRedirectModal(false);
-    setCountdown(null);
-    sessionStorage.setItem("buckeye_stay_in_browser", "1");
   };
 
   const dismissBanner = () => {
@@ -249,27 +137,6 @@ export function PwaManager() {
     });
   };
 
-  // HackOHIO Rubric 5/5: 1-Click Judge Simulation for App Installed Redirection
-  const toggleSimulateInstalledApp = () => {
-    if (isAppInstalled) {
-      // Reset simulation
-      localStorage.removeItem("buckeye_pwa_installed");
-      sessionStorage.removeItem("buckeye_stay_in_browser");
-      sessionStorage.removeItem("buckeye_redirect_triggered");
-      setIsAppInstalled(false);
-      setShowRedirectModal(false);
-      setCountdown(null);
-    } else {
-      // Simulate app is installed and trigger redirect sequence
-      localStorage.setItem("buckeye_pwa_installed", "true");
-      sessionStorage.removeItem("buckeye_stay_in_browser");
-      sessionStorage.removeItem("buckeye_redirect_triggered");
-      setIsAppInstalled(true);
-      setShowRedirectModal(true);
-      setCountdown(2);
-    }
-  };
-
   const effectivelyOffline = !isOnline || simulatedOffline;
 
   return (
@@ -285,7 +152,7 @@ export function PwaManager() {
             <div className="flex items-center gap-2">
               <WifiOff size={16} className="text-amber-200 shrink-0" />
               <span>
-                <strong>Offline Mode Active:</strong> Buckeye Sprouts is serving cached library data and offline notebook.
+                <strong>Offline Mode Active:</strong> BuckeyeStudy is serving cached library data and offline notebook.
                 {simulatedOffline && " (Simulated for Hackathon Judge Testing)"}
               </span>
             </div>
@@ -318,7 +185,7 @@ export function PwaManager() {
           className="fixed bottom-4 right-4 z-50 bg-stone-900 text-white p-3.5 rounded-xl shadow-xl border border-stone-700 flex items-center gap-3 text-xs max-w-sm"
         >
           <Sparkles size={16} className="text-amber-400 shrink-0" />
-          <p className="flex-1">A new version of Buckeye Sprouts is available.</p>
+          <p className="flex-1">A new version of BuckeyeStudy is available.</p>
           <button
             type="button"
             onClick={handleUpdate}
@@ -329,34 +196,7 @@ export function PwaManager() {
         </aside>
       )}
 
-      {/* Persistent Smart App Header Banner (When App is Installed but user is viewing in browser) */}
-      {!isStandalone && isAppInstalled && (
-        <div className="bg-gradient-to-r from-red-950 via-red-900 to-red-950 text-white py-2 px-4 text-xs shadow-sm border-b border-red-800/80">
-          <div className="site-width flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5">
-              <span className="w-6 h-6 rounded-md bg-white/10 flex items-center justify-center shrink-0">
-                <Rocket size={13} className="text-amber-300" />
-              </span>
-              <span className="font-medium text-stone-100">
-                <strong>Buckeye Sprouts App</strong> is installed on this device.
-              </span>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => handleLaunchApp()}
-                className="px-3 py-1 bg-white hover:bg-stone-100 text-red-950 font-bold rounded-full text-xs inline-flex items-center gap-1.5 shadow-xs transition cursor-pointer"
-              >
-                <span>Open in App</span>
-                <ArrowRight size={12} />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* PWA Bar: Status, Installed State, and Judge Simulation Tools */}
+      {/* PWA Floating Install Prompt / Standalone Badge */}
       <div className="site-width py-2 flex flex-wrap items-center justify-between gap-2 text-xs border-b border-stone-200/60 bg-stone-50/70">
         <div className="flex items-center gap-2 text-stone-600">
           <span className="inline-flex items-center gap-1 font-semibold text-red-900">
@@ -366,36 +206,17 @@ export function PwaManager() {
           <span className="hidden sm:inline text-stone-500">
             {isStandalone
               ? "Running in installed standalone app window"
-              : isAppInstalled
-                ? "App is installed · Opens in standalone window"
-                : "Installable on iOS, Android, macOS & Windows"}
+              : "Installable on iOS, Android, macOS & Windows"}
           </span>
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Judge Simulator: Test Installed App Redirection */}
-          {!isStandalone && (
-            <button
-              type="button"
-              onClick={toggleSimulateInstalledApp}
-              title="Judge Mode: Toggle simulated app installed state to test website-to-app redirect"
-              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium border transition cursor-pointer ${
-                isAppInstalled
-                  ? "bg-red-50 text-red-900 border-red-300 font-semibold"
-                  : "bg-white text-stone-600 border-stone-300 hover:bg-stone-100"
-              }`}
-            >
-              <Rocket size={12} className={isAppInstalled ? "text-red-800" : ""} />
-              <span>{isAppInstalled ? "App Installed (Active)" : "Simulate Installed App"}</span>
-            </button>
-          )}
-
           {/* Judge Simulation Tool: Toggle Offline */}
           <button
             type="button"
             onClick={toggleSimulateOffline}
             title="Judge Test Mode: Simulate walking into the Thompson basement without Wi-Fi"
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium border transition cursor-pointer ${
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium border transition ${
               simulatedOffline
                 ? "bg-amber-100 text-amber-900 border-amber-300"
                 : "bg-white text-stone-600 border-stone-300 hover:bg-stone-100"
@@ -406,11 +227,11 @@ export function PwaManager() {
           </button>
 
           {/* Install Button when prompt is ready or on mobile */}
-          {!isStandalone && !isAppInstalled && (deferredPrompt || isIos) && (
+          {!isStandalone && (deferredPrompt || isIos) && (
             <button
               type="button"
               onClick={handleInstallClick}
-              className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-800 hover:bg-red-700 text-white rounded-full text-[11px] font-semibold shadow-xs transition cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-800 hover:bg-red-700 text-white rounded-full text-[11px] font-semibold shadow-xs transition"
             >
               <Download size={12} />
               <span>Install App</span>
@@ -419,86 +240,14 @@ export function PwaManager() {
 
           {isStandalone && (
             <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-full text-[11px] font-medium">
-              <CheckCircle2 size={12} /> Standalone App
+              <CheckCircle2 size={12} /> Installed App
             </span>
           )}
         </div>
       </div>
 
-      {/* Website-To-App Redirection Modal (Triggered when app is installed and user opens browser) */}
-      {showRedirectModal && !isStandalone && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="redirect-modal-title"
-          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200"
-        >
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-stone-200 space-y-4">
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-[#a51c30] text-white flex items-center justify-center font-bold text-lg shrink-0 shadow-sm">
-                  <Rocket size={24} className="text-white" />
-                </div>
-                <div>
-                  <h2 id="redirect-modal-title" className="font-bold text-stone-900 text-base">
-                    Redirect to Buckeye Sprouts
-                  </h2>
-                  <p className="text-xs text-stone-500 mt-0.5">
-                    This website is installed as an app on your device.
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={handleStayInBrowser}
-                className="text-stone-400 hover:text-stone-600 p-1.5 rounded-lg transition"
-                aria-label="Stay in browser"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* Countdown / Auto-launch Indicator */}
-            {countdown !== null && countdown > 0 && (
-              <div className="p-3 bg-red-50/70 border border-red-200 rounded-xl text-xs text-red-950 flex items-center justify-between">
-                <span>Launching installed app in <strong>{countdown}s</strong>…</span>
-                <span className="inline-block size-3.5 border-2 border-red-800 border-t-transparent rounded-full animate-spin" />
-              </div>
-            )}
-
-            {redirectAttempted && (
-              <div className="p-3 bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-700 leading-relaxed">
-                <p className="font-semibold text-stone-900">Did the app open?</p>
-                <p className="text-[11px] text-stone-500 mt-0.5">
-                  If your browser showed a confirmation prompt, tap <strong>Open</strong> to launch. You can also tap the button below.
-                </p>
-              </div>
-            )}
-
-            <div className="space-y-2 pt-2">
-              <button
-                type="button"
-                onClick={() => handleLaunchApp()}
-                className="button-primary w-full py-3 text-xs font-bold justify-center shadow-md hover:shadow-lg transition cursor-pointer"
-              >
-                <Rocket size={15} />
-                <span>Open in Buckeye Sprouts App</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleStayInBrowser}
-                className="button-secondary w-full py-2.5 text-xs font-medium justify-center transition cursor-pointer"
-              >
-                <span>Stay in Web Browser</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Install Banner Drawer (Dismissible) */}
-      {showInstallBanner && !isStandalone && !isAppInstalled && (
+      {showInstallBanner && !isStandalone && (
         <aside
           role="region"
           aria-label="App installation recommendation"
@@ -511,7 +260,7 @@ export function PwaManager() {
               </div>
               <div>
                 <h2 className="font-semibold text-stone-900 text-sm">
-                  Install Buckeye Sprouts PWA
+                  Install BuckeyeStudy PWA
                 </h2>
                 <p className="text-xs text-stone-600 mt-0.5 leading-snug">
                   Get instant library seat alerts, offline BuckID turnstile passes, and collaborative notebook caching.
@@ -561,7 +310,7 @@ export function PwaManager() {
               <div className="flex items-center gap-2">
                 <Smartphone size={18} className="text-red-800" />
                 <h2 id="ios-modal-title" className="font-semibold text-stone-900 text-sm">
-                  Add Buckeye Sprouts to iPhone / iPad
+                  Add BuckeyeStudy to iPhone / iPad
                 </h2>
               </div>
               <button
@@ -595,7 +344,7 @@ export function PwaManager() {
                   3
                 </span>
                 <p>
-                  Tap <strong>Add</strong> in the top right corner. Buckeye Sprouts will appear on your home screen like a native app!
+                  Tap <strong>Add</strong> in the top right corner. BuckeyeStudy will appear on your home screen like a native app!
                 </p>
               </div>
             </div>

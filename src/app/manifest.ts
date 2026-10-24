@@ -15,23 +15,6 @@ export default function manifest(): MetadataRoute.Manifest {
     background_color: "#d5eab9",
     theme_color: "#d5eab9",
     categories: ["education", "productivity", "utilities"],
-    prefer_related_applications: true,
-    related_applications: [
-      {
-        platform: "webapp",
-        url: "./manifest.webmanifest",
-        id: "buckeye-sprouts",
-      },
-    ],
-    launch_handler: {
-      client_mode: ["focus-existing", "navigate-new"],
-    },
-    protocol_handlers: [
-      {
-        protocol: "web+buckeyesprouts",
-        url: "./?app_open=%s",
-      },
-    ],
     icons: [
       {
         src: "icons/icon-192.png",
