@@ -3,11 +3,12 @@ import { initialGroupSeats, type StudyGroupWithSeats } from "@/lib/group-seats";
 
 export const BUCKID_DEMO_TABLE_ID = "110-1";
 export const BUCKID_DEMO_GROUP_ID = "local-buckid-demo-110-1";
+export const BUCKID_DEMO_HOST_ID = "local-buckid-host-ethan-dong";
 
 /** Each simulated tap starts with one seated host; joining adds the current viewer. */
 export function createBuckIdDemoGroup(): StudyGroupWithSeats {
   const host: ProfilePreview = {
-    id: "44444444-4444-4444-8444-444444444444",
+    id: BUCKID_DEMO_HOST_ID,
     name: "Ethan Dong",
     avatarUrl: "",
     major: "Computer Science & Engineering",

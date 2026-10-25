@@ -12,6 +12,8 @@ These are synthetic demo identities, not verified university accounts. Their def
 
 Alex's display name is now **Alex Rabochii**; the existing `alex.morgan@osu.edu` login is retained. Existing Auth metadata and map profile rows use the renamed display while the database is being updated. Migration `202610250001_rename_alex_sample_profile.sql` updates the saved sample profile and Auth metadata without changing its UUID, email, or password. The setup script also writes the updated name when run again.
 
+When a sample signs in or restores its session, an identity mismatch such as Alex loading Ethan's profile is repaired through that authenticated user's own Supabase client. This restores the sample's name, biography, major, courses, and avatar in `profiles` and Auth metadata. It changes no passwords or other accounts. The client attempts repair once per login to avoid auth-event loops; signing in again retries a failed repair. Ordinary student accounts retain their editable profiles. Migration `202610250002_repair_alex_sample_identity.sql` provides the equivalent targeted database repair for Alex, including rows currently named Ethan.
+
 ## Create or repair the database accounts
 
 With the project's existing Supabase URL, public key, and server-only service-role key configured in `.env.local`, run from the repository root:

@@ -7,13 +7,14 @@ import {
   useState,
   useCallback,
   useMemo,
+  useRef,
   type ReactNode,
 } from "react";
 import type { User, Session } from "@supabase/supabase-js";
 import type { ProfilePreview, UpdateProfileInput } from "@/types/contracts";
 import { getSupabaseBrowserClient } from "../lib/supabase-browser";
-import { profileFromAuthUser } from "../lib/auth-profile";
-import { profileDisplayName } from "@/lib/profile-display-name";
+import { profileFromAuthUser, resolveAuthenticatedProfile } from "../lib/auth-profile";
+import { repairSampleIdentity } from "../lib/sample-profile-repair";
 
 export interface SignUpData {
   email: string;
@@ -47,12 +48,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profileState, setProfileState] = useState<{ userId: string; profile: ProfilePreview | null } | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const sampleRepairs = useRef(new Set<string>());
 
   const supabase = getSupabaseBrowserClient();
   const isConfigured = Boolean(supabase);
   // Never show a previous account's profile while the next account is loading.
-  const authProfile = useMemo(() => user ? profileFromAuthUser(user) : null, [user]);
-  const profile = user && profileState?.userId === user.id ? profileState.profile ?? authProfile : authProfile;
+  const profile = useMemo(() => user ? resolveAuthenticatedProfile(user,
+    profileState?.userId === user.id ? profileState.profile : null) : null, [user, profileState]);
   const isLoading = isAuthLoading || Boolean(user && profileState?.userId !== user.id);
 
   const fetchProfile = useCallback(
@@ -65,14 +67,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .eq("id", userId)
           .single();
 
-        if (error || !data) {
+        if (error || !data || data.id !== userId) {
           console.warn("[Auth] Profile not found in Supabase:", error?.message);
           return null;
         }
 
         const loadedProfile: ProfilePreview = {
           id: data.id,
-          name: profileDisplayName(data.name || "Buckeye Student"),
+          name: data.name || "Buckeye Student",
           avatarUrl: data.avatar_url || "",
           major: data.major || "Undeclared",
           currentCourses: Array.isArray(data.current_courses) ? data.current_courses : [],
@@ -115,16 +117,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!user) return;
     let cancelled = false;
     setProfileState({ userId: user.id, profile: profileFromAuthUser(user) });
-    void fetchProfile(user.id).then((loadedProfile) => {
-      if (!cancelled && loadedProfile) setProfileState({ userId: user.id, profile: loadedProfile });
+    void fetchProfile(user.id).then(async (loadedProfile) => {
+      if (cancelled) return;
+      if (loadedProfile) setProfileState({ userId: user.id, profile: loadedProfile });
+      if (!supabase || sampleRepairs.current.has(user.id)) return;
+      // Auth metadata updates emit another auth event. Mark this attempt first to avoid a loop.
+      sampleRepairs.current.add(user.id);
+      try { await repairSampleIdentity(supabase, user, loadedProfile, () => !cancelled); }
+      catch (error) { console.warn("[Auth] Sample identity repair failed:", error instanceof Error ? error.message : "Unavailable"); }
     });
     return () => { cancelled = true; };
-  }, [user, fetchProfile]);
+  }, [user, fetchProfile, supabase]);
 
   const signIn = async (email: string, password: string) => {
     if (!supabase) {
       return { error: "Supabase credentials are not configured on this client." };
     }
+    sampleRepairs.current.clear();
     const { error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password });
     if (error) {
       return { error: error.message };
@@ -169,6 +178,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setProfileState(null);
     setSession(null);
+    sampleRepairs.current.clear();
   };
 
   const updateProfile = async (input: UpdateProfileInput) => {

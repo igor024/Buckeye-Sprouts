@@ -103,10 +103,10 @@ export function GroupJoinManager({ visible, profile, groups, activeGroup, tables
 
   // Resolve against current data if a group appears or disappears while the form is open.
   useEffect(() => {
-    if (!target || stage === "idle" || stage === "scanning") return;
+    if (!visible || activeGroup || !target || stage === "idle" || stage === "scanning") return;
     const exists = groups.some((group) => group.tableId === target.tableId);
     setStage(exists ? "existing" : "create");
-  }, [groups, target, stage]);
+  }, [visible, activeGroup, groups, target, stage]);
 
   function startScan(method: "nfc" | "qr") {
     if (timer.current !== null || stage !== "idle" || (method === "nfc" && !readerLocation)) return;
