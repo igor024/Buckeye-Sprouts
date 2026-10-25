@@ -104,20 +104,17 @@ export function ThompsonMap({
     if (isRefreshing) return;
     setIsRefreshing(true);
     try {
-      let live = await fetchGroupsDirectFromSupabase();
-      if (!live || live.length === 0) {
-        const res = await fetch("/api/map/groups");
-        if (res.ok) {
-          const data = await res.json();
-          if (data.groups) live = data.groups;
-        }
-      }
-      if (live) {
-        dispatchGroup({ type: "sync-from-db", groups: live });
-        setRefreshNotice(`Refreshed ${live.length} study groups from database`);
-      } else {
-        setRefreshNotice("Synced with database");
-      }
+      const res = await fetch("/api/map/groups", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "refresh" }),
+        cache: "no-store",
+      });
+      if (!res.ok) throw new Error("Failed to sync session seats");
+      const data = await res.json();
+      if (!data.success || !Array.isArray(data.groups)) throw new Error("Invalid refresh response");
+      dispatchGroup({ type: "sync-from-db", groups: data.groups });
+      setRefreshNotice(`Synced seat counts and refreshed ${data.groups.length} study groups`);
     } catch (err) {
       console.warn("Refresh failed:", err);
       setRefreshNotice("Unable to refresh database data");

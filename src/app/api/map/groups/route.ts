@@ -1,6 +1,7 @@
 import { fetchLiveMapGroups } from "@/lib/server-groups";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import { isSupabaseConfigured } from "@/lib/supabase";
+import { syncStudySessionSeats } from "@/lib/session-seats";
 
 export const runtime = "nodejs";
 
@@ -151,6 +152,12 @@ export async function PATCH(request: Request) {
     const admin = getSupabaseAdminClient();
     if (!admin) {
       return Response.json({ error: "Database client unavailable" }, { status: 500 });
+    }
+
+    if (action === "refresh") {
+      await syncStudySessionSeats(admin);
+      const groups = await fetchLiveMapGroups();
+      return Response.json({ success: true, groups }, { headers: noStoreHeaders });
     }
 
     // Resolve profileId to valid database profile if mock ID was provided
