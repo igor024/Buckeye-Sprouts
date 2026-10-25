@@ -174,7 +174,7 @@ export function CarmenAiChatbot({
             }`}
           >
           {/* Header */}
-          <div className="bg-gradient-to-r from-[#a51c30] via-red-900 to-stone-900 text-white p-3.5 flex items-center justify-between">
+          <div className="bg-gradient-to-r from-scarlet via-red-900 to-stone-900 text-white p-3.5 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-full bg-red-900 border border-white/20 flex items-center justify-center text-amber-300">
                 <Star size={17} className="fill-amber-300" />
@@ -182,7 +182,7 @@ export function CarmenAiChatbot({
               <div>
                 <div className="flex items-center gap-1.5">
                   <h3 className="text-xs font-bold tracking-tight">Carmen AI Study Companion</h3>
-                  <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-emerald-500/30 text-emerald-200 font-mono border border-emerald-400/30">
+                  <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-white/10 text-stone-100 font-mono border border-white/20">
                     Demo
                   </span>
                 </div>
@@ -216,7 +216,7 @@ export function CarmenAiChatbot({
           {/* Clearly marked mock course details; no Canvas connection is used. */}
           <div className="bg-amber-50/80 px-3.5 py-1.5 border-b border-amber-200/50 flex items-center justify-between text-[10px] text-amber-900">
             <span className="flex items-center gap-1.5 font-medium">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="w-2 h-2 rounded-full bg-scarlet animate-pulse" />
               Demo course: {courseCode}{activeCourse ? ` (${activeCourse.instructor})` : ""}
             </span>
             <span className="text-amber-800/80 font-mono">
@@ -234,7 +234,7 @@ export function CarmenAiChatbot({
                 <div
                   className={`max-w-[88%] rounded-xl px-3.5 py-2.5 text-xs leading-relaxed shadow-2xs ${
                     msg.sender === "user"
-                      ? "bg-[#a51c30] text-white rounded-br-xs"
+                      ? "bg-scarlet text-white rounded-br-xs"
                       : "bg-white text-stone-800 border border-stone-200/90 rounded-bl-xs"
                   }`}
                 >
@@ -269,7 +269,7 @@ export function CarmenAiChatbot({
                     >
                       {copiedId === msg.id ? (
                         <>
-                          <Check size={10} className="text-emerald-600" /> Copied
+                          <Check size={10} className="text-scarlet" /> Copied
                         </>
                       ) : (
                         <>
@@ -342,7 +342,7 @@ export function CarmenAiChatbot({
               <button
                 type="submit"
                 disabled={!inputText.trim() || isTyping}
-                className="w-8 h-8 rounded-lg bg-[#a51c30] hover:bg-red-800 text-white flex items-center justify-center cursor-pointer transition-colors disabled:opacity-40"
+                className="w-8 h-8 rounded-lg bg-scarlet hover:bg-scarlet-dark text-white flex items-center justify-center cursor-pointer transition-colors disabled:opacity-40"
                 aria-label="Send query"
               >
                 <Send size={14} />

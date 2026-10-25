@@ -102,7 +102,7 @@ export function AppleNotesManager({ onNoteAdded, notebookContent = "", onNoteboo
         <button
           type="button"
           onClick={() => { onStartNewNote?.(); setIsComposerOpen(true); }}
-          className="text-xs font-semibold text-[#2d4b3c] hover:text-[#1a3327] inline-flex items-center gap-1 cursor-pointer shrink-0 py-1 px-1.5"
+          className="text-xs font-semibold text-scarlet-dark hover:text-scarlet-deep inline-flex items-center gap-1 cursor-pointer shrink-0 py-1 px-1.5"
         >
           <Plus size={14} />
           <span>New Note</span>
@@ -156,7 +156,7 @@ export function AppleNotesManager({ onNoteAdded, notebookContent = "", onNoteboo
                 {/* Line 3: Author footnote */}
                 <div className="flex items-center justify-between mt-1 pt-0.5 text-[10px] text-stone-400">
                   <span>By {note.authorName}</span>
-                  <span className="text-emerald-800 font-medium opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5">
+                  <span className="text-scarlet-deep font-medium opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5">
                     View <ChevronRight size={11} />
                   </span>
                 </div>
@@ -195,7 +195,7 @@ export function AppleNotesManager({ onNoteAdded, notebookContent = "", onNoteboo
                 type="button"
                 onClick={handleCreateNote}
                 disabled={!newContent.trim()}
-                className="text-sm font-semibold text-[#a51c30] hover:text-red-800 cursor-pointer disabled:opacity-40 transition-opacity"
+                className="text-sm font-semibold text-scarlet hover:text-scarlet-dark cursor-pointer disabled:opacity-40 transition-opacity"
               >
                 Done
               </button>
@@ -252,7 +252,7 @@ export function AppleNotesManager({ onNoteAdded, notebookContent = "", onNoteboo
               <button
                 type="button"
                 onClick={() => setActiveNote(null)}
-                className="text-sm font-semibold text-[#a51c30] hover:text-red-800 cursor-pointer"
+                className="text-sm font-semibold text-scarlet hover:text-scarlet-dark cursor-pointer"
               >
                 Done
               </button>
@@ -262,7 +262,7 @@ export function AppleNotesManager({ onNoteAdded, notebookContent = "", onNoteboo
 
             {/* Note Body with optional code highlighting */}
             {/```[\s\S]*?```/.test(activeNote.content) ? (
-              <div className="bg-stone-900 text-emerald-400 p-3 rounded-xl font-mono text-xs overflow-x-auto whitespace-pre-wrap leading-relaxed border border-stone-800">
+              <div className="bg-stone-900 text-stone-200 p-3 rounded-xl font-mono text-xs overflow-x-auto whitespace-pre-wrap leading-relaxed border border-stone-800">
                 {activeNote.content.replace(/```[a-z]*\n?/g, "")}
               </div>
             ) : (

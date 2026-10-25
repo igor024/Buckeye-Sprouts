@@ -203,9 +203,9 @@ export function AuthModal() {
           {infoMessage && (
             <div
               role="status"
-              className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs flex items-start gap-2.5"
+              className="p-3 rounded-xl bg-stone-100 border border-stone-300 text-scarlet-deep text-xs flex items-start gap-2.5"
             >
-              <CheckCircle2 size={15} className="shrink-0 mt-0.5 text-emerald-700" />
+              <CheckCircle2 size={15} className="shrink-0 mt-0.5 text-scarlet-dark" />
               <span>{infoMessage}</span>
             </div>
           )}

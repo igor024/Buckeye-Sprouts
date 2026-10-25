@@ -157,8 +157,8 @@ export function SessionFeed({ sessions: initialSessions }: { sessions: SessionPr
                 <div className="flex items-center gap-2">
                   <span className="course-label">{session.courseCode}</span>
                   {isLiveDb ? (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
-                      <Database size={10} className="text-emerald-600" />
+                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-scarlet-deep bg-stone-100 border border-stone-300 px-2 py-0.5 rounded-full">
+                      <Database size={10} className="text-scarlet" />
                       Live Supabase DB
                     </span>
                   ) : (
@@ -194,7 +194,7 @@ export function SessionFeed({ sessions: initialSessions }: { sessions: SessionPr
                 </span>
                 <span className="inline-flex items-center gap-2">
                   <Users size={15} className="text-stone-500" />
-                  <strong className={session.availableSeats > 0 ? "text-emerald-700" : "text-stone-700"}>
+                  <strong className={session.availableSeats > 0 ? "text-scarlet-dark" : "text-stone-700"}>
                     {session.availableSeats}
                   </strong>{" "}
                   of {session.totalSeats} seats open

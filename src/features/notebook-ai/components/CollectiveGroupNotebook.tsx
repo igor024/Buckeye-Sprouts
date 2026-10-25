@@ -41,7 +41,7 @@ export function CollectiveGroupNotebook({
       {/* Calm Status Bar (No Leave Group Option) */}
       <div className="flex items-center justify-between gap-2 pb-1.5 border-b border-stone-200/50">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+          <span className="w-2 h-2 rounded-full bg-scarlet animate-pulse shrink-0" />
           <span className="text-xs font-semibold text-stone-700 truncate">
             {courseCode} · {libraryName} {floorLevel}
           </span>

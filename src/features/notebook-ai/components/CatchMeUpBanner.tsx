@@ -98,7 +98,7 @@ export function CatchMeUpBanner({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
             <div className="bg-white/90 rounded-lg p-3 border border-amber-100 shadow-2xs">
               <div className="flex items-center gap-1.5 font-semibold text-amber-950 mb-1 text-[11px]">
-                <CheckCircle2 size={13} className="text-emerald-600" />
+                <CheckCircle2 size={13} className="text-scarlet" />
                 1. What Was Covered
               </div>
               <p className="text-[11px] text-stone-600 leading-relaxed">{summary[0]}</p>

@@ -151,8 +151,8 @@ export function RequestJoinModal({
         <div className="my-4 p-3.5 bg-stone-50 rounded-xl border border-stone-200">
           <div className="flex items-center justify-between gap-2 mb-1.5">
             <span className="course-label">{session.courseCode}</span>
-            <span className="text-xs font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full flex items-center gap-1">
-              <Users size={12} className="text-emerald-600" />
+            <span className="text-xs font-semibold text-scarlet-deep bg-stone-100 border border-stone-300 px-2 py-0.5 rounded-full flex items-center gap-1">
+              <Users size={12} className="text-scarlet" />
               {session.availableSeats} of {session.totalSeats} seats open
             </span>
           </div>
@@ -168,7 +168,7 @@ export function RequestJoinModal({
         {/* Success View */}
         {success ? (
           <div className="space-y-4 pt-1 text-center">
-            <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto">
+            <div className="w-12 h-12 rounded-full bg-stone-200 text-scarlet-dark flex items-center justify-center mx-auto">
               <CheckCircle2 size={28} />
             </div>
             <div>
@@ -201,13 +201,13 @@ export function RequestJoinModal({
               <div className="flex items-center gap-2 truncate">
                 <span
                   className={`w-2 h-2 rounded-full shrink-0 ${
-                    currentUser ? "bg-emerald-500" : "bg-amber-400"
+                    currentUser ? "bg-scarlet" : "bg-amber-400"
                   }`}
                 />
                 {currentUser ? (
                   <span className="text-stone-800 truncate">
                     Requesting as <strong>{currentUser.name}</strong>{" "}
-                    <span className="text-emerald-700 font-medium">(Live DB)</span>
+                    <span className="text-scarlet-dark font-medium">(Live DB)</span>
                   </span>
                 ) : (
                   <span className="text-stone-600 truncate">

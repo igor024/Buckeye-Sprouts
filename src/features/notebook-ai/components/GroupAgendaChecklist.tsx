@@ -65,7 +65,7 @@ export function GroupAgendaChecklist({
       <div className="rounded-xl border border-stone-200 bg-white p-4 shadow-2xs">
         <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
           <div className="flex items-center gap-2">
-            <span className="p-1.5 rounded-lg bg-red-100 text-[#a51c30]">
+            <span className="p-1.5 rounded-lg bg-stone-100 text-scarlet">
               <Award size={16} />
             </span>
             <div>
@@ -75,13 +75,13 @@ export function GroupAgendaChecklist({
               </p>
             </div>
           </div>
-          <span className="text-xs font-bold text-[#a51c30] font-mono">{progressPercent}% Ready</span>
+          <span className="text-xs font-bold text-scarlet font-mono">{progressPercent}% Ready</span>
         </div>
 
         {/* Progress Bar */}
         <div className="w-full h-2 rounded-full bg-stone-100 overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-amber-500 to-[#a51c30] transition-all duration-500 rounded-full"
+            className="h-full bg-gradient-to-r from-amber-500 to-scarlet transition-all duration-500 rounded-full"
             style={{ width: `${progressPercent}%` }}
           />
         </div>
@@ -141,7 +141,7 @@ export function GroupAgendaChecklist({
             </button>
             <button
               type="submit"
-              className="px-3 py-1 text-xs font-semibold rounded-lg bg-[#a51c30] text-white cursor-pointer hover:bg-red-800"
+              className="px-3 py-1 text-xs font-semibold rounded-lg bg-scarlet text-white cursor-pointer hover:bg-scarlet-dark"
             >
               Add Objective
             </button>
@@ -151,7 +151,7 @@ export function GroupAgendaChecklist({
         <button
           type="button"
           onClick={() => setIsAdding(true)}
-          className="w-full py-2 border border-dashed border-stone-300 rounded-xl text-stone-600 hover:text-[#a51c30] hover:border-red-300 hover:bg-red-50/30 flex items-center justify-center gap-1.5 text-xs font-medium cursor-pointer transition-colors"
+          className="w-full py-2 border border-dashed border-stone-300 rounded-xl text-stone-600 hover:text-scarlet hover:border-red-300 hover:bg-red-50/30 flex items-center justify-center gap-1.5 text-xs font-medium cursor-pointer transition-colors"
         >
           <Plus size={14} /> Add Agenda Item
         </button>
@@ -172,11 +172,11 @@ export function GroupAgendaChecklist({
               <button
                 type="button"
                 onClick={() => toggleItem(item.id)}
-                className="mt-0.5 text-stone-400 hover:text-[#a51c30] cursor-pointer shrink-0"
+                className="mt-0.5 text-stone-400 hover:text-scarlet cursor-pointer shrink-0"
                 aria-label={item.completed ? "Mark incomplete" : "Mark complete"}
               >
                 {item.completed ? (
-                  <CheckSquare size={16} className="text-emerald-600" />
+                  <CheckSquare size={16} className="text-scarlet" />
                 ) : (
                   <Square size={16} />
                 )}

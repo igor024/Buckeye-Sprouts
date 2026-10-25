@@ -138,7 +138,7 @@ export function JoinApprovalGate({ session, access, demoMode = false }: JoinAppr
           {access === "locked" ? (
             <LockKeyhole size={18} className="text-amber-600" />
           ) : (
-            <ShieldCheck size={18} className="text-emerald-700" />
+            <ShieldCheck size={18} className="text-scarlet-dark" />
           )}
           <h2 id={`access-title-${session.id}`} className="font-semibold text-base">
             Table Access
@@ -149,7 +149,7 @@ export function JoinApprovalGate({ session, access, demoMode = false }: JoinAppr
             access === "host"
               ? "bg-red-100 text-red-800"
               : access === "member"
-                ? "bg-emerald-100 text-emerald-800"
+                ? "bg-stone-200 text-scarlet-deep"
                 : "bg-amber-100 text-amber-800"
           }`}
         >
@@ -171,12 +171,12 @@ export function JoinApprovalGate({ session, access, demoMode = false }: JoinAppr
       )}
 
       {access === "member" && (
-        <div className="mt-3 p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-xs text-emerald-900 leading-relaxed">
+        <div className="mt-3 p-3 bg-stone-100 rounded-xl border border-stone-300 text-xs text-scarlet-deep leading-relaxed">
           <p className="font-semibold flex items-center gap-1.5">
-            <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
+            <CheckCircle2 size={15} className="text-scarlet shrink-0" />
             Your request was approved!
           </p>
-          <p className="mt-1 text-emerald-800">
+          <p className="mt-1 text-scarlet-dark">
             Table anchor and live notebook access are now unlocked for you. Welcome to the group!
           </p>
         </div>
@@ -195,14 +195,14 @@ export function JoinApprovalGate({ session, access, demoMode = false }: JoinAppr
                 <Users size={13} className="text-stone-500" />
                 Available Seats
               </span>
-              <strong className={isFull ? "text-red-700" : "text-emerald-700 font-bold"}>
+              <strong className={isFull ? "text-red-700" : "text-scarlet-dark font-bold"}>
                 {session.availableSeats} of {session.totalSeats} open
               </strong>
             </div>
             <div className="w-full bg-stone-200 rounded-full h-1.5 overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all ${
-                  isFull ? "bg-red-600" : "bg-emerald-600"
+                  isFull ? "bg-red-600" : "bg-scarlet"
                 }`}
                 style={{
                   width: `${Math.min(100, Math.max(0, ((session.totalSeats - session.availableSeats) / session.totalSeats) * 100))}%`,
@@ -216,7 +216,7 @@ export function JoinApprovalGate({ session, access, demoMode = false }: JoinAppr
             <div
               className={`p-3.5 rounded-xl border text-xs transition ${
                 request.status === "approved"
-                  ? "bg-emerald-50 border-emerald-200 text-emerald-900"
+                  ? "bg-stone-100 border-stone-300 text-scarlet-deep"
                   : request.status === "rejected"
                     ? "bg-stone-50 border-stone-200 text-stone-700"
                     : "bg-amber-50/80 border-amber-200 text-amber-900"
@@ -225,7 +225,7 @@ export function JoinApprovalGate({ session, access, demoMode = false }: JoinAppr
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-1.5 font-semibold">
                   {request.status === "approved" ? (
-                    <CheckCircle2 size={16} className="text-emerald-600" />
+                    <CheckCircle2 size={16} className="text-scarlet" />
                   ) : request.status === "rejected" ? (
                     <XCircle size={16} className="text-stone-500" />
                   ) : (
@@ -268,7 +268,7 @@ export function JoinApprovalGate({ session, access, demoMode = false }: JoinAppr
                 <div className="flex items-center gap-2 truncate">
                   <span
                     className={`w-2 h-2 rounded-full shrink-0 ${
-                      user ? "bg-emerald-500" : "bg-amber-400"
+                      user ? "bg-scarlet" : "bg-amber-400"
                     }`}
                   />
                   {user ? (
@@ -373,8 +373,8 @@ export function JoinApprovalGate({ session, access, demoMode = false }: JoinAppr
           )}
 
           {successNotice && (
-            <div className="p-2.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl text-xs flex items-center gap-2">
-              <CheckCircle2 size={15} className="shrink-0 text-emerald-600" />
+            <div className="p-2.5 bg-stone-100 text-scarlet-deep border border-stone-300 rounded-xl text-xs flex items-center gap-2">
+              <CheckCircle2 size={15} className="shrink-0 text-scarlet" />
               <span>{successNotice}</span>
             </div>
           )}
