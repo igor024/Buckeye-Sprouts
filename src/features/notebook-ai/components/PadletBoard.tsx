@@ -82,7 +82,7 @@ export function PadletBoard({
       case "amber":
         return "bg-amber-50/80 border-amber-200 text-amber-950";
       case "sage":
-        return "bg-emerald-50/80 border-emerald-200 text-emerald-950";
+        return "bg-stone-100 border-stone-300 text-stone-900";
       case "slate":
         return "bg-slate-50/80 border-slate-200 text-slate-950";
       case "cream":
@@ -106,7 +106,7 @@ export function PadletBoard({
               onClick={() => setFilterCategory(cat)}
               className={`px-2 py-0.5 rounded-md text-[11px] font-medium capitalize cursor-pointer transition-colors ${
                 filterCategory === cat
-                  ? "bg-[#a51c30] text-white"
+                  ? "bg-scarlet text-white"
                   : "bg-white text-stone-600 hover:bg-stone-100 border border-stone-200"
               }`}
             >
@@ -124,7 +124,7 @@ export function PadletBoard({
             >
               {synced ? (
                 <>
-                  <Check size={12} className="text-emerald-600" /> Synced to Notes
+                  <Check size={12} className="text-scarlet" /> Synced to Notes
                 </>
               ) : (
                 <>
@@ -137,7 +137,7 @@ export function PadletBoard({
           <button
             type="button"
             onClick={() => setIsAdding(!isAdding)}
-            className="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-lg bg-[#a51c30] hover:bg-red-800 text-white cursor-pointer shadow-2xs transition-colors"
+            className="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-lg bg-scarlet hover:bg-scarlet-dark text-white cursor-pointer shadow-2xs transition-colors"
           >
             <Plus size={14} />
             <span>Add Sticky Card</span>
@@ -152,7 +152,7 @@ export function PadletBoard({
           className="rounded-xl border border-red-200 bg-red-50/50 p-4 space-y-3 shadow-xs"
         >
           <div className="flex items-center justify-between">
-            <h4 className="text-xs font-bold text-[#a51c30] uppercase tracking-wider flex items-center gap-1">
+            <h4 className="text-xs font-bold text-scarlet uppercase tracking-wider flex items-center gap-1">
               <Sparkles size={13} /> New Group Sticky Card
             </h4>
             <span className="text-[10px] text-stone-500">Visible to all session members</span>
@@ -211,7 +211,7 @@ export function PadletBoard({
             </button>
             <button
               type="submit"
-              className="px-3.5 py-1 text-xs font-semibold rounded-lg bg-[#a51c30] text-white cursor-pointer hover:bg-red-800"
+              className="px-3.5 py-1 text-xs font-semibold rounded-lg bg-scarlet text-white cursor-pointer hover:bg-scarlet-dark"
             >
               Post Card
             </button>
@@ -252,7 +252,7 @@ export function PadletBoard({
                   className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-white/80 hover:bg-white text-stone-700 cursor-pointer border border-stone-200/50 shadow-2xs"
                   aria-label="Upvote note"
                 >
-                  <ThumbsUp size={11} className="text-[#a51c30]" />
+                  <ThumbsUp size={11} className="text-scarlet" />
                   <span className="text-[10px] font-semibold">{card.votes}</span>
                 </button>
 

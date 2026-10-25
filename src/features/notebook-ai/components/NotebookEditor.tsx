@@ -87,14 +87,14 @@ export function NotebookEditor({
       <div className="bg-[#faf9f5] px-3.5 py-2 border-b border-stone-200 flex flex-wrap items-center justify-between gap-2 text-xs">
         <div className="flex items-center gap-2">
           <span className="text-[11px] font-semibold text-stone-600 flex items-center gap-1">
-            <Users size={13} className="text-[#a51c30]" /> Active:
+            <Users size={13} className="text-scarlet" /> Active:
           </span>
           <div className="flex items-center gap-1.5">
-            <span className="inline-flex items-center gap-1 px-2 py-0.2 rounded-full bg-red-100 text-[#a51c30] text-[10px] font-medium">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#a51c30]" /> Alex (You)
+            <span className="inline-flex items-center gap-1 px-2 py-0.2 rounded-full bg-red-100 text-scarlet text-[10px] font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-scarlet" /> Alex (You)
             </span>
-            <span className="inline-flex items-center gap-1 px-2 py-0.2 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-medium">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" /> Jordan
+            <span className="inline-flex items-center gap-1 px-2 py-0.2 rounded-full bg-stone-100 text-scarlet-deep text-[10px] font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-scarlet" /> Jordan
             </span>
             <span className="inline-flex items-center gap-1 px-2 py-0.2 rounded-full bg-amber-100 text-amber-800 text-[10px] font-medium">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-600" /> Sam
@@ -109,7 +109,7 @@ export function NotebookEditor({
 
         <div className="flex items-center gap-2">
           <span className="text-[10px] text-stone-400 font-mono flex items-center gap-1">
-            <Check size={11} className="text-emerald-600" /> {saveStatus === "saving" ? "Saving..." : "Saved"}
+            <Check size={11} className="text-scarlet" /> {saveStatus === "saving" ? "Saving..." : "Saved"}
           </span>
 
           <button
@@ -135,12 +135,12 @@ export function NotebookEditor({
             value={quickNote}
             onChange={(e) => setQuickNote(e.target.value)}
             placeholder="Quick add: Type your own personal note or question…"
-            className="flex-1 px-3 py-1.5 bg-white border border-stone-300 rounded-lg text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-emerald-700"
+            className="flex-1 px-3 py-1.5 bg-white border border-stone-300 rounded-lg text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-scarlet"
           />
           <button
             type="submit"
             disabled={!quickNote.trim()}
-            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#2d4b3c] hover:bg-[#20392d] text-white cursor-pointer disabled:opacity-40 transition-colors shrink-0 shadow-2xs"
+            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-scarlet-dark hover:bg-scarlet-deep text-white cursor-pointer disabled:opacity-40 transition-colors shrink-0 shadow-2xs"
           >
             <Plus size={13} />
             <span>Add Note</span>
@@ -277,7 +277,7 @@ export function NotebookEditor({
                 }
                 if (line.startsWith("## ")) {
                   return (
-                    <h2 key={idx} className="text-sm font-bold text-[#a51c30] mt-3 mb-1">
+                    <h2 key={idx} className="text-sm font-bold text-scarlet mt-3 mb-1">
                       {line.replace("## ", "")}
                     </h2>
                   );
@@ -292,7 +292,7 @@ export function NotebookEditor({
                 if (line.startsWith("- [x] ")) {
                   return (
                     <div key={idx} className="flex items-center gap-1.5 text-stone-500 line-through">
-                      <CheckSquare size={13} className="text-emerald-600" />
+                      <CheckSquare size={13} className="text-scarlet" />
                       <span>{line.replace("- [x] ", "")}</span>
                     </div>
                   );
@@ -308,14 +308,14 @@ export function NotebookEditor({
                 if (line.startsWith("- ")) {
                   return (
                     <div key={idx} className="flex items-start gap-1.5 ml-2 text-stone-700">
-                      <span className="text-[#a51c30]">•</span>
+                      <span className="text-scarlet">•</span>
                       <span>{line.replace("- ", "")}</span>
                     </div>
                   );
                 }
                 if (line.startsWith("> ")) {
                   return (
-                    <blockquote key={idx} className="border-l-2 border-[#a51c30] pl-2.5 py-0.5 my-1 bg-red-50/50 text-stone-700 italic">
+                    <blockquote key={idx} className="border-l-2 border-scarlet pl-2.5 py-0.5 my-1 bg-stone-100 text-stone-700 italic">
                       {line.replace("> ", "")}
                     </blockquote>
                   );

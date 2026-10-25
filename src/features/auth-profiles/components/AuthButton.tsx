@@ -32,7 +32,7 @@ export function AuthButton() {
             {profile.name}
           </span>
           <span
-            className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"
+            className="w-2 h-2 rounded-full bg-scarlet shrink-0"
             title="Live Supabase Database Connected"
           />
         </div>

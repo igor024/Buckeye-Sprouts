@@ -228,7 +228,7 @@ export function ApprovalQueue({
               </div>
               <span
                 className={`font-semibold ${
-                  session.availableSeats > 0 ? "text-emerald-700" : "text-red-700"
+                  session.availableSeats > 0 ? "text-scarlet-dark" : "text-red-700"
                 }`}
               >
                 {session.availableSeats} of {session.totalSeats} seats open
@@ -316,10 +316,10 @@ export function ApprovalQueue({
           )}
           {message && (
             <div
-              className="p-2.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs flex items-center gap-2"
+              className="p-2.5 bg-stone-100 border border-stone-300 text-scarlet-deep rounded-xl text-xs flex items-center gap-2"
               role="status"
             >
-              <CheckCircle2 size={15} className="shrink-0 text-emerald-600" />
+              <CheckCircle2 size={15} className="shrink-0 text-scarlet" />
               <span>{message}</span>
             </div>
           )}
@@ -382,14 +382,14 @@ export function ApprovalQueue({
                     isPending
                       ? "bg-white border-stone-200 shadow-xs hover:border-red-300"
                       : isApproved
-                        ? "bg-emerald-50/40 border-emerald-200/80"
+                        ? "bg-stone-100/70 border-stone-300"
                         : "bg-stone-50 border-stone-200 opacity-75"
                   }`}
                 >
                   {/* Card Header: Avatar, Name, Rank, Status Pill */}
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-9 h-9 rounded-full bg-[#a51c30] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
+                      <div className="w-9 h-9 rounded-full bg-scarlet text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
                         {initials || "OS"}
                       </div>
                       <div>
@@ -407,7 +407,7 @@ export function ApprovalQueue({
                     <span
                       className={`text-[10px] font-semibold px-2 py-0.5 rounded-full inline-flex items-center gap-1 shrink-0 ${
                         isApproved
-                          ? "bg-emerald-100 text-emerald-800"
+                          ? "bg-stone-200 text-scarlet-deep"
                           : isDeclined
                             ? "bg-stone-200 text-stone-700"
                             : "bg-amber-100 text-amber-800"
@@ -498,8 +498,8 @@ export function ApprovalQueue({
 
                   {/* Approved Confirmation Pill */}
                   {isApproved && (
-                    <div className="mt-2.5 text-[11px] text-emerald-800 flex items-center gap-1.5 font-medium">
-                      <CheckCircle2 size={13} className="text-emerald-600" />
+                    <div className="mt-2.5 text-[11px] text-scarlet-dark flex items-center gap-1.5 font-medium">
+                      <CheckCircle2 size={13} className="text-scarlet" />
                       <span>Seat confirmed. Table coordinates & notebook unlocked.</span>
                     </div>
                   )}

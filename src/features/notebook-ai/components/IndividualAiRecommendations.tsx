@@ -51,8 +51,8 @@ export function IndividualAiRecommendations({
           onClick={() => setIsExpanded(!isExpanded)}
           className="flex items-center gap-2 text-left flex-1 min-w-0 cursor-pointer"
         >
-          <div className="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-800 flex items-center justify-center shrink-0">
-            <Lock size={13} className="text-emerald-700" />
+          <div className="w-6 h-6 rounded-lg bg-stone-200 text-scarlet-deep flex items-center justify-center shrink-0">
+            <Lock size={13} className="text-scarlet-dark" />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
@@ -78,7 +78,7 @@ export function IndividualAiRecommendations({
                 }}
                 className={`px-1.5 py-0.5 text-[10px] font-medium rounded cursor-pointer transition-all ${
                   selectedId === student.studentId
-                    ? "bg-white text-[#a51c30] font-semibold shadow-2xs"
+                    ? "bg-white text-scarlet font-semibold shadow-2xs"
                     : "text-stone-500 hover:text-stone-900"
                 }`}
               >
@@ -101,7 +101,7 @@ export function IndividualAiRecommendations({
       {/* Expanded Carmen Canvas Insights */}
       {isExpanded && (
         <div className="mt-3 pt-2.5 border-t border-stone-200/60 space-y-2.5">
-          <p className="text-[10px] text-emerald-800 leading-relaxed bg-emerald-50/60 border border-emerald-200/50 p-2 rounded-xl">
+          <p className="text-[10px] text-scarlet-deep leading-relaxed bg-stone-100 border border-stone-300 p-2 rounded-xl">
             🔒 <strong>Private to {activeStudent.name}:</strong> Tailored from your Canvas Quiz analytics ({activeStudent.buckeyeIdDisplay}). Never shown to other members.
           </p>
 
@@ -131,8 +131,8 @@ export function IndividualAiRecommendations({
                     disabled={addedIds[rec.id]}
                     className={`shrink-0 inline-flex items-center gap-1 px-2 py-1 text-[10px] font-semibold rounded-lg cursor-pointer transition-colors ${
                       addedIds[rec.id]
-                        ? "bg-emerald-100 text-emerald-800"
-                        : "bg-[#2d4b3c] hover:bg-[#1a3327] text-white"
+                        ? "bg-stone-200 text-scarlet-deep"
+                        : "bg-scarlet-dark hover:bg-scarlet-deep text-white"
                     }`}
                   >
                     {addedIds[rec.id] ? <CheckCircle size={11} /> : null}

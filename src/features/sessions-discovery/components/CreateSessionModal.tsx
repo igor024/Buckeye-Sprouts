@@ -226,12 +226,12 @@ export function CreateSessionModal({ isOpen, onClose, onSessionCreated }: Create
         <div className="my-4 p-3 rounded-xl bg-stone-50 border border-stone-200 flex flex-wrap items-center justify-between gap-2 text-xs">
           <div className="flex items-center gap-2">
             <span
-              className={`w-2 h-2 rounded-full ${currentUser ? "bg-emerald-500 animate-pulse" : "bg-amber-400"}`}
+              className={`w-2 h-2 rounded-full ${currentUser ? "bg-scarlet animate-pulse" : "bg-amber-400"}`}
             />
             {currentUser ? (
               <span className="text-stone-700">
                 Logged in as <strong className="text-stone-900">{currentUser.name}</strong>{" "}
-                <span className="text-emerald-700 font-semibold">(Live Supabase DB)</span>
+                <span className="text-scarlet-dark font-semibold">(Live Supabase DB)</span>
               </span>
             ) : (
               <span className="text-stone-600">
@@ -258,8 +258,8 @@ export function CreateSessionModal({ isOpen, onClose, onSessionCreated }: Create
         )}
 
         {successMsg && (
-          <div className="p-3 mb-4 text-xs bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl flex items-center gap-2 font-medium">
-            <CheckCircle2 size={16} className="shrink-0 text-emerald-600" />
+          <div className="p-3 mb-4 text-xs bg-stone-100 text-scarlet-deep border border-stone-300 rounded-xl flex items-center gap-2 font-medium">
+            <CheckCircle2 size={16} className="shrink-0 text-scarlet" />
             <span>{successMsg}</span>
           </div>
         )}
@@ -475,7 +475,7 @@ export function CreateSessionModal({ isOpen, onClose, onSessionCreated }: Create
                     : "bg-stone-50 hover:bg-stone-100 text-stone-700 border-stone-200"
                 }`}
               >
-                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                <span className="w-2 h-2 rounded-full bg-scarlet" />
                 Studying Now
               </button>
               <button

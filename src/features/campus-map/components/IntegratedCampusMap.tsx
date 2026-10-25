@@ -11,6 +11,8 @@ import {
   CAMPUS_MAP_LANDMARKS,
   CAMPUS_MAP_ZOOM_LIMITS,
   THOMPSON_EAST_ENTRANCE_PLAN,
+  THOMPSON_TABLE_SPROUT_COUNTS,
+  THOMPSON_TABLE_SPROUT_HEIGHT,
   type CampusMapView,
   type Coordinates,
   type CampusMapSpot,
@@ -49,6 +51,7 @@ function planTableStyle(table: ThompsonTable, view: CampusMapView, viewport: Vie
     top: `${Math.round(center.y)}px`,
     width: `${plan.width * table.width / 100 * view.scale}px`,
     height: `${plan.height * table.height / 100 * view.scale}px`,
+    "--table-sprout-height": `${plan.height * THOMPSON_TABLE_SPROUT_HEIGHT / THOMPSON_EAST_ENTRANCE_PLAN.sourceSize.height * view.scale}px`,
   };
 }
 
@@ -444,7 +447,11 @@ export function IntegratedCampusMap({
               onClick={(event) => onSelectTable(table, event.currentTarget)}
               aria-label={tableStatusLabel(table)}
               title={tableStatusLabel(table)}
-            />
+            >
+              {table.groupId && table.status !== "empty" && <span className="integrated-table-sprouts" aria-hidden="true">
+                {Array.from({ length: THOMPSON_TABLE_SPROUT_COUNTS[table.status] }, (_, index) => <img key={index} src="/illustrations/sproutman.png" width="919" height="1711" alt="" draggable={false} />)}
+              </span>}
+            </button>
           ))}
           {showLibraryPlan && visibleSpots.map((spot) => (
             <button

@@ -93,7 +93,7 @@ export function StickyUnitTaskPadlet({
 
           <div className="flex items-center gap-1.5">
             <span className="text-[10px] font-semibold text-stone-500 uppercase">Readiness:</span>
-            <span className="text-xs font-bold font-mono text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
+            <span className="text-xs font-bold font-mono text-scarlet-deep bg-stone-100 px-2 py-0.5 rounded-full border border-stone-300">
               {assessment.readinessScore}% · {assessment.statusLabel}
             </span>
           </div>
@@ -102,7 +102,7 @@ export function StickyUnitTaskPadlet({
         {/* Thin Apple/Google style progress bar */}
         <div className="w-full h-1.5 rounded-full bg-stone-100 overflow-hidden">
           <div
-            className="h-full bg-emerald-600 rounded-full transition-all duration-500 ease-out"
+            className="h-full bg-scarlet rounded-full transition-all duration-500 ease-out"
             style={{ width: `${progressPercent}%` }}
           />
         </div>
@@ -141,8 +141,8 @@ export function StickyUnitTaskPadlet({
                 }}
                 className={`w-4.5 h-4.5 rounded-full border flex items-center justify-center shrink-0 transition-all ${
                   task.completed
-                    ? "bg-emerald-600 border-emerald-600 text-white"
-                    : "border-stone-300 hover:border-emerald-600 bg-white"
+                    ? "bg-scarlet border-scarlet text-white"
+                    : "border-stone-300 hover:border-scarlet bg-white"
                 }`}
                 aria-label={task.completed ? "Mark incomplete" : "Mark complete"}
               >
@@ -183,11 +183,11 @@ export function StickyUnitTaskPadlet({
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               placeholder="New study task…"
-              className="flex-1 px-2.5 py-1 text-xs bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-700"
+              className="flex-1 px-2.5 py-1 text-xs bg-white border border-stone-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-scarlet"
             />
             <button
               type="submit"
-              className="px-2.5 py-1 text-xs font-semibold bg-[#2d4b3c] text-white rounded-lg cursor-pointer"
+              className="px-2.5 py-1 text-xs font-semibold bg-scarlet-dark text-white rounded-lg cursor-pointer"
             >
               Add
             </button>
@@ -203,7 +203,7 @@ export function StickyUnitTaskPadlet({
           <button
             type="button"
             onClick={() => setIsAdding(true)}
-            className="flex items-center gap-1.5 px-2 py-1 text-[11px] text-stone-500 hover:text-[#2d4b3c] font-medium cursor-pointer transition-colors"
+            className="flex items-center gap-1.5 px-2 py-1 text-[11px] text-stone-500 hover:text-scarlet-dark font-medium cursor-pointer transition-colors"
           >
             <Plus size={13} />
             <span>Add a study objective</span>

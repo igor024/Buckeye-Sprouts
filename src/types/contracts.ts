@@ -167,6 +167,16 @@ export const DEMO_GROUP_COURSES = [
 /** User-facing occupancy states for the colored Thompson table controls. */
 export type ThompsonTableStatus = "empty" | "busy" | "very-busy";
 
+/** Decorative map characters: green tables have none, yellow one, orange two. */
+export const THOMPSON_TABLE_SPROUT_COUNTS: Readonly<Record<ThompsonTableStatus, number>> = {
+  empty: 0,
+  busy: 1,
+  "very-busy": 2,
+};
+
+/** Uniform character height in floor-plan SVG units, independent of table size. */
+export const THOMPSON_TABLE_SPROUT_HEIGHT = 20;
+
 /** A colored table in the supplied Thompson Level 1 SVG. */
 export interface ThompsonTable extends IllustrativeMapPosition {
   id: string;

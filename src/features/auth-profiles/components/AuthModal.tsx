@@ -62,7 +62,7 @@ export function AuthModal() {
 
   const handleQuickDemoFill = () => {
     setEmail("alex.morgan@osu.edu");
-    setPassword("buckeye2026");
+    setPassword("Password123!");
     setError(null);
   };
 
@@ -108,10 +108,10 @@ export function AuthModal() {
       role="dialog"
       aria-modal="true"
       aria-labelledby="auth-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
+      className="app-dialog-backdrop animate-in fade-in duration-200"
     >
       <div
-        className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-stone-200 overflow-hidden"
+        className="auth-dialog-panel relative w-full max-w-md rounded-2xl shadow-2xl border border-stone-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header bar */}
@@ -203,9 +203,9 @@ export function AuthModal() {
           {infoMessage && (
             <div
               role="status"
-              className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs flex items-start gap-2.5"
+              className="p-3 rounded-xl bg-stone-100 border border-stone-300 text-scarlet-deep text-xs flex items-start gap-2.5"
             >
-              <CheckCircle2 size={15} className="shrink-0 mt-0.5 text-emerald-700" />
+              <CheckCircle2 size={15} className="shrink-0 mt-0.5 text-scarlet-dark" />
               <span>{infoMessage}</span>
             </div>
           )}
