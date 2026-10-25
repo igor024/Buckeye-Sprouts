@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent, ReactNode } from "react";
-import { BookOpen, MapPin, Plus, RotateCw, Search, Star, Users, X } from "lucide-react";
+import { BookOpen, MapPin, Plus, RotateCw, Search, Sparkles, Star, Users, X } from "lucide-react";
 import {
   MOCK_NOTEBOOKS,
   MOCK_PROFILES,
@@ -20,12 +20,13 @@ import { createDemoGroupId, createDemoGroupState, demoGroupReducer } from "@/fea
 import { GroupRoster, ProfileAvatar } from "@/app/components/GroupRoster";
 import { NotebookPanel } from "@/features/notebook-ai/components/NotebookPanel";
 import { CarmenAiChatbot } from "@/features/notebook-ai/components/CarmenAiChatbot";
+import { GroupFinderDialog } from "@/features/notebook-ai/components/GroupFinderDialog";
 import { MOCK_CARMEN_STUDENTS } from "@/features/notebook-ai/mock-carmen-data";
 import { IntegratedCampusMap } from "@/features/campus-map/components/IntegratedCampusMap";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { normalizeQrTableId } from "@/lib/table-qr";
 import { useAuth } from "@/features/auth-profiles/context/AuthContext";
-import { groupTableStatus } from "@/lib/group-seats";
+import { groupSeatCounts, groupTableStatus } from "@/lib/group-seats";
 import {
   fetchGroupsDirectFromSupabase,
   saveNotebookToSupabase,
@@ -77,6 +78,11 @@ export function ThompsonMap({
   const [expanded, setExpanded] = useState(false);
   const [panelHidden, setPanelHidden] = useState(false);
   const [groupQuery, setGroupQuery] = useState("");
+  const [finderOpen, setFinderOpen] = useState(false);
+  const finderButton = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (tab !== "groups" || panelHidden) setFinderOpen(false);
+  }, [tab, panelHidden]);
   const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
   const [closingTable, setClosingTable] = useState(false);
   const [libraryFocusRequest, setLibraryFocusRequest] = useState(0);
@@ -313,6 +319,32 @@ export function ThompsonMap({
     setSelectedTableId(table.id);
   };
 
+  const viewFinderGroup = async (sessionId: string, trigger: HTMLElement, signal: AbortSignal, allowCached: boolean): Promise<string | null> => {
+    let candidates = groupState.groups;
+    try {
+      const response = await fetch("/api/map/groups", { cache: "no-store", signal: AbortSignal.any([signal, AbortSignal.timeout(10000)]) });
+      if (!response.ok) throw new Error("Map unavailable");
+      const live = await response.json();
+      if (!Array.isArray(live)) throw new Error("Invalid map response");
+      if (!allowCached || live.length > 0) {
+        candidates = live;
+        dispatchGroup({ type: "sync-from-db", groups: candidates });
+      }
+    } catch {
+      if (signal.aborted) return null;
+      if (!allowCached) return "Couldn't refresh that group. Please retry.";
+    }
+    if (signal.aborted) return null;
+    const group = candidates.find((item) => item.id === sessionId);
+    if (!group || groupSeatCounts(group).availableSeats === 0) return "This group is no longer open or its last seat has been taken. Try another search.";
+    const table = THOMPSON_EAST_ENTRANCE_TABLES.find((item) => item.id === group.tableId);
+    if (!table) return "That group is outside the current map.";
+    setGroupQuery(""); setPanelHidden(false); setClosingTable(false);
+    if (allowCached) setRefreshNotice("Viewing cached group details. Availability may have changed.");
+    openTable(table, finderButton.current ?? trigger);
+    return null;
+  };
+
   const selectTab = (nextTab: MapTab) => {
     setTab(nextTab);
     setPanelHidden(false);
@@ -479,7 +511,10 @@ export function ThompsonMap({
         </div>
         <div id="map-sheet-content" className="map-sheet-content">
           {tab === "groups" && <>
-            <label className="map-search group-search-field"><Search size={19} aria-hidden="true" /><input type="search" value={groupQuery} onChange={(event) => setGroupQuery(event.target.value)} placeholder="Search courses, e.g. CSE 2221" aria-label="Search study groups by course number" /></label>
+            <div className="group-search-tools">
+              <label className="map-search group-search-field"><Search size={19} aria-hidden="true" /><input type="search" value={groupQuery} onChange={(event) => setGroupQuery(event.target.value)} placeholder="Search courses, e.g. CSE 2221" aria-label="Search study groups by course number" /></label>
+              <button ref={finderButton} type="button" className="group-finder-trigger" aria-label="Ask AI to find a study group" aria-haspopup="dialog" aria-expanded={finderOpen} onClick={() => setFinderOpen(true)}><Sparkles size={18} aria-hidden="true" /><span>Ask AI</span></button>
+            </div>
             <ul className="map-group-list" aria-label="Study groups on Thompson Library Level 1">
               {visibleGroups.map(({ table, group }) => <li key={group.id}><button className="map-group-row" type="button" onClick={(event) => openTable(table, event.currentTarget)}>
                 <ProfileAvatar profile={group.host} /><span className="group-row-copy"><strong>{group.name}</strong><small>{group.courseCode} · {group.topic}</small><span className="group-table-label"><MapPin size={12} aria-hidden="true" />{table.label}</span></span>
@@ -555,6 +590,8 @@ export function ThompsonMap({
           }
         }}
       />
+
+      <GroupFinderDialog isOpen={finderOpen && tab === "groups" && !panelHidden} onClose={() => setFinderOpen(false)} groups={groupState.groups} onViewGroup={viewFinderGroup} />
 
       <nav className="map-service-tabs" aria-label="Map app navigation">
         <button className={tab === "groups" ? "active" : ""} aria-current={tab === "groups" ? "page" : undefined} aria-expanded={tab === "groups" && !panelHidden} aria-controls="map-info-sheet" type="button" onClick={() => activateTab("groups")}>{tabIcon("groups", <Users size={24} />)}<span>Groups</span></button>
