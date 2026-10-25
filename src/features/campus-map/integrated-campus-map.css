@@ -27,6 +27,14 @@
 .integrated-map-zoom button + button { border-top: 1px solid var(--map-divider); }
 .integrated-recenter { border: 1px solid var(--map-border); border-radius: 50%; background: var(--map-paper); cursor: pointer; }
 .integrated-demo-location { min-height: 44px; padding: 0 12px; border-radius: 999px; color: var(--map-secondary); font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; }
+.integrated-refresh-button { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 14px; border: 1px solid var(--map-border); border-radius: 999px; color: var(--color-scarlet-dark); background: var(--map-paper); box-shadow: var(--map-shadow); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; touch-action: manipulation; }
+.integrated-refresh-button:hover { background: #ffffff; color: var(--color-scarlet); border-color: var(--color-scarlet); box-shadow: 0 3px 12px rgba(186, 12, 47, 0.15); }
+.integrated-refresh-button:active { background: #fdf2f2; transform: scale(0.98); }
+.integrated-refresh-button svg { color: var(--color-scarlet); flex-shrink: 0; }
+.integrated-refresh-button.is-refreshing svg { animation: integrated-spin 0.8s linear infinite; }
+.integrated-refresh-status { position: absolute; z-index: 5; top: max(18px, calc(env(safe-area-inset-top) + 12px)); left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; padding: 8px 16px; border: 1px solid #ffffffed; border-radius: 999px; color: #14532d; background: #f0fdf4; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12); font-size: 12px; font-weight: 600; white-space: nowrap; animation: integrated-badge-in 200ms ease; }
+@keyframes integrated-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes integrated-badge-in { from { opacity: 0; transform: translate(-50%, -8px); } to { opacity: 1; transform: translate(-50%, 0); } }
 .integrated-map-actions button { transition: color 140ms ease, background 140ms ease; }
 .integrated-map-actions button:active { color: var(--map-blue); }
 .integrated-map-actions button:not(.integrated-location-button):active { background: #ffffffbf; }

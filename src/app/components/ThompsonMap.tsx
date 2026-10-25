@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent, ReactNode } from "react";
-import { BookOpen, MapPin, Plus, Search, Star, Users, X } from "lucide-react";
+import { BookOpen, MapPin, Plus, RotateCw, Search, Star, Users, X } from "lucide-react";
 import {
   MOCK_NOTEBOOKS,
   MOCK_PROFILES,
@@ -95,6 +95,44 @@ export function ThompsonMap({
   const tableCloseButton = useRef<HTMLButtonElement>(null);
   const tableTrigger = useRef<HTMLElement | null>(null);
   const tableCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [refreshNotice, setRefreshNotice] = useState<string | null>(null);
+  const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const refreshDatabaseData = async () => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    try {
+      let live = await fetchGroupsDirectFromSupabase();
+      if (!live || live.length === 0) {
+        const res = await fetch("/api/map/groups");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.groups) live = data.groups;
+        }
+      }
+      if (live) {
+        dispatchGroup({ type: "sync-from-db", groups: live });
+        setRefreshNotice(`Refreshed ${live.length} study groups from database`);
+      } else {
+        setRefreshNotice("Synced with database");
+      }
+    } catch (err) {
+      console.warn("Refresh failed:", err);
+      setRefreshNotice("Unable to refresh database data");
+    } finally {
+      setIsRefreshing(false);
+      if (refreshTimer.current) clearTimeout(refreshTimer.current);
+      refreshTimer.current = setTimeout(() => {
+        setRefreshNotice(null);
+      }, 2500);
+    }
+  };
+
+  useEffect(() => () => {
+    if (refreshTimer.current) clearTimeout(refreshTimer.current);
+  }, []);
 
   // Directly query Supabase from the browser and subscribe to realtime table updates
   useEffect(() => {
@@ -326,7 +364,16 @@ export function ThompsonMap({
         onSelectTable={openTable}
         onSelectSpot={() => undefined}
         onReaderLocationChange={setReaderLocation}
+        onRefresh={refreshDatabaseData}
+        isRefreshing={isRefreshing}
       />
+
+      {refreshNotice && (
+        <div className="integrated-refresh-status" role="status" aria-live="polite">
+          <RotateCw size={13} className="text-emerald-700" />
+          <span>{refreshNotice}</span>
+        </div>
+      )}
 
       {showSheet && <section id="map-info-sheet" inert={groupSheetHidden && tab === "groups"} className={`map-info-sheet${expanded ? " sheet-expanded" : ""}${tab === "groups" ? " group-search-sheet" : ""}${tab === "join" && activeGroup ? " current-group-sheet" : ""}${groupSheetHidden && tab === "groups" ? " group-sheet-hidden" : ""}`} aria-label={tab === "groups" ? "Study group search" : tab === "join" ? "Join or manage a study group" : tab === "notes" ? "Shared notebook" : "Your study profile"}>
         <button type="button" className="sheet-swipe-handle" onPointerDown={beginSheetSwipe} onPointerUp={endSheetSwipe} onPointerCancel={() => { sheetStart.current = null; }} aria-expanded={expanded} aria-controls="map-sheet-content" aria-label={expanded ? "Collapse panel" : "Expand panel"} onClick={() => { if (sheetDragged.current) { sheetDragged.current = false; return; } setExpanded((value) => !value); }}>
@@ -337,13 +384,26 @@ export function ThompsonMap({
             <p className="sheet-eyebrow">OHIO STATE · THOMPSON LIBRARY · LEVEL 1</p>
             <h1 className="paper-title truncate">{tab === "groups" ? "Group Search" : tab === "join" ? "Your Group" : tab === "notes" ? "Shared Notes" : "Your Study Profile"}</h1>
           </div>
-          {tab === "join" && activeGroup && <div className="current-group-header-actions">
-            <button type="button" className="group-carmen-trigger" onClick={() => setCarmenOpen(true)} aria-label="Open Carmen study suggestions" title="Carmen study suggestions">
-              <Star size={18} className="fill-amber-300" />
+          <div className="sheet-header-actions">
+            <button
+              type="button"
+              className={`sheet-refresh-button${isRefreshing ? " is-refreshing" : ""}`}
+              onClick={refreshDatabaseData}
+              disabled={isRefreshing}
+              title="Refresh table colors & groups from database"
+              aria-label="Refresh table colors and group details from database"
+            >
+              <RotateCw size={14} className={isRefreshing ? "animate-spin" : ""} />
+              <span>{isRefreshing ? "Updating…" : "Refresh"}</span>
             </button>
-            <button type="button" className="group-leave-button" onClick={() => dispatchGroup({ type: "leave", profileId: viewer.id })}>Leave group</button>
-          </div>}
-          {tab === "notes" && <button type="button" className="notes-new-button" onClick={() => { setExpanded(true); window.dispatchEvent(new CustomEvent("buckeye:open-new-note")); }} aria-label="Create a new group note" title="New note"><Plus size={18} /></button>}
+            {tab === "join" && activeGroup && <div className="current-group-header-actions">
+              <button type="button" className="group-carmen-trigger" onClick={() => setCarmenOpen(true)} aria-label="Open Carmen study suggestions" title="Carmen study suggestions">
+                <Star size={18} className="fill-amber-300" />
+              </button>
+              <button type="button" className="group-leave-button" onClick={() => dispatchGroup({ type: "leave", profileId: viewer.id })}>Leave group</button>
+            </div>}
+            {tab === "notes" && <button type="button" className="notes-new-button" onClick={() => { setExpanded(true); window.dispatchEvent(new CustomEvent("buckeye:open-new-note")); }} aria-label="Create a new group note" title="New note"><Plus size={18} /></button>}
+          </div>
         </div>
         <div id="map-sheet-content" className="map-sheet-content">
           {tab === "groups" && <>

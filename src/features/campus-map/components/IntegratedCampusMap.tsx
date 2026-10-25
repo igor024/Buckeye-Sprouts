@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { BookOpen, Crosshair, LocateFixed, MapPin, Minus, Plus, X } from "lucide-react";
+import { BookOpen, Crosshair, LocateFixed, MapPin, Minus, Plus, RotateCw, X } from "lucide-react";
 import { createPortal } from "react-dom";
 import {
   CAMPUS_MAP_ARTWORK_SIZE,
@@ -129,6 +129,8 @@ export function IntegratedCampusMap({
   onSelectTable,
   onSelectSpot,
   onReaderLocationChange,
+  onRefresh,
+  isRefreshing = false,
 }: {
   onOpenFloorPlan: () => void;
   showLibraryPlan: boolean;
@@ -141,6 +143,8 @@ export function IntegratedCampusMap({
   onSelectTable: (table: ThompsonTable, trigger: HTMLElement) => void;
   onSelectSpot: (spot: CampusMapSpot) => void;
   onReaderLocationChange?: (location: DemoReaderLocation) => void;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
 }) {
   const [view, setView] = useState<CampusMapView>({ scale: CAMPUS_MAP_ZOOM_LIMITS.minScale, x: 0, y: 0 });
   const [viewportSize, setViewportSize] = useState<ViewportSize>({ width: 0, height: 0 });
@@ -495,6 +499,19 @@ export function IntegratedCampusMap({
           <button type="button" aria-label="Zoom out" disabled={view.scale <= CAMPUS_MAP_ZOOM_LIMITS.minScale} onClick={() => changeZoom(.8)}><Minus size={18} /></button>
         </div>
         <button type="button" className="integrated-recenter" aria-label="Recenter campus map" onClick={resetMap}><LocateFixed size={17} /></button>
+        {onRefresh && (
+          <button
+            type="button"
+            className={`integrated-refresh-button${isRefreshing ? " is-refreshing" : ""}`}
+            onClick={onRefresh}
+            disabled={isRefreshing}
+            aria-label="Refresh table colors and group details from database"
+            title="Refresh database data"
+          >
+            <RotateCw size={14} className={isRefreshing ? "animate-spin" : ""} />
+            <span>{isRefreshing ? "Updating…" : "Refresh"}</span>
+          </button>
+        )}
         <button type="button" className="integrated-demo-location" onClick={simulateLocation}>Simulate location</button>
       </div>
 
