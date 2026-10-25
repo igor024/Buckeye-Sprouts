@@ -387,7 +387,7 @@ export class FeatureNotImplementedError extends Error {
 export const MOCK_PROFILES: UserProfile[] = [
   {
     id: "11111111-1111-4111-8111-111111111111",
-    name: "Alex Morgan",
+    name: "Alex Rabochii",
     buckIdHash: "demo-hash-alex-not-a-real-identity",
     avatarUrl: "",
     major: "Computer Science & Engineering",

@@ -3,6 +3,7 @@ import {
   type DemoGroupState, type DemoStudyGroup, type ProfilePreview,
 } from "@/types/contracts";
 import { groupSeatCounts, initialGroupSeats, type GroupCreationInput, type StudyGroupWithSeats } from "@/lib/group-seats";
+import { BUCKID_DEMO_GROUP_ID, createBuckIdDemoGroup } from "@/features/location-checkin/buckid-demo";
 
 export type Action =
   | { type: "join"; groupId: string; profile: ProfilePreview; now: number }
@@ -12,6 +13,7 @@ export type Action =
   | { type: "invite"; profileId: string; hostId: string }
   | { type: "end"; hostId: string }
   | { type: "clear-notice" }
+  | { type: "prepare-buckid-demo" }
   | { type: "change-viewer" }
   | { type: "sync-from-db"; groups: DemoStudyGroup[] };
 
@@ -55,8 +57,16 @@ export function demoGroupReducer(state: DemoGroupState, action: Action): DemoGro
   // Switching login changes the local viewer, not physical table membership.
   if (action.type === "change-viewer") return { ...state, activeGroupId: null, notice: "" };
   if (action.type === "clear-notice") return { ...state, notice: "" };
+  if (action.type === "prepare-buckid-demo") {
+    if (state.activeGroupId) return state;
+    const group = createBuckIdDemoGroup();
+    return { ...state, notice: "", groups: [...state.groups.filter((item) => item.tableId !== group.tableId), group] };
+  }
   if (action.type === "sync-from-db") {
-    const updatedGroups = action.groups.map((g) => ({
+    // Keep the explicit BuckID simulation local, including its joined viewer.
+    const demo = state.groups.find((group) => group.id === BUCKID_DEMO_GROUP_ID);
+    const incoming = demo ? [...action.groups.filter((group) => group.tableId !== demo.tableId), demo] : action.groups;
+    const updatedGroups = incoming.map((g) => ({
       ...g,
       members: [...g.members],
       invitedProfileIds: [...(g.invitedProfileIds || [])],

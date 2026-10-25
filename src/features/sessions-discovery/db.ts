@@ -1,6 +1,7 @@
 import "server-only";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { CreateSessionInput, SessionDetail, SessionFilters, SessionPreview } from "@/types/contracts";
+import { profileDisplayName } from "@/lib/profile-display-name";
 
 let adminClient: SupabaseClient | null = null;
 
@@ -301,7 +302,7 @@ export async function findDbActiveSessionByTable(
       const row = data[0];
       return {
         sessionId: row.session_id,
-        hostName: row.host_name || undefined,
+        hostName: row.host_name ? profileDisplayName(row.host_name) : undefined,
         session: {
           id: row.session_id,
           hostId: "",

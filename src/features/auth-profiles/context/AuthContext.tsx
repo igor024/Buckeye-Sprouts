@@ -13,6 +13,7 @@ import type { User, Session } from "@supabase/supabase-js";
 import type { ProfilePreview, UpdateProfileInput } from "@/types/contracts";
 import { getSupabaseBrowserClient } from "../lib/supabase-browser";
 import { profileFromAuthUser } from "../lib/auth-profile";
+import { profileDisplayName } from "@/lib/profile-display-name";
 
 export interface SignUpData {
   email: string;
@@ -71,7 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         const loadedProfile: ProfilePreview = {
           id: data.id,
-          name: data.name || "Buckeye Student",
+          name: profileDisplayName(data.name || "Buckeye Student"),
           avatarUrl: data.avatar_url || "",
           major: data.major || "Undeclared",
           currentCourses: Array.isArray(data.current_courses) ? data.current_courses : [],

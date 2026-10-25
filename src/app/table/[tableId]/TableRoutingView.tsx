@@ -294,10 +294,10 @@ export function TableRoutingView({ tableId: initialTableId }: { tableId: string 
               <button
                 type="button"
                 disabled={isSigningIn}
-                onClick={() => handleQuickDemoSignIn("alex.morgan@osu.edu", "Alex Morgan")}
+                onClick={() => handleQuickDemoSignIn("alex.morgan@osu.edu", "Alex Rabochii")}
                 className="button-secondary text-xs py-2 px-3 hover:border-red-800"
               >
-                Sign in as Alex Morgan (CSE)
+                Sign in as Alex Rabochii (CSE)
               </button>
               <button
                 type="button"
@@ -408,7 +408,7 @@ export function TableRoutingView({ tableId: initialTableId }: { tableId: string 
               </div>
               <div className="text-xs">
                 <p className="font-semibold text-emerald-950">
-                  Hosted by {tableData.hostName || "Alex Morgan"}
+                  Hosted by {tableData.hostName || "Alex Rabochii"}
                 </p>
                 <p className="text-emerald-700">Currently studying at this table</p>
               </div>

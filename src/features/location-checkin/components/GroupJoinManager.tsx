@@ -7,6 +7,7 @@ import { GroupRoster } from "@/app/components/GroupRoster";
 import { DEMO_GROUP_COURSES, DEMO_READER_DELAY_MS, MOCK_PROFILES, type DemoReaderLocation, type DemoStudyGroup, type ProfilePreview, type ThompsonTable } from "@/types/contracts";
 import { DEFAULT_AVAILABLE_SEATS, MAX_AVAILABLE_SEATS, groupSeatCounts, type GroupCreationInput } from "@/lib/group-seats";
 import { canJoinDemoGroup } from "../group-demo";
+import { BUCKID_DEMO_TABLE_ID } from "../buckid-demo";
 import { TableQrCamera } from "./TableQrCamera";
 
 const BUCKID_READER_DELAY_MS = 1000;
@@ -51,7 +52,7 @@ interface GroupJoinManagerProps {
   readerLocation: DemoReaderLocation | null; notice: string;
   readerHandle?: ReactNode;
   linkedTableId?: string | null; onTableLinkOpened?: () => void;
-  onStart: () => void; onJoin: (id: string) => Promise<string | null>; onCreate: (input: GroupCreationInput) => void;
+  onStart: (method: "nfc" | "qr") => void; onJoin: (id: string) => Promise<string | null>; onCreate: (input: GroupCreationInput) => void;
 }
 
 /** A table scan joins eligible groups directly; unavailable tables explain why. */
@@ -110,14 +111,14 @@ export function GroupJoinManager({ visible, profile, groups, activeGroup, tables
   function startScan(method: "nfc" | "qr") {
     if (timer.current !== null || stage !== "idle" || (method === "nfc" && !readerLocation)) return;
     setScanMethod(method);
-    onStart();
+    onStart(method);
     setStage("scanning");
     if (method === "qr") return;
     timer.current = setTimeout(() => {
       timer.current = null;
       const location = latest.current.readerLocation;
       if (!location) { setStage("idle"); return; }
-      openLocation(location);
+      openLocation({ ...location, tableId: BUCKID_DEMO_TABLE_ID, source: "demo", usedFallback: true });
     }, method === "nfc" ? BUCKID_READER_DELAY_MS : DEMO_READER_DELAY_MS);
   }
 

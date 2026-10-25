@@ -1,14 +1,16 @@
 # Sample sign-in accounts
 
-The sign-in dialog offers Alex Morgan, Jordan Lee, and Sam Patel. Each button signs in through Supabase Auth; it does not bypass authentication. Use **Me > Switch account** after signing in to try another identity.
+The sign-in dialog offers Alex Rabochii, Jordan Lee, and Sam Patel. Each button signs in through Supabase Auth; it does not bypass authentication. Use **Me > Switch account** after signing in to try another identity.
 
 | Name | Email | Password |
 | --- | --- | --- |
-| Alex Morgan | alex.morgan@osu.edu | buckeye2026 |
+| Alex Rabochii | alex.morgan@osu.edu | buckeye2026 |
 | Jordan Lee | jordan.lee@osu.edu | buckeye2026 |
 | Sam Patel | sam.patel@osu.edu | buckeye2026 |
 
 These are synthetic demo identities, not verified university accounts. Their definitions and password live in `sample-accounts.mjs`, shared by login controls and the setup script.
+
+Alex's display name is now **Alex Rabochii**; the existing `alex.morgan@osu.edu` login is retained. Existing Auth metadata and map profile rows use the renamed display while the database is being updated. Migration `202610250001_rename_alex_sample_profile.sql` updates the saved sample profile and Auth metadata without changing its UUID, email, or password. The setup script also writes the updated name when run again.
 
 ## Create or repair the database accounts
 

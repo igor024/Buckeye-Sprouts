@@ -5,7 +5,7 @@ export const SAMPLE_ACCOUNT_PASSWORD = "buckeye2026";
 export const SAMPLE_ACCOUNTS = [
   {
     email: "alex.morgan@osu.edu",
-    name: "Alex Morgan",
+    name: "Alex Rabochii",
     major: "Computer Science & Engineering",
     currentCourses: ["CSE 2221", "MATH 1151"],
     bio: "Working through software components, one coffee at a time.",

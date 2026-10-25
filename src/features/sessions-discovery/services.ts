@@ -223,7 +223,7 @@ export const sessionsDiscoveryService: ExtendedSessionsDiscoveryService = {
       return {
         sessionId: mock.id,
         session: toSessionPreview(mock),
-        hostName: "Alex Morgan",
+        hostName: "Alex Rabochii",
       };
     }
 

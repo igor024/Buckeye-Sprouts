@@ -55,7 +55,9 @@ Camera scanning requires **HTTPS or localhost**; a phone opening an ordinary HTT
 
 ### C. Judge-Friendly Simulation
 
-The camera dialog also includes a **Demo table** selector and **Simulate Table QR Scan** button. The simulator uses the same routes and table-selection flow without needing a physical sticker or working camera. BuckID reader behavior is unchanged.
+The camera dialog also includes a **Demo table** selector and **Simulate Table QR Scan** button. The simulator uses the same routes and table-selection flow without needing a physical sticker or working camera.
+
+**Tap BuckID Reader** uses a fixed local demo at table **110-1**. Ethan Dong is the sole seated host before joining; the current viewer is added on tap. Live database refreshes preserve this local demo without changing the real table's membership.
 
 ---
 
@@ -150,7 +152,7 @@ GET /api/tables/:tableId?library=Thompson%20Library
   },
   "hasActiveSession": true,
   "sessionId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
-  "hostName": "Alex Morgan",
+  "hostName": "Alex Rabochii",
   "session": {
     "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
     "title": "Let's untangle recursion",

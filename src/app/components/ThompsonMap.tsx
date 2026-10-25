@@ -116,7 +116,7 @@ export function ThompsonMap({
   const setNotebookContent = (content: string) => {
     if (activeGroup) {
       dispatchGroup({ type: "notebook", content });
-      saveNotebookToSupabase(activeGroup.id, content, viewer.id);
+      if (!activeGroup.id.startsWith("local-")) saveNotebookToSupabase(activeGroup.id, content, viewer.id);
     } else {
       setDraftNotebookContent(content);
     }
@@ -486,7 +486,7 @@ export function ThompsonMap({
                 type="button"
                 className="group-leave-button"
                 onClick={() => {
-                  if (activeGroup) {
+                  if (activeGroup && !activeGroup.id.startsWith("local-")) {
                     fetch("/api/map/groups", {
                       method: "PATCH",
                       headers: { "Content-Type": "application/json" },
@@ -527,7 +527,7 @@ export function ThompsonMap({
             group={activeGroup} table={tables.find((table) => table.id === activeGroup.tableId)!} profileId={viewer.id} notice={groupState.notice}
             onInvite={(profileId) => dispatchGroup({ type: "invite", profileId, hostId: viewer.id })}
             onGpsLeave={() => {
-              if (activeGroup) {
+              if (activeGroup && !activeGroup.id.startsWith("local-")) {
                 fetch("/api/map/groups", {
                   method: "PATCH",
                   headers: { "Content-Type": "application/json" },
@@ -542,7 +542,7 @@ export function ThompsonMap({
               dispatchGroup({ type: "leave", profileId: viewer.id, gps: true });
             }}
             onEnd={() => {
-              endSessionInSupabase(activeGroup.id, activeGroup.tableId);
+              if (!activeGroup.id.startsWith("local-")) endSessionInSupabase(activeGroup.id, activeGroup.tableId);
               dispatchGroup({ type: "end", hostId: viewer.id });
             }}
           />}
@@ -554,7 +554,7 @@ export function ThompsonMap({
       <GroupJoinManager visible={tab === "join" && !panelHidden} profile={viewer} groups={groupState.groups} activeGroup={activeGroup} tables={tables} readerLocation={readerLocation} notice={groupState.notice}
         readerHandle={panelHandle}
         linkedTableId={linkedTableId} onTableLinkOpened={consumeTableLink}
-        onStart={() => dispatchGroup({ type: "clear-notice" })}
+        onStart={(method) => dispatchGroup({ type: method === "nfc" ? "prepare-buckid-demo" : "clear-notice" })}
         onJoin={async (groupId) => {
           if (!groupId.startsWith("local-")) {
             try {

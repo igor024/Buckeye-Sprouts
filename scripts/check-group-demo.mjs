@@ -90,4 +90,21 @@ for (const viewport of [{ width: 320, height: 568 }, { width: 390, height: 844 }
   assert.equal(resolveDemoReaderLocation({ x: -100, y: 0 }, "device", viewport).usedFallback, true);
 }
 assert.equal(JSON.stringify(c.MOCK_DEMO_STUDY_GROUPS), baseline, "Shared fixtures must stay immutable");
+// A simulated BuckID tap must be repeatable even when live table 110-1 is different.
+let buckid = reduce(createDemoGroupState([]), { type: "prepare-buckid-demo" });
+let demo = buckid.groups.find(group => group.tableId === "110-1");
+assert.equal(demo.host.name, "Ethan Dong");
+assert.equal(demo.members.length, 0);
+assert.equal(demo.occupiedSeats, 1);
+buckid = reduce(buckid, { type: "join", groupId: demo.id, profile: alex, now: 100 });
+buckid = reduce(buckid, { type: "sync-from-db", groups: [{ ...demo, id: "live-110-1", host: jordan, members: [sam] }] });
+demo = buckid.groups.find(group => group.id === buckid.activeGroupId);
+assert.equal(demo.host.name, "Ethan Dong");
+assert.deepEqual(demo.members.map(profile => profile.name), ["Alex Rabochii"]);
+assert.equal(buckid.groups.filter(group => group.tableId === "110-1").length, 1);
+buckid = reduce(buckid, { type: "leave", profileId: alex.id });
+assert.equal(buckid.groups.find(group => group.id === demo.id).members.length, 0);
+assert.equal(buckid.groups.find(group => group.id === demo.id).occupiedSeats, 1);
+assert.equal(reduce(buckid, { type: "prepare-buckid-demo" }).groups.at(-1).host.name, "Ethan Dong");
 console.log("Group demo checks passed: nearest-table projection, fallback, confirmed membership, invitations, host succession, closure, notebook retention, very busy tables and immutable fixtures.");
+console.log("BuckID demo checks passed: Ethan-only starting roster, Alex joins once, refresh isolation, leave and repeat tap.");

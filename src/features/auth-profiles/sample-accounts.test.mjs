@@ -61,7 +61,7 @@ function fakeAdmin({ users = [], fail = null } = {}) {
 test("three sample identities have distinct emails and one shared login password", () => {
   assert.equal(SAMPLE_ACCOUNTS.length, 3);
   assert.equal(new Set(SAMPLE_ACCOUNTS.map((account) => account.email)).size, 3);
-  assert.deepEqual(SAMPLE_ACCOUNTS.map((account) => account.name), ["Alex Morgan", "Jordan Lee", "Sam Patel"]);
+  assert.deepEqual(SAMPLE_ACCOUNTS.map((account) => account.name), ["Alex Rabochii", "Jordan Lee", "Sam Patel"]);
   assert.ok(SAMPLE_ACCOUNT_PASSWORD.length >= 8);
 });
 
@@ -117,6 +117,12 @@ test("offline profile fallback preserves authenticated identity and validates me
     id: "real-jordan-id", name: "Jordan Lee", major: "Mathematics", avatarUrl: "", currentCourses: ["MATH 1151"], bio: "",
   });
   assert.equal(profileFromAuthUser({ ...user, user_metadata: {} }).name, "jordan.lee");
+});
+
+test("existing Alex metadata displays the renamed profile without changing its login identity", () => {
+  const profile = profileFromAuthUser({ id: "existing-alex", email: SAMPLE_ACCOUNTS[0].email, user_metadata: { name: "Alex Morgan" } });
+  assert.equal(profile.id, "existing-alex");
+  assert.equal(profile.name, "Alex Rabochii");
 });
 
 test("switching sample accounts clears local group access without checking out the previous member", () => {

@@ -3,6 +3,7 @@ import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import type { DemoStudyGroup, ProfilePreview } from "@/types/contracts";
 import { sessionGroupSeats } from "@/lib/group-seats";
+import { profileDisplayName } from "@/lib/profile-display-name";
 
 export async function fetchLiveMapGroups(): Promise<DemoStudyGroup[]> {
   if (!isSupabaseConfigured) {
@@ -77,7 +78,7 @@ export async function fetchLiveMapGroups(): Promise<DemoStudyGroup[]> {
     return data.map((row: any) => {
       const hostProfile: ProfilePreview = row.profiles ? {
         id: row.profiles.id,
-        name: row.profiles.name,
+        name: profileDisplayName(row.profiles.name),
         avatarUrl: row.profiles.avatar_url || "",
         major: row.profiles.major || "Computer Science & Engineering",
         currentCourses: row.profiles.current_courses || [row.course_code],
@@ -111,7 +112,7 @@ export async function fetchLiveMapGroups(): Promise<DemoStudyGroup[]> {
             seenIds.add(req.profiles.id);
             members.push({
               id: req.profiles.id,
-              name: req.profiles.name,
+              name: profileDisplayName(req.profiles.name),
               avatarUrl: req.profiles.avatar_url || "",
               major: req.profiles.major || "Buckeye Student",
               currentCourses: req.profiles.current_courses || [row.course_code],
@@ -128,7 +129,7 @@ export async function fetchLiveMapGroups(): Promise<DemoStudyGroup[]> {
             seenIds.add(checkin.profiles.id);
             members.push({
               id: checkin.profiles.id,
-              name: checkin.profiles.name,
+              name: profileDisplayName(checkin.profiles.name),
               avatarUrl: checkin.profiles.avatar_url || "",
               major: checkin.profiles.major || "Buckeye Student",
               currentCourses: checkin.profiles.current_courses || [row.course_code],
