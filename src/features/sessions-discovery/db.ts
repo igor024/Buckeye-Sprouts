@@ -1,6 +1,7 @@
 import "server-only";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { CreateSessionInput, SessionDetail, SessionFilters, SessionPreview } from "@/types/contracts";
+import { profileDisplayName } from "@/lib/profile-display-name";
 
 let adminClient: SupabaseClient | null = null;
 
@@ -28,6 +29,7 @@ interface StudySessionRow {
   library_name: string;
   floor: string | null;
   zone: string | null;
+  table_id?: string | null;
   total_seats: number;
   available_seats: number;
   requires_approval: boolean;
@@ -173,6 +175,23 @@ export async function insertDbSession(input: CreateSessionInput, hostId: string)
     throw new Error("Supabase persistence client is unavailable.");
   }
 
+  // Ensure hostId exists in public.profiles table
+  let effectiveHostId = hostId;
+  const { data: hostCheck } = await client
+    .from("profiles")
+    .select("id")
+    .eq("id", hostId)
+    .maybeSingle();
+
+  if (!hostCheck?.id) {
+    const { data: firstProfile } = await client
+      .from("profiles")
+      .select("id")
+      .limit(1)
+      .maybeSingle();
+    effectiveHostId = firstProfile?.id || "3f962e3e-6507-4df4-b806-9eaba48c8443";
+  }
+
   // Derive relevant AI tags based on course code and location
   const aiTopicTags = [
     input.courseCode,
@@ -180,17 +199,27 @@ export async function insertDbSession(input: CreateSessionInput, hostId: string)
     "Midterm Review",
   ];
 
+  // Close previous active sessions at this table if specified
+  if (input.tableId) {
+    await client
+      .from("study_sessions")
+      .update({ status: "closed" })
+      .eq("table_id", input.tableId)
+      .eq("status", "active");
+  }
+
   // 1. Insert into public.study_sessions
   const { data: sessionRow, error: sessionError } = await client
     .from("study_sessions")
     .insert({
-      host_id: hostId,
+      host_id: effectiveHostId,
       title: input.title,
       subtitle: input.subtitle || "",
       course_code: input.courseCode,
       library_name: input.libraryName,
       floor: input.floor || null,
       zone: input.zone || null,
+      table_id: input.tableId,
       total_seats: input.totalSeats,
       available_seats: input.availableSeats,
       requires_approval: input.requiresApproval,
@@ -211,7 +240,7 @@ export async function insertDbSession(input: CreateSessionInput, hostId: string)
   // 2. Insert into public.session_private_details
   const { error: privateError } = await client
     .from("session_private_details")
-    .insert({
+    .upsert({
       session_id: row.id,
       table_id: input.tableId,
       surroundings_photo_path: input.surroundingsPhotoUrl || "",
@@ -225,5 +254,78 @@ export async function insertDbSession(input: CreateSessionInput, hostId: string)
     throw privateError;
   }
 
+  // 3. Upsert room_ids active session
+  if (input.tableId) {
+    await client
+      .from("room_ids")
+      .upsert({
+        id: input.tableId,
+        library_name: input.libraryName || "Thompson Library",
+        active_session_id: row.id,
+      });
+  }
+
+  // 4. Create initial shared notebook
+  await client
+    .from("shared_notebooks")
+    .upsert({
+      session_id: row.id,
+      content: `## ${input.courseCode} Study Notes\nNew study session started at ${input.tableId || "table"}.`,
+      last_updated_by: effectiveHostId,
+      ai_summary: `New study session started for ${input.courseCode}.`,
+      ai_suggestions: ["Review key topics", "Solve example problem together"],
+      updated_at: new Date().toISOString(),
+    });
+
   return mapDbSessionToPreview(row);
 }
+
+export async function findDbActiveSessionByTable(
+  tableId: string,
+  libraryName: string = "Thompson Library"
+): Promise<{ sessionId: string; session: SessionPreview; hostName?: string } | null> {
+  const client = getSupabaseAdminClient();
+  if (!client) return null;
+
+  try {
+    const { data, error } = await client.rpc("lookup_active_session_by_table", {
+      p_table_id: tableId,
+      p_library_name: libraryName,
+    });
+
+    if (error) {
+      console.warn("[SessionsDB] lookup_active_session_by_table RPC error:", error.message);
+      return null;
+    }
+
+    if (Array.isArray(data) && data.length > 0) {
+      const row = data[0];
+      return {
+        sessionId: row.session_id,
+        hostName: row.host_name ? profileDisplayName(row.host_name) : undefined,
+        session: {
+          id: row.session_id,
+          hostId: "",
+          title: row.title,
+          subtitle: row.subtitle || "",
+          courseCode: row.course_code,
+          libraryName: row.library_name,
+          floor: row.floor || undefined,
+          zone: row.zone || undefined,
+          totalSeats: row.total_seats,
+          availableSeats: row.available_seats,
+          requiresApproval: row.requires_approval,
+          status: row.status,
+          createdAt: row.created_at,
+          aiTopicTags: [],
+        },
+      };
+    }
+
+    return null;
+  } catch (err) {
+    console.warn("[SessionsDB] Exception looking up table session:", err);
+    return null;
+  }
+}
+

@@ -1,0 +1,141 @@
+import {
+  DEMO_GROUP_COURSES, MOCK_DEMO_STUDY_GROUPS, THOMPSON_EAST_ENTRANCE_TABLES,
+  type DemoGroupState, type DemoStudyGroup, type ProfilePreview,
+} from "@/types/contracts";
+import { groupSeatCounts, initialGroupSeats, type GroupCreationInput, type StudyGroupWithSeats } from "@/lib/group-seats";
+import { BUCKID_DEMO_GROUP_ID, createBuckIdDemoGroup } from "@/features/location-checkin/buckid-demo";
+
+export type Action =
+  | { type: "join"; groupId: string; profile: ProfilePreview; now: number }
+  | { type: "create"; input: GroupCreationInput; profile: ProfilePreview; id: string; now: number }
+  | { type: "leave"; profileId: string; gps?: boolean }
+  | { type: "notebook"; content: string }
+  | { type: "invite"; profileId: string; hostId: string }
+  | { type: "end"; hostId: string }
+  | { type: "clear-notice" }
+  | { type: "prepare-buckid-demo" }
+  | { type: "change-viewer" }
+  | { type: "sync-from-db"; groups: DemoStudyGroup[] };
+
+export function createDemoGroupState(initialGroups?: DemoStudyGroup[]): DemoGroupState {
+  if (initialGroups !== undefined) {
+    return {
+      groups: initialGroups.map((group) => ({
+        ...group,
+        members: [...group.members],
+        invitedProfileIds: [...group.invitedProfileIds],
+        joinedAtByProfileId: { ...group.joinedAtByProfileId },
+      })),
+      activeGroupId: null,
+      notice: "",
+    };
+  }
+  return {
+    groups: MOCK_DEMO_STUDY_GROUPS.map((group) => ({
+      ...group,
+      members: [...group.members],
+      invitedProfileIds: [...group.invitedProfileIds],
+      joinedAtByProfileId: { ...group.joinedAtByProfileId },
+    })),
+    activeGroupId: null,
+    notice: "",
+  };
+}
+
+/** The mock reader must also work in a phone's ordinary HTTP/LAN preview. */
+export function createDemoGroupId() {
+  return `local-${globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`}`;
+}
+
+export function canJoinDemoGroup(group: DemoStudyGroup, profileId: string) {
+  if (group.host.id === profileId || group.members.some((member) => member.id === profileId)) return true;
+  if (groupSeatCounts(group).availableSeats === 0) return false;
+  return !group.inviteOnly || group.invitedProfileIds.includes(profileId);
+}
+
+export function demoGroupReducer(state: DemoGroupState, action: Action): DemoGroupState {
+  // Switching login changes the local viewer, not physical table membership.
+  if (action.type === "change-viewer") return { ...state, activeGroupId: null, notice: "" };
+  if (action.type === "clear-notice") return { ...state, notice: "" };
+  if (action.type === "prepare-buckid-demo") {
+    if (state.activeGroupId) return state;
+    const group = createBuckIdDemoGroup();
+    return { ...state, notice: "", groups: [...state.groups.filter((item) => item.tableId !== group.tableId), group] };
+  }
+  if (action.type === "sync-from-db") {
+    // Keep the explicit BuckID simulation local, including its joined viewer.
+    const demo = state.groups.find((group) => group.id === BUCKID_DEMO_GROUP_ID);
+    const incoming = demo ? [...action.groups.filter((group) => group.tableId !== demo.tableId), demo] : action.groups;
+    const updatedGroups = incoming.map((g) => ({
+      ...g,
+      members: [...g.members],
+      invitedProfileIds: [...(g.invitedProfileIds || [])],
+      joinedAtByProfileId: { ...g.joinedAtByProfileId },
+    }));
+    let newActiveId = state.activeGroupId;
+    if (state.activeGroupId) {
+      const activeGroupBefore = state.groups.find((g) => g.id === state.activeGroupId);
+      if (activeGroupBefore) {
+        const matching = updatedGroups.find((g) => g.tableId === activeGroupBefore.tableId);
+        if (matching) newActiveId = matching.id;
+      }
+    }
+    return {
+      ...state,
+      groups: updatedGroups,
+      activeGroupId: newActiveId,
+    };
+  }
+  if (action.type === "join") {
+    const group = state.groups.find((item) => item.id === action.groupId);
+    if (state.activeGroupId || !group) return state;
+    if (!canJoinDemoGroup(group, action.profile.id)) return { ...state, notice: groupSeatCounts(group).availableSeats === 0 ? "This table is full." : "An invitation is required to join this group." };
+    const alreadyJoined = [group.host, ...group.members].some((member) => member.id === action.profile.id);
+    const seats = groupSeatCounts(group);
+    return { ...state, activeGroupId: group.id, notice: "", groups: state.groups.map((item) => item.id !== group.id || alreadyJoined ? item : {
+      ...item, members: [...item.members, action.profile], joinedAtByProfileId: { ...item.joinedAtByProfileId, [action.profile.id]: action.now },
+      totalSeats: seats.totalSeats, occupiedSeats: seats.occupiedSeats + 1, availableSeats: Math.max(0, seats.availableSeats - 1),
+      invitedProfileIds: item.invitedProfileIds.filter((id) => id !== action.profile.id),
+    }) };
+  }
+  if (action.type === "create") {
+    if (state.activeGroupId || state.groups.some((group) => group.tableId === action.input.tableId)) return state;
+    if (!THOMPSON_EAST_ENTRANCE_TABLES.some((table) => table.id === action.input.tableId)
+      || !DEMO_GROUP_COURSES.some((course) => course.code === action.input.courseCode)) return state;
+    let seats: ReturnType<typeof initialGroupSeats>;
+    try {
+      seats = initialGroupSeats(action.input.availableSeats);
+    } catch (error) {
+      return { ...state, notice: error instanceof Error ? error.message : "Invalid available seats." };
+    }
+    const group: StudyGroupWithSeats = {
+      ...seats,
+      id: action.id, tableId: action.input.tableId, name: action.input.name.trim() || `${action.profile.name}'s Group`,
+      courseCode: action.input.courseCode, topic: "New study session", host: action.profile, members: [],
+      inviteOnly: action.input.inviteOnly, invitedProfileIds: [], joinedAtByProfileId: { [action.profile.id]: action.now }, notebookContent: "",
+    };
+    return { ...state, groups: [...state.groups, group], activeGroupId: group.id, notice: "" };
+  }
+  const active = state.groups.find((group) => group.id === state.activeGroupId);
+  if (!active) return state;
+  if (action.type === "end") return active.host.id === action.hostId ? { ...state, groups: state.groups.filter((group) => group.id !== active.id), activeGroupId: null, notice: "The group session ended in this demo." } : state;
+  if (action.type === "notebook") return { ...state, groups: state.groups.map((group) => group.id === active.id ? { ...group, notebookContent: action.content } : group) };
+  if (action.type === "invite") {
+    if (active.host.id !== action.hostId || !active.inviteOnly) return state;
+    if ([active.host, ...active.members].some((profile) => profile.id === action.profileId)) return { ...state, notice: "That student is already in this group." };
+    if (active.invitedProfileIds.includes(action.profileId)) return { ...state, notice: "That student already has an invitation." };
+    return { ...state, notice: "Invitation granted in this local demo. They can join by scanning the table.", groups: state.groups.map((group) => group.id === active.id ? { ...group, invitedProfileIds: [...group.invitedProfileIds, action.profileId] } : group) };
+  }
+  const remaining = [active.host, ...active.members].filter((profile) => profile.id !== action.profileId)
+    .sort((a, b) => active.joinedAtByProfileId[a.id] - active.joinedAtByProfileId[b.id]);
+  const prefix = action.gps ? "GPS simulation: moved over 150 m away. " : "";
+  if (!remaining.length) return { ...state, activeGroupId: null, groups: state.groups.filter((group) => group.id !== active.id), notice: `${prefix}You left the group. Its posting closed because no members remain.` };
+  const host = active.host.id === action.profileId ? remaining[0] : active.host;
+  const seats = groupSeatCounts(active);
+  const occupiedSeats = Math.max(0, seats.occupiedSeats - 1);
+  return { ...state, activeGroupId: null, notice: `${prefix}You left the group.${host.id !== active.host.id ? ` ${host.name} is now the host.` : ""}`, groups: state.groups.map((group) => group.id === active.id ? {
+    ...group, host, members: remaining.filter((profile) => profile.id !== host.id),
+    totalSeats: seats.totalSeats, occupiedSeats, availableSeats: Math.max(0, seats.totalSeats - occupiedSeats),
+    joinedAtByProfileId: Object.fromEntries(remaining.map((profile) => [profile.id, active.joinedAtByProfileId[profile.id]])),
+  } : group) };
+}

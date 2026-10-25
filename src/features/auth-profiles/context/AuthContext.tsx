@@ -6,11 +6,15 @@ import {
   useEffect,
   useState,
   useCallback,
+  useMemo,
+  useRef,
   type ReactNode,
 } from "react";
 import type { User, Session } from "@supabase/supabase-js";
 import type { ProfilePreview, UpdateProfileInput } from "@/types/contracts";
 import { getSupabaseBrowserClient } from "../lib/supabase-browser";
+import { profileFromAuthUser, resolveAuthenticatedProfile } from "../lib/auth-profile";
+import { repairSampleIdentity } from "../lib/sample-profile-repair";
 
 export interface SignUpData {
   email: string;
@@ -41,12 +45,17 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [profile, setProfile] = useState<ProfilePreview | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [profileState, setProfileState] = useState<{ userId: string; profile: ProfilePreview | null } | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const sampleRepairs = useRef(new Set<string>());
 
   const supabase = getSupabaseBrowserClient();
   const isConfigured = Boolean(supabase);
+  // Never show a previous account's profile while the next account is loading.
+  const profile = useMemo(() => user ? resolveAuthenticatedProfile(user,
+    profileState?.userId === user.id ? profileState.profile : null) : null, [user, profileState]);
+  const isLoading = isAuthLoading || Boolean(user && profileState?.userId !== user.id);
 
   const fetchProfile = useCallback(
     async (userId: string) => {
@@ -58,7 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .eq("id", userId)
           .single();
 
-        if (error || !data) {
+        if (error || !data || data.id !== userId) {
           console.warn("[Auth] Profile not found in Supabase:", error?.message);
           return null;
         }
@@ -72,7 +81,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           bio: data.bio || "",
         };
 
-        setProfile(loadedProfile);
         return loadedProfile;
       } catch (err) {
         console.warn("[Auth] Failed to load profile:", err);
@@ -84,45 +92,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!supabase) {
-      setIsLoading(false);
+      setIsAuthLoading(false);
       return;
     }
 
-    // 1. Initial session check
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchProfile(session.user.id).finally(() => setIsLoading(false));
-      } else {
-        setIsLoading(false);
-      }
-    });
-
-    // 2. Auth state subscription
+    // INITIAL_SESSION restores persisted login. Keep this callback synchronous:
+    // Supabase awaits auth listeners, and profile queries may need its auth lock.
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
+    } = supabase.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession);
       setUser(newSession?.user ?? null);
-      if (newSession?.user) {
-        await fetchProfile(newSession.user.id);
-      } else {
-        setProfile(null);
-      }
-      setIsLoading(false);
+      if (!newSession?.user) setProfileState(null);
+      setIsAuthLoading(false);
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, [supabase, fetchProfile]);
+  }, [supabase]);
+
+  // Fetch outside the auth listener so sign-in can finish before database access.
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    setProfileState({ userId: user.id, profile: profileFromAuthUser(user) });
+    void fetchProfile(user.id).then(async (loadedProfile) => {
+      if (cancelled) return;
+      if (loadedProfile) setProfileState({ userId: user.id, profile: loadedProfile });
+      if (!supabase || sampleRepairs.current.has(user.id)) return;
+      // Auth metadata updates emit another auth event. Mark this attempt first to avoid a loop.
+      sampleRepairs.current.add(user.id);
+      try { await repairSampleIdentity(supabase, user, loadedProfile, () => !cancelled); }
+      catch (error) { console.warn("[Auth] Sample identity repair failed:", error instanceof Error ? error.message : "Unavailable"); }
+    });
+    return () => { cancelled = true; };
+  }, [user, fetchProfile, supabase]);
 
   const signIn = async (email: string, password: string) => {
     if (!supabase) {
       return { error: "Supabase credentials are not configured on this client." };
     }
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    sampleRepairs.current.clear();
+    const { error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password });
     if (error) {
       return { error: error.message };
     }
@@ -164,8 +176,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!supabase) return;
     await supabase.auth.signOut();
     setUser(null);
-    setProfile(null);
+    setProfileState(null);
     setSession(null);
+    sampleRepairs.current.clear();
   };
 
   const updateProfile = async (input: UpdateProfileInput) => {
@@ -188,7 +201,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: error.message };
     }
 
-    await fetchProfile(user.id);
+    const updated = await fetchProfile(user.id);
+    setProfileState((current) => current?.userId === user.id && updated ? { userId: user.id, profile: updated } : current);
     return { error: null };
   };
 

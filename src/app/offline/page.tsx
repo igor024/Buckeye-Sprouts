@@ -3,7 +3,7 @@ import { ArrowLeft, BookOpen, CloudOff, RefreshCw, ShieldCheck, WifiOff } from "
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Offline Vault · BuckeyeStudy",
+  title: "Offline Vault · Buckeye Sprouts",
   description: "Offline study tools and cached sessions for Ohio State students.",
 };
 
@@ -16,7 +16,7 @@ export default function OfflinePage() {
             href="/"
             className="inline-flex items-center gap-2 text-xs font-semibold text-stone-600 hover:text-red-800 transition-colors"
           >
-            <ArrowLeft size={14} /> Back to BuckeyeStudy Dashboard
+            <ArrowLeft size={14} /> Back to Buckeye Sprouts Dashboard
           </Link>
         </div>
 
@@ -37,7 +37,7 @@ export default function OfflinePage() {
 
           <p className="text-sm text-stone-600 leading-relaxed mt-4">
             Wi-Fi drops happen frequently in Thompson Library&apos;s quiet stacks and the 18th Avenue basement.
-            BuckeyeStudy is installed as a Progressive Web App, so your recent sessions and offline tools stay accessible right here.
+            Buckeye Sprouts is installed as a Progressive Web App, so your recent sessions and offline tools stay accessible right here.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
@@ -86,17 +86,17 @@ export default function OfflinePage() {
               <RefreshCw size={14} /> Retry Connection
             </Link>
             <span className="text-xs text-stone-500 flex items-center gap-1.5">
-              <CloudOff size={13} /> BuckeyeStudy will automatically sync when you reconnect to eduroam
+              <CloudOff size={13} /> Buckeye Sprouts will automatically sync when you reconnect to eduroam
             </span>
           </div>
         </div>
 
         <div className="p-5 rounded-xl border border-stone-200 bg-white">
           <h2 className="text-sm font-semibold text-stone-800 mb-2">
-            Why is BuckeyeStudy available offline?
+            Why is Buckeye Sprouts available offline?
           </h2>
           <p className="text-xs text-stone-600 leading-relaxed">
-            BuckeyeStudy uses standard Service Worker caching, Web App Manifest declarations, and local state buffers to ensure zero disruption during study sessions across all 15 Ohio State University libraries.
+            Buckeye Sprouts uses standard Service Worker caching, Web App Manifest declarations, and local state buffers to ensure zero disruption during study sessions across all 15 Ohio State University libraries.
           </p>
         </div>
       </div>

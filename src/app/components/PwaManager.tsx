@@ -75,23 +75,34 @@ export function PwaManager() {
       const swUrl = `${basePath}/sw.js`;
       const swScope = `${basePath}/`;
 
-      navigator.serviceWorker
-        .register(swUrl, { scope: swScope })
-        .then((registration) => {
-          registration.addEventListener("updatefound", () => {
-            const newWorker = registration.installing;
-            if (newWorker) {
-              newWorker.addEventListener("statechange", () => {
-                if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
-                  setSwUpdateAvailable(true);
-                }
-              });
-            }
-          });
-        })
-        .catch((error) => {
-          console.warn("[BuckeyeStudy PWA] Service worker registration error:", error);
+      const configureWorker = async () => {
+        if (process.env.NODE_ENV !== "production") {
+          const registration = await navigator.serviceWorker.getRegistration(swScope);
+          const worker = registration?.active ?? registration?.waiting ?? registration?.installing;
+          if (registration?.scope === new URL(swScope, window.location.href).href
+            && worker?.scriptURL === new URL(swUrl, window.location.href).href) {
+            // /sw.js serves a cache-free retirement worker in development. It claims
+            // open tabs before unregistering so their old fetch handler is replaced.
+            await registration.update();
+          }
+          return;
+        }
+
+        const registration = await navigator.serviceWorker.register(swUrl, { scope: swScope, updateViaCache: "none" });
+        registration.addEventListener("updatefound", () => {
+          const newWorker = registration.installing;
+          if (newWorker) {
+            newWorker.addEventListener("statechange", () => {
+              if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+                setSwUpdateAvailable(true);
+              }
+            });
+          }
         });
+      };
+      void configureWorker().catch((error) => {
+        console.warn("[Buckeye Sprouts PWA] Service worker setup error:", error);
+      });
     }
 
     return () => {
@@ -152,7 +163,7 @@ export function PwaManager() {
             <div className="flex items-center gap-2">
               <WifiOff size={16} className="text-amber-200 shrink-0" />
               <span>
-                <strong>Offline Mode Active:</strong> BuckeyeStudy is serving cached library data and offline notebook.
+                <strong>Offline Mode Active:</strong> Buckeye Sprouts is serving cached library data and offline notebook.
                 {simulatedOffline && " (Simulated for Hackathon Judge Testing)"}
               </span>
             </div>
@@ -185,7 +196,7 @@ export function PwaManager() {
           className="fixed bottom-4 right-4 z-50 bg-stone-900 text-white p-3.5 rounded-xl shadow-xl border border-stone-700 flex items-center gap-3 text-xs max-w-sm"
         >
           <Sparkles size={16} className="text-amber-400 shrink-0" />
-          <p className="flex-1">A new version of BuckeyeStudy is available.</p>
+          <p className="flex-1">A new version of Buckeye Sprouts is available.</p>
           <button
             type="button"
             onClick={handleUpdate}
@@ -239,7 +250,7 @@ export function PwaManager() {
           )}
 
           {isStandalone && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-full text-[11px] font-medium">
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-stone-100 text-scarlet-deep border border-stone-300 rounded-full text-[11px] font-medium">
               <CheckCircle2 size={12} /> Installed App
             </span>
           )}
@@ -260,7 +271,7 @@ export function PwaManager() {
               </div>
               <div>
                 <h2 className="font-semibold text-stone-900 text-sm">
-                  Install BuckeyeStudy PWA
+                  Install Buckeye Sprouts PWA
                 </h2>
                 <p className="text-xs text-stone-600 mt-0.5 leading-snug">
                   Get instant library seat alerts, offline BuckID turnstile passes, and collaborative notebook caching.
@@ -310,7 +321,7 @@ export function PwaManager() {
               <div className="flex items-center gap-2">
                 <Smartphone size={18} className="text-red-800" />
                 <h2 id="ios-modal-title" className="font-semibold text-stone-900 text-sm">
-                  Add BuckeyeStudy to iPhone / iPad
+                  Add Buckeye Sprouts to iPhone / iPad
                 </h2>
               </div>
               <button
@@ -344,7 +355,7 @@ export function PwaManager() {
                   3
                 </span>
                 <p>
-                  Tap <strong>Add</strong> in the top right corner. BuckeyeStudy will appear on your home screen like a native app!
+                  Tap <strong>Add</strong> in the top right corner. Buckeye Sprouts will appear on your home screen like a native app!
                 </p>
               </div>
             </div>

@@ -10,10 +10,10 @@ import {
   Sparkles,
   AlertCircle,
   CheckCircle2,
-  Database,
   ArrowRight,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { SAMPLE_ACCOUNTS, SAMPLE_ACCOUNT_PASSWORD } from "../sample-accounts.mjs";
 
 const POPULAR_COURSES = [
   "CSE 2221",
@@ -60,10 +60,21 @@ export function AuthModal() {
     );
   };
 
-  const handleQuickDemoFill = () => {
-    setEmail("alex.morgan@osu.edu");
-    setPassword("Password123!");
+  const handleSampleSignIn = async (sampleEmail: string) => {
+    if (busy) return;
+    setEmail(sampleEmail);
+    setPassword(SAMPLE_ACCOUNT_PASSWORD);
     setError(null);
+    setInfoMessage(null);
+    setBusy(true);
+    try {
+      const result = await signIn(sampleEmail, SAMPLE_ACCOUNT_PASSWORD);
+      if (result.error) setError(result.error);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Could not sign in to the sample account.");
+    } finally {
+      setBusy(false);
+    }
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -108,10 +119,10 @@ export function AuthModal() {
       role="dialog"
       aria-modal="true"
       aria-labelledby="auth-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
+      className="app-dialog-backdrop animate-in fade-in duration-200"
     >
       <div
-        className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-stone-200 overflow-hidden"
+        className="auth-dialog-panel relative w-full max-w-md rounded-2xl shadow-2xl border border-stone-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header bar */}
@@ -122,11 +133,8 @@ export function AuthModal() {
             </span>
             <div>
               <h2 id="auth-modal-title" className="text-base font-bold tracking-tight">
-                Buckeye<span className="text-red-200">Study</span> Sign In
+                Buckeye<span className="text-red-200"> Sprouts</span> Sign In
               </h2>
-              <p className="text-[11px] text-red-100 flex items-center gap-1.5 mt-0.5">
-                <Database size={11} /> Real Supabase Database (Vercel)
-              </p>
             </div>
           </div>
           <button
@@ -147,11 +155,10 @@ export function AuthModal() {
               setMode("signin");
               setError(null);
             }}
-            className={`flex-1 py-3 text-xs font-semibold text-center transition border-b-2 ${
-              mode === "signin"
+            className={`flex-1 py-3 text-xs font-semibold text-center transition border-b-2 ${mode === "signin"
                 ? "border-red-800 text-red-800 bg-white"
                 : "border-transparent text-stone-500 hover:text-stone-800"
-            }`}
+              }`}
           >
             Sign In
           </button>
@@ -161,11 +168,10 @@ export function AuthModal() {
               setMode("signup");
               setError(null);
             }}
-            className={`flex-1 py-3 text-xs font-semibold text-center transition border-b-2 ${
-              mode === "signup"
+            className={`flex-1 py-3 text-xs font-semibold text-center transition border-b-2 ${mode === "signup"
                 ? "border-red-800 text-red-800 bg-white"
                 : "border-transparent text-stone-500 hover:text-stone-800"
-            }`}
+              }`}
           >
             Create Account
           </button>
@@ -173,20 +179,24 @@ export function AuthModal() {
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {/* Quick Demo Pre-fill for Hackathon Judges */}
+          {/* Synthetic accounts use real Supabase Auth; selection does not bypass login. */}
           {mode === "signin" && (
-            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between text-xs text-amber-900">
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-2 text-xs text-amber-900">
               <div className="flex items-center gap-2">
                 <Sparkles size={15} className="text-amber-700 shrink-0" />
-                <span className="text-[11px]">Judge Quick-Fill (Verified student in DB)</span>
+                <span className="font-semibold">Sample accounts</span>
               </div>
-              <button
-                type="button"
-                onClick={handleQuickDemoFill}
-                className="bg-amber-200/80 hover:bg-amber-300 text-amber-950 font-bold px-2.5 py-1 rounded-md text-[10px] transition"
-              >
-                Fill Alex&apos;s Credentials
-              </button>
+              <div className="flex flex-wrap gap-2">
+                {SAMPLE_ACCOUNTS.map((account) => <button
+                  key={account.email}
+                  type="button"
+                  disabled={busy || !isConfigured}
+                  onClick={() => void handleSampleSignIn(account.email)}
+                  aria-label={`Sign in as ${account.name}`}
+                  className="bg-amber-200/80 hover:bg-amber-300 text-amber-950 font-bold px-2.5 py-2 rounded-md text-[11px] transition disabled:opacity-50"
+                >{account.name}</button>)}
+              </div>
+              <p className="text-[11px]">Demo password: <code>{SAMPLE_ACCOUNT_PASSWORD}</code></p>
             </div>
           )}
 
@@ -203,9 +213,9 @@ export function AuthModal() {
           {infoMessage && (
             <div
               role="status"
-              className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs flex items-start gap-2.5"
+              className="p-3 rounded-xl bg-stone-100 border border-stone-300 text-scarlet-deep text-xs flex items-start gap-2.5"
             >
-              <CheckCircle2 size={15} className="shrink-0 mt-0.5 text-emerald-700" />
+              <CheckCircle2 size={15} className="shrink-0 mt-0.5 text-scarlet-dark" />
               <span>{infoMessage}</span>
             </div>
           )}
@@ -303,11 +313,10 @@ export function AuthModal() {
                         key={code}
                         type="button"
                         onClick={() => toggleCourse(code)}
-                        className={`text-[11px] font-semibold px-2.5 py-1 rounded-md border transition ${
-                          selected
+                        className={`text-[11px] font-semibold px-2.5 py-1 rounded-md border transition ${selected
                             ? "bg-red-800 text-white border-red-800"
                             : "bg-stone-50 text-stone-600 border-stone-200 hover:bg-stone-100"
-                        }`}
+                          }`}
                       >
                         {code}
                       </button>
@@ -347,7 +356,7 @@ export function AuthModal() {
                   Sign In <ArrowRight size={14} />
                 </>
               ) : (
-                "Create BuckeyeStudy Account"
+                "Create Buckeye Sprouts Account"
               )}
             </button>
           </div>

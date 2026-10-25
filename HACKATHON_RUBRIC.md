@@ -28,8 +28,8 @@ Judges evaluate whether the team pursued novel ideas, pushed technical boundarie
 * **Innovation:** Does the project introduce creative, non-obvious solutions to real student problems rather than building a generic CRUD app?
 * **Curiosity:** Did the team explore ambitious technologies, device APIs, and advanced system integrations?
 
-### BuckeyeStudy Implementation:
-* **Physical-to-Digital Bridge:** Instead of relying on manual "I'm sitting here" text updates, BuckeyeStudy integrates camera-based 1D BuckID barcode scanning (HTML5 Barcode Detection API / Codabar / Code 128) and physical Table QR codes.
+### Buckeye Sprouts Implementation:
+* **Physical-to-Digital Bridge:** Instead of relying on manual "I'm sitting here" text updates, Buckeye Sprouts integrates camera-based 1D BuckID barcode scanning (HTML5 Barcode Detection API / Codabar / Code 128) and physical Table QR codes.
 * **Geofenced Automated Departure:** Employs the Haversine formula on active `navigator.geolocation` streams to calculate distance from library venues, automatically freeing abandoned tables when a host leaves the perimeter.
 * **Ambient Multi-Session Intelligence:** Rather than isolated note-taking, ambient AI monitors active session topics across library floors to surface nearby study clusters.
 * **Crowd & Surroundings Verification:** Uses camera captures to provide visual landmark and crowd density proof to prevent "phantom seat" hunting.
@@ -44,7 +44,7 @@ Judges evaluate the clarity of presentation, user experience, team communication
 * **Communication:** Is the UI/UX intuitive, polished, and immediately understandable to a first-time user or judge? Can the project be demonstrated cleanly within a 3-minute pitch?
 * **Project Breadth and Complexity:** Does the project bridge multiple technical disciplines (frontend, backend, hardware/device APIs, real-time collaboration, generative AI, offline PWA)?
 
-### BuckeyeStudy Implementation:
+### Buckeye Sprouts Implementation:
 * **Judge-Ready Demo Simulator:** Every feature constrained by physical reality (GPS walking, physical BuckID cards, camera scanners, university room SSO) includes a clear 1-click **"Simulate / Test Mode"** toggle in the UI for effortless judging presentations.
 * **Student-to-Student Connection:** Facilitates safe, privacy-preserving academic connections with host approval drawers, blurred table coordinates for unapproved viewers, verified BuckID badges, and course tagging.
 * **Contract-First Architecture:** A 4-workstream feature-sliced architecture (`auth-profiles`, `sessions-discovery`, `location-checkin`, `notebook-ai`) unified by strict TypeScript contracts (`src/types/contracts.ts`).
@@ -60,8 +60,8 @@ Judges evaluate real-world utility, user impact, and the engineering resilience 
 * **Impact:** Does the application solve an authentic, acute campus problem with measurable value for students?
 * **Growth Mindset (Navigating Challenges):** How did the team anticipate, navigate, and overcome technical bottlenecks, edge cases, and failure modes?
 
-### BuckeyeStudy Implementation:
-* **Direct Campus Impact:** Library overcrowding at Thompson and 18th Avenue during midterms/finals is one of the biggest daily pain points at Ohio State. BuckeyeStudy eliminates 20+ minute wandering searches, optimizes table utilization, and helps students find peer study partners for challenging courses (CSE 2221, MATH 1151, ENGR 1181).
+### Buckeye Sprouts Implementation:
+* **Direct Campus Impact:** Library overcrowding at Thompson and 18th Avenue during midterms/finals is one of the biggest daily pain points at Ohio State. Buckeye Sprouts eliminates 20+ minute wandering searches, optimizes table utilization, and helps students find peer study partners for challenging courses (CSE 2221, MATH 1151, ENGR 1181).
 * **Navigating Technical Challenges (Growth Mindset):**
   1. *Challenge — Campus Wi-Fi dead-zones (e.g. Thompson stacks or 18th Ave basement):*  
      **Solution:** Built as an offline-first PWA with Service Worker asset caching, an `/offline` vault, and an emergency offline BuckID pass.

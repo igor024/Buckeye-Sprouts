@@ -1,7 +1,7 @@
-// BuckeyeStudy Service Worker (PWA)
+// Buckeye Sprouts Service Worker (PWA)
 // Enables offline access, background resilience in OSU libraries, and asset caching
 
-const CACHE_NAME = "buckeyestudy-v2";
+const CACHE_NAME = "buckeyesprouts-v9";
 
 // Dynamically determine the application base path (e.g. "/hackohio2026" on GitHub Pages or "" on localhost)
 function getBasePath() {
@@ -20,12 +20,15 @@ const PRECACHE_PATHS = [
   "/manifest.webmanifest",
   "/manifest.json",
   "/favicon.svg",
+  "/brand/logo.png",
+  "/squiggly.svg",
   "/icons/icon.svg",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
   "/icons/icon-maskable-192.png",
   "/icons/icon-maskable-512.png",
   "/icons/apple-touch-icon.png",
+  "/maps/floor-1-map.svg",
 ];
 
 // Install: precache offline shell and core assets defensively
@@ -128,7 +131,7 @@ self.addEventListener("fetch", (event) => {
             (await caches.match("/offline")) ||
             (await caches.match(`${basePath}/`)) ||
             (await caches.match("/"));
-          return offlineFallback || new Response("BuckeyeStudy is offline", { status: 503 });
+          return offlineFallback || new Response("Buckeye Sprouts is offline", { status: 503 });
         })
     );
     return;
@@ -161,7 +164,7 @@ self.addEventListener("push", (event) => {
   if (!event.data) return;
   try {
     const data = event.data.json();
-    const title = data.title || "BuckeyeStudy Notification";
+    const title = data.title || "Buckeye Sprouts Notification";
     const options = {
       body: data.body || "New study group activity at Ohio State.",
       icon: `${getBasePath()}/icons/icon-192.png`,
@@ -171,7 +174,7 @@ self.addEventListener("push", (event) => {
     event.waitUntil(self.registration.showNotification(title, options));
   } catch {
     event.waitUntil(
-      self.registration.showNotification("BuckeyeStudy", {
+      self.registration.showNotification("Buckeye Sprouts", {
         body: event.data.text(),
         icon: `${getBasePath()}/icons/icon-192.png`,
       })
@@ -196,3 +199,6 @@ self.addEventListener("notificationclick", (event) => {
     })
   );
 });
+
+
+

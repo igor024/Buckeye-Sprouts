@@ -1,0 +1,58 @@
+.group-search-tools { display: flex; align-items: stretch; gap: 8px; }
+.group-search-tools .group-search-field { flex: 1; min-width: 0; }
+.finder-mascot { display: block; height: auto; flex-shrink: 0; object-fit: contain; }
+.finder-mascot-trigger { width: 27px; }
+.finder-mascot-welcome { width: 100px; }
+.finder-mascot-avatar { width: 24px; }
+.group-finder-trigger { display: inline-flex; align-items: center; justify-content: center; gap: 6px; flex-shrink: 0; min-height: 44px; padding: 4px 12px; border: 1px solid #ba0c2f; border-radius: 12px; background: #fff6f8; color: #9b1631; font: inherit; font-size: 14px; font-weight: 650; cursor: pointer; }
+.app-dialog-backdrop.finder-backdrop {
+  z-index: 65;
+  inset: var(--finder-viewport-top, 0px) auto auto var(--finder-viewport-left, 0px);
+  width: var(--finder-viewport-width, 100%);
+  height: var(--finder-viewport-height, 100dvh);
+  padding: max(8px, env(safe-area-inset-top)) 12px max(8px, calc(var(--app-popup-bottom) - var(--finder-covered-height, 0px)));
+  overflow: hidden;
+}
+.finder-dialog { display: flex; flex-direction: column; width: min(100%, 580px); height: min(700px, 100%); padding: 18px; overflow: hidden; background-image: var(--paper-grid); background-size: var(--paper-grid-size) var(--paper-grid-size); }
+.finder-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-shrink: 0; }
+.finder-eyebrow { display: flex; align-items: center; gap: 6px; margin: 0 0 6px; color: #9b1631; font-size: 11px; letter-spacing: .06em; font-weight: 650; }
+.finder-heading h2 { margin: 0; color: #292c2b; font-size: 24px; line-height: 1.15; letter-spacing: -.03em; }
+.finder-icon-button { display: grid; place-items: center; flex-shrink: 0; width: 38px; height: 38px; border: 0; border-radius: 50%; color: #3f4443; background: #e9eceb; cursor: pointer; }
+.finder-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 12px 0; }
+.finder-toolbar p { margin: 0; color: #606765; font-size: 13px; line-height: 1.4; }
+.finder-toolbar button { flex-shrink: 0; padding: 9px; border: 0; border-radius: 8px; background: var(--paper-surface); color: #9b1631; font: inherit; font-size: 12px; font-weight: 650; cursor: pointer; }
+.finder-transcript { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 2px 3px 12px; scrollbar-width: thin; }
+.finder-welcome { display: grid; justify-items: start; gap: 10px; margin-top: 16px; }
+.finder-welcome p { margin: 0 0 4px; color: #3f4443; font-weight: 600; }
+.finder-welcome-intro { display: flex; align-items: center; gap: 16px; margin-bottom: 8px; }
+.finder-welcome-intro > div { min-width: 0; }
+.finder-welcome-label { display: block; margin-bottom: 8px; color: #9b1631; font-size: 12px; line-height: 1.4; }
+.finder-welcome button { min-height: 42px; padding: 9px 12px; border: 1px solid #d5dcda; border-radius: 12px; background: #fff; color: #3f4443; font: inherit; font-size: 13px; text-align: left; cursor: pointer; }
+.finder-turn { margin: 12px 0 18px; }
+.finder-turn-user { margin-left: 32px; padding: 12px; border-radius: 15px 15px 3px 15px; background: #f9e7eb; }
+.finder-speaker { display: flex; align-items: center; gap: 8px; margin: 0 0 6px; color: #9b1631; font-size: 12px; font-weight: 700; }
+.finder-source { padding: 3px 6px; border-radius: 6px; background: #e7ece9; color: #4c5952; font-size: 10px; font-weight: 550; }
+.finder-message { margin: 0; color: #343b37; font-size: 14px; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
+.finder-notice, .finder-timestamp { margin: 8px 0; color: #656e68; font-size: 12px; line-height: 1.45; }
+.finder-match { margin-top: 10px; padding: 13px; border: 1px solid #d7ded8; border-radius: 14px; background: #fffefa; }
+.finder-course { color: #9b1631; font-size: 11px; font-weight: 700; }
+.finder-match h3 { margin: 5px 0 7px; font-size: 16px; }
+.finder-match p { margin: 6px 0; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+.finder-match-meta { color: #606765; }
+.finder-match button { min-height: 40px; margin-top: 7px; padding: 8px 12px; border: 0; border-radius: 9px; background: #ba0c2f; color: white; font: inherit; font-size: 13px; font-weight: 650; cursor: pointer; }
+.finder-pending, .finder-retry { display: inline-flex; align-items: center; gap: 6px; color: #9b1631; font-size: 13px; }
+.finder-retry { min-height: 36px; padding: 6px 0; border: 0; border-radius: 8px; background: var(--paper-surface); font: inherit; font-size: 12px; cursor: pointer; }
+.finder-error { flex-shrink: 1; min-height: 0; max-height: 25%; overflow-y: auto; margin: 8px 0; padding: 10px; border: 1px solid #edc8cf; border-radius: 9px; color: #9b1631; background: #fff1f3; font-size: 13px; }
+.finder-composer { display: flex; align-items: flex-end; gap: 8px; flex-shrink: 0; padding-top: 12px; border-top: 1px solid #d7ded8; }
+.finder-composer textarea { width: 100%; min-width: 0; min-height: 52px; max-height: 130px; resize: vertical; padding: 11px; border: 1px solid #bec9c1; border-radius: 12px; color: #292e2a; background: #fff; font: inherit; font-size: 16px; }
+.finder-composer button { display: grid; place-items: center; width: 44px; height: 44px; flex-shrink: 0; border: 0; border-radius: 12px; background: #ba0c2f; color: white; cursor: pointer; }
+.finder-dialog button:disabled { opacity: .5; cursor: not-allowed; }
+/* Short keyboard/landscape viewports keep the composer fixed below the scrolling chat. */
+.finder-backdrop[data-compact="true"] .finder-dialog { padding: 12px; }
+.finder-backdrop[data-compact="true"] .finder-heading { align-items: center; }
+.finder-backdrop[data-compact="true"] .finder-heading h2 { font-size: 20px; }
+.finder-backdrop[data-compact="true"] .finder-eyebrow,
+.finder-backdrop[data-compact="true"] .finder-toolbar { display: none; }
+.finder-backdrop[data-compact="true"] .finder-composer { padding-top: 8px; }
+.finder-backdrop[data-compact="true"] .finder-composer textarea { height: 52px; max-height: 80px; }
+@media (max-width: 480px) { .finder-dialog { padding: 15px; border-radius: 20px; }.finder-heading h2 { font-size: 22px; }.group-finder-trigger { padding-inline: 9px; font-size: 13px; } }

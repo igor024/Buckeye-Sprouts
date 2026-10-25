@@ -93,9 +93,12 @@ export function ProfileCard({ profile: initialProfile }: { profile: ProfilePrevi
           <h2 id="profile-title">Your study profile</h2>
         </div>
         {isLive ? (
-          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
-            <Database size={10} /> Live Supabase
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-scarlet-deep bg-stone-100 border border-stone-300 px-2 py-0.5 rounded-full">
+              <Database size={10} /> Live Supabase
+            </span>
+            <button type="button" onClick={openModal} className="text-[11px] font-semibold text-red-800 hover:underline">Switch account</button>
+          </div>
         ) : (
           <button
             type="button"
@@ -143,7 +146,7 @@ export function ProfileCard({ profile: initialProfile }: { profile: ProfilePrevi
             <ShieldCheck size={17} className="shrink-0" />
             <p>
               {isLive
-                ? "Verified Ohio State student session active via Supabase Auth."
+                ? "Signed in with Supabase Auth."
                 : simulated
                 ? "Simulated ID check complete for this demo view. This is not Ohio State verification."
                 : "Identity unverified. Hosts review your profile before sharing a table location."}
@@ -237,7 +240,7 @@ export function ProfileCard({ profile: initialProfile }: { profile: ProfilePrevi
         </p>
       )}
       {message && (
-        <p className="text-sm text-green-800 mt-3" role="status">
+        <p className="text-sm text-scarlet-dark mt-3" role="status">
           {message}
         </p>
       )}
