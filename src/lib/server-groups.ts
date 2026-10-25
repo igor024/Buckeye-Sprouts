@@ -6,7 +6,26 @@ import { sessionGroupSeats } from "@/lib/group-seats";
 import { profileDisplayName } from "@/lib/profile-display-name";
 
 export async function fetchLiveMapGroups(): Promise<DemoStudyGroup[]> {
-  if (!isSupabaseConfigured) {
+  if (!isSupabaseConfigured || process.env.BUCKEYESPROUTS_DEMO_MODE === "true") {
+    if (process.env.NODE_ENV === "development") {
+      const { readDevEditor } = await import("@/lib/dev-editor-actions");
+      const { mockStore } = await import("@/lib/supabase");
+      const data = await readDevEditor();
+      return data.groups.filter((group) => mockStore.sessions.find((s) => s.id === group.id)?.status === "active").map((group) => {
+        const session = mockStore.sessions.find((s) => s.id === group.id)!;
+        const people = data.people.map((person) => ({ ...person, avatarUrl: "" }));
+        return {
+          id: group.id, tableId: group.tableId || "", name: group.title,
+          courseCode: session.courseCode, topic: session.subtitle,
+          host: people.find((p) => p.id === group.hostId)!,
+          members: people.filter((p) => group.memberIds.includes(p.id)),
+          totalSeats: group.totalSeats, occupiedSeats: group.memberIds.length + 1,
+          availableSeats: group.totalSeats - group.memberIds.length - 1,
+          inviteOnly: session.requiresApproval, invitedProfileIds: [], joinedAtByProfileId: {},
+          notebookContent: mockStore.notebooks.find((n) => n.sessionId === group.id)?.content || "",
+        };
+      });
+    }
     return [];
   }
 
