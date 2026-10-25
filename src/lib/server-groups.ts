@@ -2,6 +2,7 @@ import "server-only";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import type { DemoStudyGroup, ProfilePreview } from "@/types/contracts";
+import { sessionGroupSeats } from "@/lib/group-seats";
 
 export async function fetchLiveMapGroups(): Promise<DemoStudyGroup[]> {
   if (!isSupabaseConfigured) {
@@ -138,6 +139,7 @@ export async function fetchLiveMapGroups(): Promise<DemoStudyGroup[]> {
       }
 
       return {
+        ...sessionGroupSeats(row),
         id: row.id,
         tableId,
         name: row.title,

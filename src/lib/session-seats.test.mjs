@@ -109,6 +109,7 @@ test("refresh API waits for seat persistence before returning groups and reports
     "@/lib/server-groups": { fetchLiveMapGroups: async () => { calls.push("fetch"); return []; } },
     "@/lib/supabase-admin": { getSupabaseAdminClient: () => ({}) },
     "@/lib/supabase": { isSupabaseConfigured: true },
+    "@/lib/group-seats": loadModule(new URL("./group-seats.ts", import.meta.url)),
     "@/lib/session-seats": { syncStudySessionSeats: async () => {
       await Promise.resolve();
       if (failSync) throw new Error("sync failed");

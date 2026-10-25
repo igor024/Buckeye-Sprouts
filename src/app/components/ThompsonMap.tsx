@@ -14,7 +14,6 @@ import {
   type ThompsonTable,
   type DemoReaderLocation,
   type DemoStudyGroup,
-  type DemoCreateGroupInput,
 } from "@/types/contracts";
 import { CurrentGroupPanel, GroupJoinManager } from "@/features/location-checkin/components/GroupJoinManager";
 import { createDemoGroupId, createDemoGroupState, demoGroupReducer } from "@/features/location-checkin/group-demo";
@@ -26,6 +25,7 @@ import { IntegratedCampusMap } from "@/features/campus-map/components/Integrated
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { normalizeQrTableId } from "@/lib/table-qr";
 import { useAuth } from "@/features/auth-profiles/context/AuthContext";
+import { groupTableStatus } from "@/lib/group-seats";
 import {
   fetchGroupsDirectFromSupabase,
   saveNotebookToSupabase,
@@ -97,9 +97,7 @@ export function ThompsonMap({
       return {
         ...table,
         groupId: group ? group.id : undefined,
-        status: group
-          ? (group.inviteOnly || (group.members && group.members.length >= 3) ? "very-busy" : "busy")
-          : "empty",
+        status: groupTableStatus(group),
         showInSearch: Boolean(group),
       };
     });
@@ -161,7 +159,7 @@ export function ThompsonMap({
     if (refreshTimer.current) clearTimeout(refreshTimer.current);
   }, []);
 
-  // Directly query Supabase from the browser and subscribe to realtime table updates
+  // Reload the map on table, notebook, or physical occupancy changes.
   useEffect(() => {
     fetchGroupsDirectFromSupabase().then((live) => {
       if (live) {
@@ -185,6 +183,11 @@ export function ThompsonMap({
         });
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "shared_notebooks" }, () => {
+        fetchGroupsDirectFromSupabase().then((live) => {
+          if (live) dispatchGroup({ type: "sync-from-db", groups: live });
+        });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "check_ins" }, () => {
         fetchGroupsDirectFromSupabase().then((live) => {
           if (live) dispatchGroup({ type: "sync-from-db", groups: live });
         });
@@ -513,17 +516,27 @@ export function ThompsonMap({
         readerHandle={panelHandle}
         linkedTableId={linkedTableId} onTableLinkOpened={consumeTableLink}
         onStart={() => dispatchGroup({ type: "clear-notice" })}
-        onJoin={(groupId) => {
-          fetch("/api/map/groups", {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "join", sessionId: groupId, profileId: viewer.id }),
-          })
-            .then((r) => r.json())
-            .then((data) => {
+        onJoin={async (groupId) => {
+          if (!groupId.startsWith("local-")) {
+            try {
+              const response = await fetch("/api/map/groups", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ action: "join", sessionId: groupId, profileId: viewer.id }),
+              });
+              const data = await response.json();
+              if (!response.ok) {
+                if (response.status < 500) {
+                  setRefreshNotice(data.error || "Could not join this study group");
+                  return;
+                }
+                throw new Error("Database unavailable");
+              }
               if (data?.groups) dispatchGroup({ type: "sync-from-db", groups: data.groups });
-            })
-            .catch(() => {});
+            } catch {
+              setRefreshNotice("Joined locally. Database sync is temporarily unavailable.");
+            }
+          }
           dispatchGroup({ type: "join", groupId, profile: viewer, now: Date.now() });
         }}
         onCreate={async (input) => {
@@ -555,7 +568,7 @@ export function ThompsonMap({
             <img className="group-info-notebook-art" src="/illustrations/notebook2.png" width="1066" height="1439" alt="" aria-hidden="true" />
             <div className="group-info-notebook-content">
               <div className="group-info-heading group-info-notebook-heading">
-                <p className="group-info-eyebrow">{selectedTable.label} · {selectedTable.status === "very-busy" ? "VERY BUSY" : "BUSY"}</p>
+                <p className="group-info-eyebrow">{selectedTable.label} · {selectedTable.status === "very-busy" ? "FULL" : "BUSY"}</p>
                 <h2 id="group-info-title">{selectedGroup.name}</h2>
                 <p id="group-info-status">{selectedGroup.courseCode} · {selectedGroup.topic}</p>
               </div>

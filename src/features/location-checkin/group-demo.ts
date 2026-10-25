@@ -1,11 +1,12 @@
 import {
   DEMO_GROUP_COURSES, MOCK_DEMO_STUDY_GROUPS, THOMPSON_EAST_ENTRANCE_TABLES,
-  type DemoCreateGroupInput, type DemoGroupState, type DemoStudyGroup, type ProfilePreview,
+  type DemoGroupState, type DemoStudyGroup, type ProfilePreview,
 } from "@/types/contracts";
+import { groupSeatCounts, initialGroupSeats, type GroupCreationInput, type StudyGroupWithSeats } from "@/lib/group-seats";
 
 export type Action =
   | { type: "join"; groupId: string; profile: ProfilePreview; now: number }
-  | { type: "create"; input: DemoCreateGroupInput; profile: ProfilePreview; id: string; now: number }
+  | { type: "create"; input: GroupCreationInput; profile: ProfilePreview; id: string; now: number }
   | { type: "leave"; profileId: string; gps?: boolean }
   | { type: "notebook"; content: string }
   | { type: "invite"; profileId: string; hostId: string }
@@ -45,7 +46,9 @@ export function createDemoGroupId() {
 }
 
 export function canJoinDemoGroup(group: DemoStudyGroup, profileId: string) {
-  return !group.inviteOnly || group.host.id === profileId || group.members.some((member) => member.id === profileId) || group.invitedProfileIds.includes(profileId);
+  if (group.host.id === profileId || group.members.some((member) => member.id === profileId)) return true;
+  if (groupSeatCounts(group).availableSeats === 0) return false;
+  return !group.inviteOnly || group.invitedProfileIds.includes(profileId);
 }
 
 export function demoGroupReducer(state: DemoGroupState, action: Action): DemoGroupState {
@@ -76,10 +79,12 @@ export function demoGroupReducer(state: DemoGroupState, action: Action): DemoGro
   if (action.type === "join") {
     const group = state.groups.find((item) => item.id === action.groupId);
     if (state.activeGroupId || !group) return state;
-    if (!canJoinDemoGroup(group, action.profile.id)) return { ...state, notice: "An invitation is required to join this group." };
+    if (!canJoinDemoGroup(group, action.profile.id)) return { ...state, notice: groupSeatCounts(group).availableSeats === 0 ? "This table is full." : "An invitation is required to join this group." };
     const alreadyJoined = [group.host, ...group.members].some((member) => member.id === action.profile.id);
+    const seats = groupSeatCounts(group);
     return { ...state, activeGroupId: group.id, notice: "", groups: state.groups.map((item) => item.id !== group.id || alreadyJoined ? item : {
       ...item, members: [...item.members, action.profile], joinedAtByProfileId: { ...item.joinedAtByProfileId, [action.profile.id]: action.now },
+      totalSeats: seats.totalSeats, occupiedSeats: seats.occupiedSeats + 1, availableSeats: Math.max(0, seats.availableSeats - 1),
       invitedProfileIds: item.invitedProfileIds.filter((id) => id !== action.profile.id),
     }) };
   }
@@ -87,7 +92,14 @@ export function demoGroupReducer(state: DemoGroupState, action: Action): DemoGro
     if (state.activeGroupId || state.groups.some((group) => group.tableId === action.input.tableId)) return state;
     if (!THOMPSON_EAST_ENTRANCE_TABLES.some((table) => table.id === action.input.tableId)
       || !DEMO_GROUP_COURSES.some((course) => course.code === action.input.courseCode)) return state;
-    const group: DemoStudyGroup = {
+    let seats: ReturnType<typeof initialGroupSeats>;
+    try {
+      seats = initialGroupSeats(action.input.availableSeats);
+    } catch (error) {
+      return { ...state, notice: error instanceof Error ? error.message : "Invalid available seats." };
+    }
+    const group: StudyGroupWithSeats = {
+      ...seats,
       id: action.id, tableId: action.input.tableId, name: action.input.name.trim() || `${action.profile.name}'s Group`,
       courseCode: action.input.courseCode, topic: "New study session", host: action.profile, members: [],
       inviteOnly: action.input.inviteOnly, invitedProfileIds: [], joinedAtByProfileId: { [action.profile.id]: action.now }, notebookContent: "",
@@ -109,8 +121,11 @@ export function demoGroupReducer(state: DemoGroupState, action: Action): DemoGro
   const prefix = action.gps ? "GPS simulation: moved over 150 m away. " : "";
   if (!remaining.length) return { ...state, activeGroupId: null, groups: state.groups.filter((group) => group.id !== active.id), notice: `${prefix}You left the group. Its posting closed because no members remain.` };
   const host = active.host.id === action.profileId ? remaining[0] : active.host;
+  const seats = groupSeatCounts(active);
+  const occupiedSeats = Math.max(0, seats.occupiedSeats - 1);
   return { ...state, activeGroupId: null, notice: `${prefix}You left the group.${host.id !== active.host.id ? ` ${host.name} is now the host.` : ""}`, groups: state.groups.map((group) => group.id === active.id ? {
     ...group, host, members: remaining.filter((profile) => profile.id !== host.id),
+    totalSeats: seats.totalSeats, occupiedSeats, availableSeats: Math.max(0, seats.totalSeats - occupiedSeats),
     joinedAtByProfileId: Object.fromEntries(remaining.map((profile) => [profile.id, active.joinedAtByProfileId[profile.id]])),
   } : group) };
 }

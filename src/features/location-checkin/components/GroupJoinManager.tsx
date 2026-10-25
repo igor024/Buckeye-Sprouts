@@ -4,7 +4,8 @@ import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from 
 import { createPortal } from "react-dom";
 import { ArrowLeft, Nfc, QrCode, Search, X } from "lucide-react";
 import { GroupRoster } from "@/app/components/GroupRoster";
-import { DEMO_GROUP_COURSES, DEMO_READER_DELAY_MS, MOCK_PROFILES, type DemoCreateGroupInput, type DemoReaderLocation, type DemoStudyGroup, type ProfilePreview, type ThompsonTable } from "@/types/contracts";
+import { DEMO_GROUP_COURSES, DEMO_READER_DELAY_MS, MOCK_PROFILES, type DemoReaderLocation, type DemoStudyGroup, type ProfilePreview, type ThompsonTable } from "@/types/contracts";
+import { DEFAULT_AVAILABLE_SEATS, MAX_AVAILABLE_SEATS, groupSeatCounts, type GroupCreationInput } from "@/lib/group-seats";
 import { canJoinDemoGroup } from "../group-demo";
 import { TableQrCamera } from "./TableQrCamera";
 
@@ -48,7 +49,7 @@ interface GroupJoinManagerProps {
   readerLocation: DemoReaderLocation | null; notice: string;
   readerHandle?: ReactNode;
   linkedTableId?: string | null; onTableLinkOpened?: () => void;
-  onStart: () => void; onJoin: (id: string) => void; onCreate: (input: DemoCreateGroupInput) => void;
+  onStart: () => void; onJoin: (id: string) => void; onCreate: (input: GroupCreationInput) => void;
 }
 
 /** No sheet is opened until a reader result has been explicitly confirmed. */
@@ -61,6 +62,7 @@ export function GroupJoinManager({ visible, profile, groups, activeGroup, tables
   const [query, setQuery] = useState("");
   const [courseCode, setCourseCode] = useState("");
   const [inviteOnly, setInviteOnly] = useState(false);
+  const [availableSeatsInput, setAvailableSeatsInput] = useState("");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const latest = useRef({ readerLocation, groups, tables });
   latest.current = { readerLocation, groups, tables };
@@ -69,6 +71,7 @@ export function GroupJoinManager({ visible, profile, groups, activeGroup, tables
     if (timer.current !== null) clearTimeout(timer.current);
     timer.current = null;
     setTarget(location); setName(`${profile.name}'s Group`); setQuery(""); setCourseCode(""); setInviteOnly(false); setStep(0);
+    setAvailableSeatsInput("");
     setStage(latest.current.groups.some((group) => group.tableId === location.tableId) ? "existing" : "create");
   }, [profile.name]);
   const cancel = useCallback(() => {
@@ -116,6 +119,9 @@ export function GroupJoinManager({ visible, profile, groups, activeGroup, tables
   const table = tables.find((item) => item.id === target?.tableId);
   const group = groups.find((item) => item.tableId === target?.tableId);
   const allowed = group ? canJoinDemoGroup(group, profile.id) : false;
+  const seats = group ? groupSeatCounts(group) : null;
+  const availableSeats = availableSeatsInput === "" ? undefined : Number(availableSeatsInput);
+  const validSeats = availableSeats === undefined || (Number.isSafeInteger(availableSeats) && availableSeats >= 0 && availableSeats <= MAX_AVAILABLE_SEATS);
   const courses = DEMO_GROUP_COURSES.filter((course) => `${course.code} ${course.name}`.toLowerCase().includes(query.trim().toLowerCase()));
   const sourceText = scanMethod === "qr"
     ? "Scanned Table QR Anchor"
@@ -176,15 +182,15 @@ export function GroupJoinManager({ visible, profile, groups, activeGroup, tables
         <p className="reader-caption reader-location">{stage === "create" ? "Thompson Library · Level 1" : sourceText} · {table?.label}</p>
         {stage === "existing" && (group ? <>
           <h3 className="reader-group-name">{group.name}</h3><p className="reader-study-status">{group.courseCode} · {group.topic}</p>
-          <p className="reader-caption">{table?.status === "very-busy" ? "Very busy" : "Busy"} · {group.inviteOnly ? "Invite only" : "Open group"}</p>
+          <p className="reader-caption">{table?.status === "very-busy" ? "Full" : "Seats available"} · {seats?.availableSeats} of {seats?.totalSeats} seats available · {group.inviteOnly ? "Invite only" : "Open group"}</p>
           <GroupRoster group={group} />
-          {!allowed && <p role="status" className="reader-invitation-required">An invitation from the host is required before you can join.</p>}
+          {!allowed && <p role="status" className="reader-invitation-required">{seats?.availableSeats === 0 ? "This table is full. Try another study group." : "An invitation from the host is required before you can join."}</p>}
           <button type="button" className="reader-primary" disabled={!allowed} onClick={() => onJoin(group.id)}>Join group</button>
         </> : <p>This group is no longer posted. Close this popup and tap the reader again.</p>)}
         {stage === "create" && <form className="reader-create-form" onSubmit={(event) => {
           event.preventDefault();
           if (step < 2) { if ((step === 0 && name.trim()) || (step === 1 && courseCode)) setStep(step + 1); }
-          else if (target && name.trim() && courseCode) onCreate({ tableId: target.tableId, name, courseCode, inviteOnly });
+          else if (target && name.trim() && courseCode && validSeats) onCreate({ tableId: target.tableId, name, courseCode, inviteOnly, ...(availableSeats === undefined ? {} : { availableSeats }) });
         }}>
           <p className="reader-caption">Step {step + 1} of 3</p>
           {step === 0 && <label className="reader-field">Group name
@@ -197,8 +203,16 @@ export function GroupJoinManager({ visible, profile, groups, activeGroup, tables
             <label className="reader-field">Study status / course<span className="reader-course-search"><Search size={18} aria-hidden="true" /><input autoFocus type="search" placeholder="Search courses" value={query} onChange={(event) => { setQuery(event.target.value); setCourseCode(""); }} /></span></label>
             <div className="reader-course-options" aria-label="Study courses">{courses.map((course) => <button type="button" key={course.code} aria-pressed={courseCode === course.code} onClick={() => setCourseCode(course.code)}><strong>{course.code}</strong><span>{course.name}</span></button>)}{!courses.length && <p role="status" className="reader-caption">No courses match your search.</p>}</div>
           </>}
-          {step === 2 && <><p className="reader-create-summary"><strong>{name}</strong><span>{courseCode} · {table?.label}</span></p><label className="reader-invite-toggle"><span>Invite only</span><input type="checkbox" checked={inviteOnly} onChange={(event) => setInviteOnly(event.target.checked)} /></label></>}
-          <div className="reader-form-actions">{step > 0 && <button type="button" className="reader-secondary" onClick={() => setStep(step - 1)}><ArrowLeft size={16} />Back</button>}<button type="submit" className="reader-primary" disabled={step === 0 ? !name.trim() : !courseCode}>{step === 2 ? "Create" : "Next"}</button></div>
+          {step === 2 && <><p className="reader-create-summary"><strong>{name}</strong><span>{courseCode} · {table?.label}</span></p>
+            <label className="reader-field" htmlFor="group-available-seats">Available seats (optional)
+              <input id="group-available-seats" type="number" inputMode="numeric" min={0} max={MAX_AVAILABLE_SEATS} step={1}
+                placeholder={String(DEFAULT_AVAILABLE_SEATS)} value={availableSeatsInput} onChange={(event) => setAvailableSeatsInput(event.target.value)}
+                aria-describedby="group-available-seats-help" aria-invalid={!validSeats} />
+            </label>
+            <p id="group-available-seats-help" className="reader-caption">Open seats besides you. Leave blank for {DEFAULT_AVAILABLE_SEATS}.</p>
+            {!validSeats && <p role="alert" className="reader-invitation-required">Enter a whole number from 0 to {MAX_AVAILABLE_SEATS}.</p>}
+            <label className="reader-invite-toggle"><span>Invite only</span><input type="checkbox" checked={inviteOnly} onChange={(event) => setInviteOnly(event.target.checked)} /></label></>}
+          <div className="reader-form-actions">{step > 0 && <button type="button" className="reader-secondary" onClick={() => setStep(step - 1)}><ArrowLeft size={16} />Back</button>}<button type="submit" className="reader-primary" disabled={step === 0 ? !name.trim() : !courseCode || (step === 2 && !validSeats)}>{step === 2 ? "Create" : "Next"}</button></div>
         </form>}
       </>}
     </ReaderDialog>}
@@ -210,12 +224,13 @@ export function CurrentGroupPanel({ group, table, profileId, notice, onInvite, o
   onInvite: (profileId: string) => void; onGpsLeave: () => void; onEnd: () => void; children: ReactNode;
 }) {
   const [search, setSearch] = useState("");
+  const seats = groupSeatCounts(group);
   const members = [group.host, ...group.members];
   const candidates = search.trim() ? MOCK_PROFILES.filter((profile) => `${profile.name} ${profile.id}`.toLowerCase().includes(search.trim().toLowerCase()) && !members.some((member) => member.id === profile.id)) : [];
   return <section className="current-group-details" aria-label="Current study group">
     {notice && <p role="status" className="reader-notice">{notice}</p>}
     <h2 className="paper-title reader-group-name">{group.name}</h2><p className="reader-study-status">{group.courseCode} · {group.topic}</p>
-    <p className="reader-caption">{table.label} · {table.status === "very-busy" ? "Very busy" : "Busy"} · {group.inviteOnly ? "Invite only" : "Open group"}</p>
+    <p className="reader-caption">{table.label} · {table.status === "very-busy" ? "Full" : "Seats available"} · {seats.availableSeats} of {seats.totalSeats} seats available · {group.inviteOnly ? "Invite only" : "Open group"}</p>
     <GroupRoster group={group} />
     {group.host.id === profileId && group.inviteOnly && <section className="current-group-invites" aria-label="Host invitations">
       <label className="reader-field">Invite a student<input type="search" placeholder="Search by name or profile ID" value={search} onChange={(event) => setSearch(event.target.value)} /></label>

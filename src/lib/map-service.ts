@@ -1,7 +1,8 @@
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
-import type { DemoCreateGroupInput, DemoStudyGroup, ProfilePreview } from "@/types/contracts";
+import type { DemoStudyGroup, ProfilePreview } from "@/types/contracts";
+import { sessionGroupSeats, type GroupCreationInput, type StudyGroupWithSeats } from "@/lib/group-seats";
 
-export function mapDbSessionToDemoGroup(row: any): DemoStudyGroup {
+export function mapDbSessionToDemoGroup(row: any): StudyGroupWithSeats {
   const hostProfile: ProfilePreview = row.profiles ? {
     id: row.profiles.id,
     name: row.profiles.name,
@@ -64,6 +65,7 @@ export function mapDbSessionToDemoGroup(row: any): DemoStudyGroup {
   }
 
   return {
+    ...sessionGroupSeats(row),
     id: row.id,
     tableId,
     name: row.title,
@@ -81,10 +83,20 @@ export function mapDbSessionToDemoGroup(row: any): DemoStudyGroup {
   };
 }
 
-/** Directly queries Supabase database from the browser */
+/** Prefer server aggregation: authenticated RLS can hide other students' check-in rows. */
 export async function fetchGroupsDirectFromSupabase(): Promise<DemoStudyGroup[] | null> {
   const supabase = getSupabaseBrowserClient();
   if (!supabase) return null;
+
+  try {
+    const response = await fetch("/api/map/groups", { cache: "no-store" });
+    if (response.ok) {
+      const groups: unknown = await response.json();
+      if (Array.isArray(groups)) return groups;
+    }
+  } catch {
+    // Static/offline previews can still use their existing direct read fallback.
+  }
 
   try {
     const { data, error } = await supabase
@@ -194,7 +206,7 @@ export async function endSessionInSupabase(sessionId: string, tableId?: string) 
 }
 
 /** Creates a study session at a table in Supabase */
-export async function createSessionInSupabase(input: DemoCreateGroupInput, profile: ProfilePreview) {
+export async function createSessionInSupabase(input: GroupCreationInput, profile: ProfilePreview) {
   const res = await fetch("/api/map/groups", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -203,6 +215,7 @@ export async function createSessionInSupabase(input: DemoCreateGroupInput, profi
       name: input.name,
       courseCode: input.courseCode,
       inviteOnly: input.inviteOnly,
+      availableSeats: input.availableSeats,
       hostProfile: profile,
     }),
   });

@@ -2,6 +2,7 @@ import { fetchLiveMapGroups } from "@/lib/server-groups";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { syncStudySessionSeats } from "@/lib/session-seats";
+import { initialGroupSeats } from "@/lib/group-seats";
 
 export const runtime = "nodejs";
 
@@ -23,10 +24,17 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { tableId, name, courseCode, inviteOnly, hostProfile } = body;
+    const { tableId, name, courseCode, inviteOnly, hostProfile, availableSeats } = body;
 
     if (!tableId || !courseCode) {
       return Response.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
+    let seats: ReturnType<typeof initialGroupSeats>;
+    try {
+      seats = initialGroupSeats(availableSeats);
+    } catch (error) {
+      return Response.json({ error: error instanceof Error ? error.message : "Invalid available seats" }, { status: 400 });
     }
 
     if (!isSupabaseConfigured) {
@@ -86,8 +94,8 @@ export async function POST(request: Request) {
         floor: "Level 1",
         zone: `Table ${tableId}`,
         table_id: tableId,
-        total_seats: 5,
-        available_seats: 4,
+        total_seats: seats.totalSeats,
+        available_seats: seats.availableSeats,
         requires_approval: Boolean(inviteOnly),
         status: "active",
         ai_topic_tags: [courseCode, "Thompson Library", "Level 1"],
@@ -191,6 +199,23 @@ export async function PATCH(request: Request) {
     }
 
     if (action === "join" && sessionId && resolvedProfileId) {
+      const { data: session, error: sessionError } = await admin
+        .from("study_sessions").select("total_seats, status").eq("id", sessionId).maybeSingle();
+      if (sessionError) throw new Error(sessionError.message);
+      if (!session) return Response.json({ error: "Study group not found" }, { status: 404 });
+      if (session.status !== "active") return Response.json({ error: "This study group is closed" }, { status: 409 });
+
+      const { data: checkIns, error: checkInError } = await admin
+        .from("check_ins").select("user_id").eq("session_id", sessionId).is("checked_out_at", null);
+      if (checkInError) throw new Error(checkInError.message);
+      const occupants = new Set((checkIns ?? []).map((receipt) => receipt.user_id));
+      if (occupants.has(resolvedProfileId)) {
+        return Response.json({ success: true, groups: await fetchLiveMapGroups() });
+      }
+      if (occupants.size >= session.total_seats) {
+        return Response.json({ error: "This table is full" }, { status: 409 });
+      }
+
       // 1. Record approved join request
       await admin.from("join_requests").upsert({
         session_id: sessionId,

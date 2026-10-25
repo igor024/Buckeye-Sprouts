@@ -57,7 +57,7 @@ function planTableStyle(table: ThompsonTable, view: CampusMapView, viewport: Vie
 
 function tableStatusLabel(table: ThompsonTable): string {
   if (table.status === "empty") return `${table.label}: empty and available`;
-  if (table.status === "very-busy") return `${table.label}: very busy; people can still join`;
+  if (table.status === "very-busy") return `${table.label}: full; no seats available`;
   return `${table.label}: busy with a study group`;
 }
 
