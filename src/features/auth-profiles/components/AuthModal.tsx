@@ -133,7 +133,7 @@ export function AuthModal() {
             </span>
             <div>
               <h2 id="auth-modal-title" className="text-base font-bold tracking-tight">
-                Buckeye<span className="text-red-200">Study</span> Sign In
+                Buckeye<span className="text-red-200"> Sprouts</span> Sign In
               </h2>
             </div>
           </div>
@@ -356,7 +356,7 @@ export function AuthModal() {
                   Sign In <ArrowRight size={14} />
                 </>
               ) : (
-                "Create BuckeyeStudy Account"
+                "Create Buckeye Sprouts Account"
               )}
             </button>
           </div>

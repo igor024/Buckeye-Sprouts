@@ -58,7 +58,7 @@ function loadWorker(filename, initialCaches = []) {
 
 // An installed worker must relinquish control, not just unregister while its old
 // fetch handler continues serving stale bundles to already-open development tabs.
-const development = loadWorker("sw-dev.js", ["buckeyestudy-v6", "buckeyestudy-v7", "unrelated-app-cache"]);
+const development = loadWorker("sw-dev.js", ["buckeyesprouts-v6", "buckeyesprouts-v8", "unrelated-app-cache"]);
 await development.dispatch("install");
 await development.dispatch("activate");
 assert.deepEqual(await development.caches.keys(), ["unrelated-app-cache"]);

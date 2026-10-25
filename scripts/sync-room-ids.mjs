@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Buckeye Sprouts / BuckeyeStudy Startup Room IDs Synchronizer
+ * Buckeye Sprouts Startup Room IDs Synchronizer
  * 
  * Reads table/room IDs from data/room_ids.csv and synchronizes them to:
  * 1. public.library_geofences (column room_ids on Thompson Library entry)

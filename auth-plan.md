@@ -1,4 +1,4 @@
-# BuckeyeStudy Auth and Profiles Implementation Plan
+# Buckeye Sprouts Auth and Profiles Implementation Plan
 
 Planning document for the `auth` branch. Before any implementation begins, confirm the checked-out branch is exactly `auth`; keep all auth work on that branch and do not switch to or commit work on another branch. This file describes work to do; it does not claim that any of the planned implementation or validation has been completed.
 

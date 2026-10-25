@@ -1,4 +1,4 @@
-name: Deploy BuckeyeStudy to GitHub Pages
+name: Deploy Buckeye Sprouts to GitHub Pages
 
 on:
   push:

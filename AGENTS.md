@@ -1,7 +1,7 @@
-# BuckeyeStudy — Multi-Agent System Architecture & Directives (`AGENTS.md`)
+# Buckeye Sprouts — Multi-Agent System Architecture & Directives (`AGENTS.md`)
 
 **HackOHIO 2026 Project Architecture & Maximum Score Directives**  
-**Project:** BuckeyeStudy (Real-Time Library Seat Finder, BuckID/QR Check-In & AI Study Notebook)
+**Project:** Buckeye Sprouts (Real-Time Library Seat Finder, BuckID/QR Check-In & AI Study Notebook)
 
 ---
 
@@ -23,7 +23,7 @@ Every agent implementing any feature in this repository **must** optimize their 
 * **What Judges Ask:** *"How did your team challenge commonly accepted ideas and what did you do differently in your project?"*
 * **Agent Implementation Requirements:**
   1. **Critique Existing Systems:** Document and contrast against existing solutions (e.g., OSU LibCal, GroupMe, Discord). LibCal is static, siloed, does not show real-time seat availability, ignores walk-in table sharing, and causes "ghost bookings."
-  2. **The Reinvention:** BuckeyeStudy shifts library study space from static room reservations to a decentralized, real-time peer network powered by:
+  2. **The Reinvention:** Buckeye Sprouts shifts library study space from static room reservations to a decentralized, real-time peer network powered by:
      - Optical BuckID / QR table anchors.
      - Surroundings verification photos to assess crowding before walking across campus.
      - Location-gated peer approval to eliminate social anxiety and ensure psychological safety.
@@ -319,13 +319,13 @@ Before finishing a workstream or pushing code, run the following verification ch
 
 ## 6. Complete Database Schema, Data Formats & Frontend Integration Guide
 
-This section is the definitive, authoritative reference for any agent or frontend developer connecting UI components to live database state in BuckeyeStudy.
+This section is the definitive, authoritative reference for any agent or frontend developer connecting UI components to live database state in Buckeye Sprouts.
 
 ---
 
 ### 6.1 Database Infrastructure & Environment Variables
 
-BuckeyeStudy runs on **PostgreSQL hosted via Supabase** with Row-Level Security (RLS) enabled. The application supports dual operational modes:
+Buckeye Sprouts runs on **PostgreSQL hosted via Supabase** with Row-Level Security (RLS) enabled. The application supports dual operational modes:
 1. **Persistent Mode (Live Supabase)**: Real PostgreSQL queries and server actions when `.env.local` contains valid Supabase credentials.
 2. **Mock Demo Mode (Offline Resilient)**: In-memory fallback stores (`mockStore` in `@/lib/supabase.ts`) when API keys are absent or network requests fail.
 
@@ -336,7 +336,7 @@ BuckeyeStudy runs on **PostgreSQL hosted via Supabase** with Row-Level Security 
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Client & Server | Public anonymous API key | Subject to RLS policies. Grants read access to public map tables (`profiles`, `study_sessions`, `join_requests`, `check_ins`, `shared_notebooks`, `room_ids`, `library_geofences`). |
 | `SUPABASE_SERVICE_ROLE_KEY` | Server Only (`server-only`) | Administrative bypass key | **Strictly Server-Only**. Used inside API route handlers (`/api/map/groups`, `/api/sessions`, etc.) for write operations and foreign key resolution. **Never leak to browser bundles.** |
 | `POSTGRES_URL` / `POSTGRES_URL_NON_POOLING` | Scripts / Migrations | Direct PostgreSQL connection strings | Used by migration runner scripts (`scripts/apply-*.js`). |
-| `BUCKEYSTUDY_DEMO_MODE` | Server & Scripts | Optional toggle (`"true"`) | Forces local demo fixtures regardless of Supabase configuration. |
+| `BUCKEYESPROUTS_DEMO_MODE` | Server & Scripts | Optional toggle (`"true"`) | Forces local demo fixtures regardless of Supabase configuration. |
 
 #### Client SDK Helpers
 - **Browser Client (`@/lib/supabase-browser.ts`)**: `getSupabaseBrowserClient()`  
@@ -514,7 +514,7 @@ Automated room reservation webhook seam (triggered on 3-person quorum).
 
 ### 6.4 Real-Time Table Occupancy, Presence & Sprout Display Model
 
-BuckeyeStudy represents physical table occupancy visually on the interactive Thompson Library floor plan using **colored tables and decorative sprout characters**:
+Buckeye Sprouts represents physical table occupancy visually on the interactive Thompson Library floor plan using **colored tables and decorative sprout characters**:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐

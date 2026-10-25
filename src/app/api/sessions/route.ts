@@ -101,7 +101,7 @@ export async function POST(request: Request) {
   }
 
   // 2. Reject unauthenticated requests in persistent mode unless explicit demo mode is active
-  const isDemo = isDemoHeader || process.env.BUCKEYSTUDY_DEMO_MODE === "true" || !isSupabaseConfigured;
+  const isDemo = isDemoHeader || process.env.BUCKEYESPROUTS_DEMO_MODE === "true" || !isSupabaseConfigured;
   if (!verifiedHostId && !isDemo) {
     return errorResponse("MISSING_IDENTITY", "Verified server identity is required to create a session.", 401);
   }
@@ -116,7 +116,7 @@ export async function POST(request: Request) {
       status: 201,
       headers: {
         ...noStoreHeaders,
-        "X-BuckeyeStudy-Persistence": isRealAuth ? "supabase" : "ephemeral",
+        "X-BuckeyeSprouts-Persistence": isRealAuth ? "supabase" : "ephemeral",
       },
     });
   } catch (error) {

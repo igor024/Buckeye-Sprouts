@@ -24,7 +24,7 @@ export function parseTableQrPayload(raw: string): string | null {
     }
 
     if (!/^https?:\/\//i.test(text) && !text.startsWith("/")) return null;
-    const url = new URL(text, "https://buckeyestudy.invalid");
+    const url = new URL(text, "https://buckeyesprouts.invalid");
     if (url.protocol !== "https:" && url.protocol !== "http:") return null;
     const match = url.pathname.match(/^\/(?:table|qr)\/([^/]+)\/?$/i);
     return match ? normalizeQrTableId(decodeURIComponent(match[1])) : null;

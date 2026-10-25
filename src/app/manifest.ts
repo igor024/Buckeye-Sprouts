@@ -4,8 +4,8 @@ export const dynamic = "force-static";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "BuckeyeStudy · Library Seat Finder & Notes",
-    short_name: "BuckeyeStudy",
+    name: "Buckeye Sprouts · Library Seat Finder & Notes",
+    short_name: "Buckeye Sprouts",
     description: "Real-time Ohio State library study sessions, seat finder, BuckID check-in, and collaborative study notebook.",
     start_url: "./",
     id: "./",

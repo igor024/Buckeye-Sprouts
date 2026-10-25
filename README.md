@@ -1,4 +1,4 @@
-# BuckeyeStudy
+# Buckeye Sprouts
 
 A Next.js App Router + TypeScript foundation for an Ohio State study group finder.
 This handoff intentionally contains read-only feature previews, deterministic mock
@@ -6,7 +6,7 @@ services, shared contracts, and API stubs. It does not implement the four featur
 
 ## HackOHIO 2026 — Open Track Judging Rubric Alignment
 
-> **Crucial for all agents & judges:** BuckeyeStudy is architected directly around the **HackOHIO 2026 Open Track Rubric**. See [`HACKATHON_RUBRIC.md`](./HACKATHON_RUBRIC.md) and [`AGENTS.md`](./AGENTS.md) for full details.
+> **Crucial for all agents & judges:** Buckeye Sprouts is architected directly around the **HackOHIO 2026 Open Track Rubric**. See [`HACKATHON_RUBRIC.md`](./HACKATHON_RUBRIC.md) and [`AGENTS.md`](./AGENTS.md) for full details.
 
 ```
 ┌─────────────────────────┐  ┌─────────────────────────┐  ┌─────────────────────────┐
@@ -59,7 +59,7 @@ absolute `typescript.js` path as an argument.
 
 ## Progressive Web App (PWA)
 
-BuckeyeStudy is configured as a standalone Progressive Web App designed for resilient campus use in low-connectivity areas (e.g., Thompson quiet stacks or 18th Avenue basement):
+Buckeye Sprouts is configured as a standalone Progressive Web App designed for resilient campus use in low-connectivity areas (e.g., Thompson quiet stacks or 18th Avenue basement):
 
 - **Web App Manifest**: Configured via `src/app/manifest.ts` and `public/manifest.json` with Ohio State scarlet branding (`#ba0c2f`), maskable icons, and quick-action shortcuts.
 - **Service Worker (`public/sw.js`)**: Provides asset caching, smart network-first navigation with offline fallback, and notification listeners for room booking updates.

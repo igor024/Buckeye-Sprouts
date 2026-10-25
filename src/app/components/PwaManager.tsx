@@ -101,7 +101,7 @@ export function PwaManager() {
         });
       };
       void configureWorker().catch((error) => {
-        console.warn("[BuckeyeStudy PWA] Service worker setup error:", error);
+        console.warn("[Buckeye Sprouts PWA] Service worker setup error:", error);
       });
     }
 
@@ -163,7 +163,7 @@ export function PwaManager() {
             <div className="flex items-center gap-2">
               <WifiOff size={16} className="text-amber-200 shrink-0" />
               <span>
-                <strong>Offline Mode Active:</strong> BuckeyeStudy is serving cached library data and offline notebook.
+                <strong>Offline Mode Active:</strong> Buckeye Sprouts is serving cached library data and offline notebook.
                 {simulatedOffline && " (Simulated for Hackathon Judge Testing)"}
               </span>
             </div>
@@ -196,7 +196,7 @@ export function PwaManager() {
           className="fixed bottom-4 right-4 z-50 bg-stone-900 text-white p-3.5 rounded-xl shadow-xl border border-stone-700 flex items-center gap-3 text-xs max-w-sm"
         >
           <Sparkles size={16} className="text-amber-400 shrink-0" />
-          <p className="flex-1">A new version of BuckeyeStudy is available.</p>
+          <p className="flex-1">A new version of Buckeye Sprouts is available.</p>
           <button
             type="button"
             onClick={handleUpdate}
@@ -271,7 +271,7 @@ export function PwaManager() {
               </div>
               <div>
                 <h2 className="font-semibold text-stone-900 text-sm">
-                  Install BuckeyeStudy PWA
+                  Install Buckeye Sprouts PWA
                 </h2>
                 <p className="text-xs text-stone-600 mt-0.5 leading-snug">
                   Get instant library seat alerts, offline BuckID turnstile passes, and collaborative notebook caching.
@@ -321,7 +321,7 @@ export function PwaManager() {
               <div className="flex items-center gap-2">
                 <Smartphone size={18} className="text-red-800" />
                 <h2 id="ios-modal-title" className="font-semibold text-stone-900 text-sm">
-                  Add BuckeyeStudy to iPhone / iPad
+                  Add Buckeye Sprouts to iPhone / iPad
                 </h2>
               </div>
               <button
@@ -355,7 +355,7 @@ export function PwaManager() {
                   3
                 </span>
                 <p>
-                  Tap <strong>Add</strong> in the top right corner. BuckeyeStudy will appear on your home screen like a native app!
+                  Tap <strong>Add</strong> in the top right corner. Buckeye Sprouts will appear on your home screen like a native app!
                 </p>
               </div>
             </div>

@@ -1,4 +1,4 @@
-# BuckeyeStudy — Physical Table QR Code Architecture & Generation Guide
+# Buckeye Sprouts — Physical Table QR Code Architecture & Generation Guide
 
 This guide describes the physical table QR anchors, live in-app camera scanner, routing into the main page's Group tab, and printing QR codes for campus deployment.
 
@@ -6,7 +6,7 @@ This guide describes the physical table QR anchors, live in-app camera scanner, 
 
 ## 1. System Overview & The Physical-to-Digital Bridge
 
-Each physical library table has a deterministic QR anchor. Students can scan it with their phone's camera or with **Group > Scan QR Code** inside BuckeyeStudy:
+Each physical library table has a deterministic QR anchor. Students can scan it with their phone's camera or with **Group > Scan QR Code** inside Buckeye Sprouts:
 
 ```text
 Physical table QR sticker / live camera scanner
@@ -70,7 +70,7 @@ The repository includes a Node.js generation script that processes all 72 Thomps
 node scripts/generate-table-qrs.mjs
 
 # 2. Or run with your production domain
-node scripts/generate-table-qrs.mjs --base-url=https://buckeyestudy.osu.edu
+node scripts/generate-table-qrs.mjs --base-url=https://buckeyesprouts.osu.edu
 ```
 
 #### Generated Outputs:

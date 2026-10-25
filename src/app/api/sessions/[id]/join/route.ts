@@ -240,7 +240,7 @@ export async function POST(
       status: 201,
       headers: {
         ...noStoreHeaders,
-        "X-BuckeyeStudy-Persistence": "ephemeral",
+        "X-BuckeyeSprouts-Persistence": "ephemeral",
       },
     });
   } catch (err) {

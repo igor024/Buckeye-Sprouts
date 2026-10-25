@@ -140,7 +140,7 @@ export function RequestJoinModal({
           <span className="p-1.5 bg-red-100 text-red-800 rounded-lg">
             <UserPlus size={18} />
           </span>
-          <p className="eyebrow">BUCKEYESTUDY · SEAT REQUEST</p>
+          <p className="eyebrow">BUCKEYE SPROUTS · SEAT REQUEST</p>
         </div>
 
         <h2 className="text-xl font-bold tracking-tight text-stone-900 mt-1" id="join-modal-title">

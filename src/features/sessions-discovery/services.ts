@@ -141,7 +141,7 @@ export const sessionsDiscoveryService: ExtendedSessionsDiscoveryService = {
     // Path B: Offline fallback mode
     const isDemoAllowed =
       !isSupabaseConfigured ||
-      process.env.BUCKEYSTUDY_DEMO_MODE === "true" ||
+      process.env.BUCKEYESPROUTS_DEMO_MODE === "true" ||
       verifiedHostId === "demo";
 
     if (!isDemoAllowed && !verifiedHostId) {

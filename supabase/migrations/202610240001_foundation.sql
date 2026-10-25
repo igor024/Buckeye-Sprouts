@@ -1,4 +1,4 @@
--- BuckeyeStudy foundation. Run against a Supabase project, not plain PostgreSQL.
+-- Buckeye Sprouts foundation. Run against a Supabase project, not plain PostgreSQL.
 -- The scaffold does not apply this migration or create real user accounts.
 -- Snake-case database rows map to the camel-case contracts in feature adapters.
 begin;

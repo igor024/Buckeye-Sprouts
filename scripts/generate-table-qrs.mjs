@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * BuckeyeStudy / Buckeye Sprouts Table QR Code Generator
+ * Buckeye Sprouts Table QR Code Generator
  * 
  * Generates ready-to-print physical QR anchors for all 72 Thompson Library tables.
  * 
@@ -217,7 +217,7 @@ const htmlContent = `<!DOCTYPE html>
 </head>
 <body>
   <div class="header">
-    <h1>BuckeyeStudy • Thompson Library QR Anchors</h1>
+    <h1>Buckeye Sprouts • Thompson Library QR Anchors</h1>
     <p>Contains all <strong>${tableIds.length} tables</strong>. Base URL: <code>${baseUrl}</code></p>
     <p>Each card is pre-configured to route directly to the active study session, or prompt instant creation if the table is open.</p>
     <button class="print-button" onclick="window.print()">🖨️ Print All Cards / Save as PDF</button>

@@ -213,7 +213,7 @@ export function CreateSessionModal({ isOpen, onClose, onSessionCreated }: Create
           <span className="p-1.5 bg-red-100 text-red-800 rounded-lg">
             <Plus size={18} />
           </span>
-          <p className="eyebrow">BUCKEYESTUDY · PEER NETWORK</p>
+          <p className="eyebrow">BUCKEYE SPROUTS · PEER NETWORK</p>
         </div>
         <h2 className="text-2xl font-bold tracking-tight text-stone-900" id="modal-title">
           Post a Study Session

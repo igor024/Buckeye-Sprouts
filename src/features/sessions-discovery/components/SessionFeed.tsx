@@ -67,7 +67,7 @@ export function SessionFeed({ sessions: initialSessions }: { sessions: SessionPr
         <div>
           <p className="eyebrow">FIND YOUR PEOPLE · REAL-TIME SEATS</p>
           <h2 className="text-xl font-semibold mt-2 text-stone-900" id="feed-title">
-            Active Buckeye Study Groups
+            Active study groups
           </h2>
         </div>
         <button
