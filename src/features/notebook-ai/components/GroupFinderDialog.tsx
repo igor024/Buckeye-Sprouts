@@ -20,6 +20,7 @@ interface Props {
 
 export function GroupFinderDialog({ isOpen, onClose, groups, onViewGroup }: Props) {
   const titleId = useId();
+  const backdrop = useRef<HTMLDivElement>(null);
   const panel = useRef<HTMLElement>(null);
   const input = useRef<HTMLTextAreaElement>(null);
   const transcript = useRef<HTMLDivElement>(null);
@@ -34,10 +35,49 @@ export function GroupFinderDialog({ isOpen, onClose, groups, onViewGroup }: Prop
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!isOpen || !backdrop.current) return;
+    const container = backdrop.current;
+    const viewport = window.visualViewport;
+    let layoutWidth = window.innerWidth;
+    let layoutHeight = window.innerHeight;
+    let frame = 0;
+    const updateViewport = () => {
+      // Track the visible area, including Safari's keyboard-induced viewport pan.
+      // Keep the pre-keyboard height for browsers that also resize the layout.
+      if (window.innerWidth !== layoutWidth) {
+        layoutWidth = window.innerWidth;
+        layoutHeight = window.innerHeight;
+      }
+      layoutHeight = Math.max(layoutHeight, window.innerHeight);
+      const height = viewport?.height ?? window.innerHeight;
+      container.style.setProperty("--finder-viewport-top", `${viewport?.offsetTop ?? 0}px`);
+      container.style.setProperty("--finder-viewport-left", `${viewport?.offsetLeft ?? 0}px`);
+      container.style.setProperty("--finder-viewport-width", `${viewport?.width ?? window.innerWidth}px`);
+      container.style.setProperty("--finder-viewport-height", `${height}px`);
+      container.style.setProperty("--finder-covered-height", `${Math.max(0, layoutHeight - height)}px`);
+      container.dataset.compact = String(height < 500);
+    };
+    const scheduleUpdate = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(updateViewport);
+    };
+    updateViewport();
+    viewport?.addEventListener("resize", scheduleUpdate);
+    viewport?.addEventListener("scroll", scheduleUpdate);
+    window.addEventListener("resize", scheduleUpdate);
+    return () => {
+      cancelAnimationFrame(frame);
+      viewport?.removeEventListener("resize", scheduleUpdate);
+      viewport?.removeEventListener("scroll", scheduleUpdate);
+      window.removeEventListener("resize", scheduleUpdate);
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
     if (!isOpen) return;
     const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const dialog = panel.current;
-    input.current?.focus();
+    input.current?.focus({ preventScroll: true });
     const handleKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") { event.preventDefault(); close.current(); }
       if (event.key !== "Tab") return;
@@ -53,7 +93,7 @@ export function GroupFinderDialog({ isOpen, onClose, groups, onViewGroup }: Prop
       request.current?.abort(); selection.current?.abort();
       request.current = null; selection.current = null;
       setBusy(false); setViewing(null);
-      if (opener?.isConnected && (dialog?.contains(document.activeElement) || document.activeElement === document.body)) opener.focus();
+      if (opener?.isConnected && (dialog?.contains(document.activeElement) || document.activeElement === document.body)) opener.focus({ preventScroll: true });
     };
   }, [isOpen]);
 
@@ -89,7 +129,7 @@ export function GroupFinderDialog({ isOpen, onClose, groups, onViewGroup }: Prop
       }
       if (!controller.signal.aborted) setTurns([...nextTurns, { role: "assistant", content: result.reply, result }]);
     } finally {
-      if (request.current === controller) { request.current = null; setBusy(false); input.current?.focus(); }
+      if (request.current === controller) { request.current = null; setBusy(false); input.current?.focus({ preventScroll: true }); }
     }
   }
 
@@ -121,11 +161,11 @@ export function GroupFinderDialog({ isOpen, onClose, groups, onViewGroup }: Prop
 
   function newChat() {
     request.current?.abort(); selection.current?.abort(); request.current = null; selection.current = null;
-    setTurns([]); setDraft(""); setBusy(false); setViewing(null); setError(null); input.current?.focus();
+    setTurns([]); setDraft(""); setBusy(false); setViewing(null); setError(null); input.current?.focus({ preventScroll: true });
   }
 
   if (!isOpen) return null;
-  return createPortal(<div className="app-dialog-backdrop finder-backdrop" onClick={onClose}>
+  return createPortal(<div ref={backdrop} className="app-dialog-backdrop finder-backdrop" onClick={onClose}>
     <section ref={panel} className="app-dialog-panel finder-dialog" role="dialog" aria-modal="true" aria-labelledby={titleId} onClick={(event) => event.stopPropagation()}>
       <header className="finder-heading">
         <div><p className="finder-eyebrow"><Sparkles size={14} aria-hidden="true" /> THOMPSON · LEVEL 1</p><h2 id={titleId}>Find your study group</h2></div>
