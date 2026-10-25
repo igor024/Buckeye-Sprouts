@@ -567,7 +567,7 @@ export function ThompsonMap({
               if (!response.ok) {
                 if (response.status < 500) {
                   setRefreshNotice(data.error || "Could not join this study group");
-                  return;
+                  return data.error || "Could not join this study group";
                 }
                 throw new Error("Database unavailable");
               }
@@ -577,6 +577,7 @@ export function ThompsonMap({
             }
           }
           dispatchGroup({ type: "join", groupId, profile: viewer, now: Date.now() });
+          return null;
         }}
         onCreate={async (input) => {
           const localId = createDemoGroupId();
@@ -596,7 +597,7 @@ export function ThompsonMap({
 
       <nav className="map-service-tabs" aria-label="Map app navigation">
         <button className={tab === "groups" ? "active" : ""} aria-current={tab === "groups" ? "page" : undefined} aria-expanded={tab === "groups" && !panelHidden} aria-controls="map-info-sheet" type="button" onClick={() => activateTab("groups")}>{tabIcon("groups", <Users size={24} />)}<span>Groups</span></button>
-        <button className={tab === "join" ? "active" : ""} aria-current={tab === "join" ? "page" : undefined} aria-expanded={tab === "join" && !panelHidden} aria-controls={activeGroup ? "map-info-sheet" : "group-reader-panel"} type="button" onClick={() => activateTab("join")} aria-label="New group or manage your current group">{tabIcon("join", <Plus size={25} />)}<span>New</span></button>
+        <button className={tab === "join" ? "active" : ""} aria-current={tab === "join" ? "page" : undefined} aria-expanded={tab === "join" && !panelHidden} aria-controls={activeGroup ? "map-info-sheet" : "group-reader-panel"} type="button" onClick={() => activateTab("join")} aria-label={activeGroup ? "My group" : "Join a group"}>{tabIcon("join", activeGroup ? <Users size={25} /> : <Plus size={25} />)}<span>{activeGroup ? "My group" : "Join"}</span></button>
         <button className={tab === "notes" ? "active" : ""} aria-current={tab === "notes" ? "page" : undefined} aria-expanded={tab === "notes" && !panelHidden} aria-controls="map-info-sheet" type="button" onClick={() => activateTab("notes")}>{tabIcon("notes", <BookOpen size={24} />)}<span>Notes</span></button>
         <button className={tab === "me" ? "active" : ""} aria-current={tab === "me" ? "page" : undefined} aria-expanded={tab === "me" && !panelHidden} aria-controls="map-info-sheet" type="button" onClick={() => activateTab("me")}>{tabIcon("me", <span className="service-avatar">{profile?.name.slice(0, 1) || "?"}</span>)}<span>Me</span></button>
       </nav>

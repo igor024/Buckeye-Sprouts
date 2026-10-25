@@ -51,10 +51,10 @@ interface GroupJoinManagerProps {
   readerLocation: DemoReaderLocation | null; notice: string;
   readerHandle?: ReactNode;
   linkedTableId?: string | null; onTableLinkOpened?: () => void;
-  onStart: () => void; onJoin: (id: string) => void; onCreate: (input: GroupCreationInput) => void;
+  onStart: () => void; onJoin: (id: string) => Promise<string | null>; onCreate: (input: GroupCreationInput) => void;
 }
 
-/** No sheet is opened until a reader result has been explicitly confirmed. */
+/** A table scan joins eligible groups directly; unavailable tables explain why. */
 export function GroupJoinManager({ visible, profile, groups, activeGroup, tables, readerLocation, notice, readerHandle, linkedTableId, onTableLinkOpened, onStart, onJoin, onCreate }: GroupJoinManagerProps) {
   const [stage, setStage] = useState<"idle" | "scanning" | "existing" | "create">("idle");
   const [scanMethod, setScanMethod] = useState<"nfc" | "qr">("qr");
@@ -65,20 +65,24 @@ export function GroupJoinManager({ visible, profile, groups, activeGroup, tables
   const [courseCode, setCourseCode] = useState("");
   const [inviteOnly, setInviteOnly] = useState(false);
   const [availableSeatsInput, setAvailableSeatsInput] = useState("");
+  const [joinError, setJoinError] = useState<string | null>(null);
+  const joinAttempt = useRef<{ groupId: string } | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const latest = useRef({ readerLocation, groups, tables });
-  latest.current = { readerLocation, groups, tables };
+  const latest = useRef({ readerLocation, groups, tables, onJoin });
+  latest.current = { readerLocation, groups, tables, onJoin };
   const openedLink = useRef<string | null>(null);
   const openLocation = useCallback((location: ReaderTarget) => {
     if (timer.current !== null) clearTimeout(timer.current);
     timer.current = null;
     setTarget(location); setName(`${profile.name}'s Group`); setQuery(""); setCourseCode(""); setInviteOnly(false); setStep(0);
     setAvailableSeatsInput("");
+    joinAttempt.current = null; setJoinError(null);
     setStage(latest.current.groups.some((group) => group.tableId === location.tableId) ? "existing" : "create");
   }, [profile.name]);
   const cancel = useCallback(() => {
     if (timer.current !== null) clearTimeout(timer.current);
     timer.current = null; setStage("idle"); setTarget(null);
+    joinAttempt.current = null; setJoinError(null);
   }, []);
   useEffect(() => { if (!visible || activeGroup) cancel(); }, [visible, activeGroup, cancel]);
   useEffect(() => () => { if (timer.current !== null) clearTimeout(timer.current); }, []);
@@ -117,10 +121,22 @@ export function GroupJoinManager({ visible, profile, groups, activeGroup, tables
     }, method === "nfc" ? BUCKID_READER_DELAY_MS : DEMO_READER_DELAY_MS);
   }
 
-  if (!visible || activeGroup) return null;
   const table = tables.find((item) => item.id === target?.tableId);
   const group = groups.find((item) => item.tableId === target?.tableId);
   const allowed = group ? canJoinDemoGroup(group, profile.id) : false;
+  useEffect(() => {
+    if (!visible || activeGroup || stage !== "existing" || !group || !allowed || joinError || joinAttempt.current) return;
+    const attempt = { groupId: group.id };
+    joinAttempt.current = attempt;
+    void (async () => {
+      let message: string | null;
+      try { message = await latest.current.onJoin(group.id); }
+      catch { message = "Couldn't join this group. Please retry."; }
+      if (joinAttempt.current === attempt && message) setJoinError(message);
+    })();
+  }, [visible, activeGroup, stage, group, allowed, joinError]);
+
+  if (!visible || activeGroup) return null;
   const seats = group ? groupSeatCounts(group) : null;
   const availableSeats = availableSeatsInput === "" ? undefined : Number(availableSeatsInput);
   const validSeats = availableSeats === undefined || (Number.isSafeInteger(availableSeats) && availableSeats >= 0 && availableSeats <= MAX_AVAILABLE_SEATS);
@@ -161,7 +177,7 @@ export function GroupJoinManager({ visible, profile, groups, activeGroup, tables
         stage === "scanning"
           ? (scanMethod === "qr" ? "Scan Table QR Code" : "Tap your BuckID")
           : stage === "existing"
-            ? `Join ${group?.host.name.split(" ")[0] ?? "the host"}'s Group?`
+            ? joinError ? "Unable to join group" : allowed ? "Joining group…" : "Group unavailable"
             : "Create Group?"
       }
       onClose={cancel}
@@ -187,7 +203,8 @@ export function GroupJoinManager({ visible, profile, groups, activeGroup, tables
           <p className="reader-caption">{table?.status === "very-busy" ? "Full" : "Seats available"} · {seats?.availableSeats} of {seats?.totalSeats} seats available · {group.inviteOnly ? "Invite only" : "Open group"}</p>
           <GroupRoster group={group} />
           {!allowed && <p role="status" className="reader-invitation-required">{seats?.availableSeats === 0 ? "This table is full. Try another study group." : "An invitation from the host is required before you can join."}</p>}
-          <button type="button" className="reader-primary" disabled={!allowed} onClick={() => onJoin(group.id)}>Join group</button>
+          {allowed && !joinError && <p role="status" className="reader-caption">Joining your study group…</p>}
+          {joinError && <><p role="alert" className="reader-invitation-required">{joinError}</p><button type="button" className="reader-primary" disabled={!allowed} onClick={() => { joinAttempt.current = null; setJoinError(null); }}>Retry join</button></>}
         </> : <p>This group is no longer posted. Close this popup and tap the reader again.</p>)}
         {stage === "create" && <form className="reader-create-form" onSubmit={(event) => {
           event.preventDefault();
@@ -238,7 +255,7 @@ export function CurrentGroupPanel({ group, table, profileId, notice, onInvite, o
       <label className="reader-field">Invite a student<input type="search" placeholder="Search by name or profile ID" value={search} onChange={(event) => setSearch(event.target.value)} /></label>
       {candidates.map((profile) => <div className="reader-invite-result" key={profile.id}><span>{profile.name}</span><button type="button" className="reader-secondary" disabled={group.invitedProfileIds.includes(profile.id)} onClick={() => onInvite(profile.id)}>{group.invitedProfileIds.includes(profile.id) ? "Invited" : "Invite"}</button></div>)}
       {search.trim() && !candidates.length && <p className="reader-caption">No other demo students match that name or profile ID.</p>}
-      <p className="reader-caption">Local demo invitations · students join after confirmation.</p>
+      <p className="reader-caption">Local demo invitations · invited students join when they scan the table.</p>
     </section>}
     {children && <div className="current-group-notebook"><h3 className="paper-title">Shared Group Notebook</h3>{children}</div>}
     <button type="button" className="reader-secondary group-gps-trigger" onClick={onGpsLeave}>Simulate Walking Away (GPS Trigger)</button>

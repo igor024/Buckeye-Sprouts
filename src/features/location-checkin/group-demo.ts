@@ -114,7 +114,7 @@ export function demoGroupReducer(state: DemoGroupState, action: Action): DemoGro
     if (active.host.id !== action.hostId || !active.inviteOnly) return state;
     if ([active.host, ...active.members].some((profile) => profile.id === action.profileId)) return { ...state, notice: "That student is already in this group." };
     if (active.invitedProfileIds.includes(action.profileId)) return { ...state, notice: "That student already has an invitation." };
-    return { ...state, notice: "Invitation granted in this local demo. They can confirm joining at the reader.", groups: state.groups.map((group) => group.id === active.id ? { ...group, invitedProfileIds: [...group.invitedProfileIds, action.profileId] } : group) };
+    return { ...state, notice: "Invitation granted in this local demo. They can join by scanning the table.", groups: state.groups.map((group) => group.id === active.id ? { ...group, invitedProfileIds: [...group.invitedProfileIds, action.profileId] } : group) };
   }
   const remaining = [active.host, ...active.members].filter((profile) => profile.id !== action.profileId)
     .sort((a, b) => active.joinedAtByProfileId[a.id] - active.joinedAtByProfileId[b.id]);

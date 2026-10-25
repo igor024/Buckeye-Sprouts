@@ -374,6 +374,8 @@ body:has(.thompson-map-app) #main { width: 100%; max-width: none; margin: 0; pad
 .current-group-sheet .sheet-heading h1, .notes-sheet .sheet-heading h1 { max-width: 100%; white-space: nowrap; }
 .current-group-sheet .sheet-header-actions, .notes-sheet .sheet-header-actions { justify-content: flex-end; flex-wrap: wrap; }
 .current-group-invites { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--paper-border); }
+/* Keep roster gestures in the main group sheet instead of a nested scroll trap. */
+.current-group-details > .group-profile-list { max-height: none; overflow: visible; overscroll-behavior: auto; touch-action: pan-y; user-select: none; }
 .reader-invite-result { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 8px; font-size: 15px; }
 .group-gps-trigger, .group-end-session { width: 100%; margin-top: 12px; font-size: 13px; }
 .group-end-session { color: var(--color-scarlet); }

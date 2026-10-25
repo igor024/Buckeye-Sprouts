@@ -1,23 +1,23 @@
 # Buckeye Sprouts — Physical Table QR Code Architecture & Generation Guide
 
-This guide describes the physical table QR anchors, live in-app camera scanner, routing into the main page's Group tab, and printing QR codes for campus deployment.
+This guide describes the physical table QR anchors, live in-app camera scanner, routing into the main page's Join / My group tab, and printing QR codes for campus deployment.
 
 ---
 
 ## 1. System Overview & The Physical-to-Digital Bridge
 
-Each physical library table has a deterministic QR anchor. Students can scan it with their phone's camera or with **Group > Scan QR Code** inside Buckeye Sprouts:
+Each physical library table has a deterministic QR anchor. Students can scan it with their phone's camera or with **Join > Scan QR Code** inside Buckeye Sprouts:
 
 ```text
 Physical table QR sticker / live camera scanner
   -> /table/150b-1 (or /qr/150b-1)
   -> /?tab=join&table=150b-1
-  -> Main page, Group tab, exact table selected
-     -> Occupied: inspect the group and explicitly choose Join group
+  -> Main page, Join tab, exact table selected
+     -> Occupied: join automatically if a seat and any required invitation are available
      -> Empty: create a group with the table already locked in
 ```
 
-Scanning selects a table; it does not join a group, record a check-in, or bypass an invitation. The existing profile and demo fallback behavior remains available on the main page.
+Scanning selects a table and joins an eligible existing group without an extra confirmation. Full tables and missing invitations show an explanation instead. Successful joins use the existing check-in workflow, with a local fallback if the database is unavailable. The tab changes to **My group** while in a group and returns to **Join** after leaving.
 
 ---
 
@@ -40,15 +40,15 @@ The in-app scanner accepts these URL formats and legacy JSON such as `{"libraryN
 
 ### A. Live Camera Scanner
 
-1. Open the **Group** tab and click **Scan QR Code**.
+1. Open the **Join** tab and click **Scan QR Code**.
 2. Allow camera access. A live preview opens, preferring the rear camera on phones.
-3. Point the camera at a table sticker. Once decoded, the camera stops and the main page opens that exact table's join/create dialog.
+3. Point the camera at a table sticker. Once decoded, the camera stops and the main page joins that table's eligible group or opens its creation form.
 
 Camera scanning requires **HTTPS or localhost**; a phone opening an ordinary HTTP LAN address cannot use the browser camera. Permission denial, unsupported browsers, and missing cameras show a useful error and a **Retry camera** button. Closing the dialog or changing tabs releases the camera, including when permission is still being requested. GPS permission is not required for QR scanning.
 
 ### B. Table Selection and Group Actions
 
-- **Occupied table:** show the current group, host, course, and invitation restriction. Students explicitly click **Join group**; scanning does not auto-join.
+- **Occupied table:** join automatically when eligible. A full table or missing invitation shows the group details and restriction. A rejected join shows an error with **Retry join**, without repeatedly submitting the request.
 - **Empty table:** open the existing three-step creation form with the scanned table fixed. Students choose their group name, course, and invite-only setting before creating it.
 - The table link parameters are removed after opening the dialog, so closing it does not immediately reopen it. Scanning another code opens the new table through the same flow.
 - Group availability follows the current database-backed map data and its existing offline behavior.
