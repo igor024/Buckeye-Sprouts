@@ -28,6 +28,7 @@ interface StudySessionRow {
   library_name: string;
   floor: string | null;
   zone: string | null;
+  table_id?: string | null;
   total_seats: number;
   available_seats: number;
   requires_approval: boolean;
@@ -191,6 +192,7 @@ export async function insertDbSession(input: CreateSessionInput, hostId: string)
       library_name: input.libraryName,
       floor: input.floor || null,
       zone: input.zone || null,
+      table_id: input.tableId,
       total_seats: input.totalSeats,
       available_seats: input.availableSeats,
       requires_approval: input.requiresApproval,

@@ -79,7 +79,7 @@ export async function fetchLiveMapGroups(): Promise<DemoStudyGroup[]> {
       const pRow = Array.isArray(row.session_private_details)
         ? row.session_private_details[0]
         : row.session_private_details;
-      const tableId = pRow?.table_id || "165-1";
+      const tableId = row.table_id || pRow?.table_id || "165-1";
 
       const nbRow = Array.isArray(row.shared_notebooks)
         ? row.shared_notebooks[0]

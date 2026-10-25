@@ -55,6 +55,7 @@ export async function POST(request: Request) {
         library_name: "Thompson Library",
         floor: "Level 1",
         zone: `Table ${tableId}`,
+        table_id: tableId,
         total_seats: 5,
         available_seats: 4,
         requires_approval: Boolean(inviteOnly),

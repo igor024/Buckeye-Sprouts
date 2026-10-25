@@ -52,11 +52,12 @@
 .group-search-field input::placeholder { color: var(--map-secondary); }
 .group-search-field:focus-within { outline: 2px solid var(--map-blue); outline-offset: 2px; }
 .group-plan-frame { overflow: visible; }
-.integrated-table-control { --table-status-color: #4d8a67; position: absolute; z-index: 2; display: block; min-width: 0; min-height: 0; padding: 0; transform: translate(-50%,-50%); border: 0; border-radius: 3px; background: transparent; cursor: pointer; touch-action: manipulation; }
-.integrated-table-control.table-status-busy { --table-status-color: #c18432; }
-.integrated-table-control.table-status-very-busy { --table-status-color: #ae3c42; }
-.integrated-table-control::after { position: absolute; inset: -3px; content: ""; border: 1.5px solid var(--table-status-color); border-radius: 5px; background: color-mix(in srgb, var(--table-status-color) 12%, transparent); box-shadow: 0 0 0 1px #ffffff96; transition: background 140ms ease, box-shadow 140ms ease; pointer-events: none; }
-.integrated-table-control:hover::after, .integrated-table-control:focus-visible::after, .integrated-table-control.selected::after { inset: -4px; border-width: 2px; background: color-mix(in srgb, var(--table-status-color) 22%, transparent); box-shadow: 0 0 0 2px #ffffffc2; }
+.integrated-table-control { --table-status-color: #3dec31; position: absolute; z-index: 2; display: block; min-width: 0; min-height: 0; padding: 0; transform: translate(-50%,-50%); border: 1px solid rgba(0, 0, 0, 0.16); border-radius: 4px; background-color: var(--table-status-color); cursor: pointer; touch-action: manipulation; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); transition: background-color 160ms ease, box-shadow 160ms ease; }
+.integrated-table-control.table-status-empty { --table-status-color: #3dec31; background-color: #3dec31; }
+.integrated-table-control.table-status-busy { --table-status-color: #ecec31; background-color: #ecec31; }
+.integrated-table-control.table-status-very-busy { --table-status-color: #ec8531; background-color: #ec8531; }
+.integrated-table-control::after { position: absolute; inset: -3px; content: ""; border: 1.5px solid var(--table-status-color); border-radius: 6px; background: color-mix(in srgb, var(--table-status-color) 14%, transparent); box-shadow: 0 0 0 1px #ffffff96; transition: background 140ms ease, box-shadow 140ms ease; pointer-events: none; }
+.integrated-table-control:hover::after, .integrated-table-control:focus-visible::after, .integrated-table-control.selected::after { inset: -4px; border-width: 2px; background: color-mix(in srgb, var(--table-status-color) 25%, transparent); box-shadow: 0 0 0 2px #ffffffc2; }
 .integrated-table-control:focus-visible { outline: 2px solid #0b6d91; outline-offset: 2px; }
 .group-no-results { margin: 20px 0; padding: 0; color: var(--map-secondary); font-size: 14px; line-height: 1.5; }
 .integrated-plan-dot { position: absolute; z-index: 1; display: grid; place-items: center; width: 30px; height: 30px; padding: 0; transform: translate(-50%,-50%); border: 0; border-radius: 50%; background: transparent; cursor: pointer; touch-action: manipulation; pointer-events: auto; }
