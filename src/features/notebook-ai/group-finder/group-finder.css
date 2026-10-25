@@ -9,7 +9,7 @@
 .finder-icon-button { display: grid; place-items: center; flex-shrink: 0; width: 38px; height: 38px; border: 0; border-radius: 50%; color: #3f4443; background: #e9eceb; cursor: pointer; }
 .finder-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 12px 0; }
 .finder-toolbar p { margin: 0; color: #606765; font-size: 13px; line-height: 1.4; }
-.finder-toolbar button { flex-shrink: 0; padding: 9px; border: 0; background: transparent; color: #9b1631; font: inherit; font-size: 12px; font-weight: 650; cursor: pointer; }
+.finder-toolbar button { flex-shrink: 0; padding: 9px; border: 0; border-radius: 8px; background: var(--paper-surface); color: #9b1631; font: inherit; font-size: 12px; font-weight: 650; cursor: pointer; }
 .finder-transcript { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 2px 3px 12px; scrollbar-width: thin; }
 .finder-welcome { display: grid; justify-items: start; gap: 10px; margin-top: 16px; }
 .finder-welcome p { margin: 0 0 4px; color: #3f4443; font-weight: 600; }
@@ -27,7 +27,7 @@
 .finder-match-meta { color: #606765; }
 .finder-match button { min-height: 40px; margin-top: 7px; padding: 8px 12px; border: 0; border-radius: 9px; background: #ba0c2f; color: white; font: inherit; font-size: 13px; font-weight: 650; cursor: pointer; }
 .finder-pending, .finder-retry { display: inline-flex; align-items: center; gap: 6px; color: #9b1631; font-size: 13px; }
-.finder-retry { min-height: 36px; padding: 6px 0; border: 0; background: transparent; font: inherit; font-size: 12px; cursor: pointer; }
+.finder-retry { min-height: 36px; padding: 6px 0; border: 0; border-radius: 8px; background: var(--paper-surface); font: inherit; font-size: 12px; cursor: pointer; }
 .finder-error { margin: 8px 0; padding: 10px; border: 1px solid #edc8cf; border-radius: 9px; color: #9b1631; background: #fff1f3; font-size: 13px; }
 .finder-composer { display: flex; align-items: flex-end; gap: 8px; flex-shrink: 0; padding-top: 12px; border-top: 1px solid #d7ded8; }
 .finder-composer textarea { width: 100%; min-width: 0; min-height: 52px; max-height: 130px; resize: vertical; padding: 11px; border: 1px solid #bec9c1; border-radius: 12px; color: #292e2a; background: #fff; font: inherit; font-size: 16px; }
