@@ -67,7 +67,7 @@ export interface CampusMapView {
 
 export const CAMPUS_MAP_ARTWORK_SIZE = { width: 430, height: 940 } as const;
 export const CAMPUS_MAP_GEO_BOUNDS = { north: 40.012, south: 39.985, west: -83.027, east: -83.001 } as const;
-export const CAMPUS_MAP_DEMO_LOCATION: CampusMapArtPoint = { x: 274, y: 420 };
+export const CAMPUS_MAP_DEMO_LOCATION: CampusMapArtPoint = { x: 247, y: 412 };
 export const CAMPUS_MAP_ZOOM_LIMITS = {
   minScale: 1,
   maxScale: 3.6,

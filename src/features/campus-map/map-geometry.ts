@@ -27,8 +27,14 @@ export function resolveDemoReaderLocation(point: CampusMapArtPoint | null, sourc
   const usable = point !== null && Number.isFinite(point.x) && Number.isFinite(point.y)
     && point.x >= 0 && point.x <= CAMPUS_MAP_ARTWORK_SIZE.width && point.y >= 0 && point.y <= CAMPUS_MAP_ARTWORK_SIZE.height;
   const origin = usable ? point : CAMPUS_MAP_DEMO_LOCATION;
-  const user = artworkPointToViewport(origin, viewport);
   const plan = getPlanGeometry(viewport);
+  const defaultTable = THOMPSON_EAST_ENTRANCE_TABLES.find((table) => table.id === "110-1") ?? THOMPSON_EAST_ENTRANCE_TABLES[0];
+  const user = (origin.x === CAMPUS_MAP_DEMO_LOCATION.x && origin.y === CAMPUS_MAP_DEMO_LOCATION.y)
+    ? {
+        x: plan.left + plan.width * defaultTable.x / 100,
+        y: plan.top + plan.height * defaultTable.y / 100,
+      }
+    : artworkPointToViewport(origin, viewport);
   let nearest = THOMPSON_EAST_ENTRANCE_TABLES[0];
   let distance = Infinity;
   for (const table of THOMPSON_EAST_ENTRANCE_TABLES) {
