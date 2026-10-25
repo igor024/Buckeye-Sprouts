@@ -1,9 +1,25 @@
 # Campus map feature
 
-Buckeye Sprouts uses a single, locally rendered Ohio State campus illustration. Its quiet low-poly vector blocks mark the major campus landmarks and Thompson Library without a dense road or label layer. The map artwork has no external tile dependency, API key, or network requirement.
+The campus background uses OpenFreeMap's Positron vector style, rendered with MapLibre GL through its Leaflet adapter. Leaflet remains responsible for the camera and interactions; the vector renderer loads independently in the browser. The style comes from `https://tiles.openfreemap.org/styles/positron` and needs no API key. Visible attribution credits OpenFreeMap, OpenMapTiles, and OpenStreetMap. See https://openfreemap.org/quick_start/.
 
-Thompson Library is a landmark on that same map. In Group Search, position the verified Oval / East Entrance floor plan (Level 1) directly on the campus map surface so it pans and zooms with nearby streets and landmarks; auto-zoom to Thompson whenever Groups opens. Keep the course search and every matching clickable group row in the draggable bottom sheet. Dragging the sheet down hides it beneath the bottom navigation, and dragging up from the bar reveals and expands it. Do not move the floor plan into the sheet or create a separate full-screen indoor map. This illustration is approximate and not to scale.
+`vector-map-style.ts` applies a flat campus palette: pale land, stronger green parks, mapped grass lawns, and woods, warm tan buildings with darker outlines, blue water, gray roads and walking paths, and dark labels with light halos. The palette also supplies the map container, boundary mask, and Thompson floor-plan backing through one CSS variable, so the outer frame matches the land color without a white border or card shadow. Interior floor-plan rooms and occupancy colors stay unchanged. Raster imagery, hillshading, and building extrusions are excluded. Geometry and labels are rendered at the current zoom and device pixel ratio through camera zoom 22, so close-ups do not stretch raster pixels. Source geometry has finite geographic detail; closer zooms do not introduce surveyed indoor information.
 
-The map supports touch and pointer drag, pinch zoom, double-click zoom, zoom buttons, recentering, and device location. Location is only requested after someone taps **My location** and continues through the disclosure. Coordinates stay in the page's memory and are not saved to an account. **Simulate location** is available for demos without GPS. Position on the illustrated map is approximate and device coordinates outside the campus drawing are not shown as if they were on campus.
+MapLibre's module worker is emitted as a hashed local asset by Next.js using `new URL('maplibre-gl/dist/maplibre-gl-worker.mjs', import.meta.url)`. Keep renderer imports browser-only. Network failure, unavailable WebGL, and context loss show an error with a retry action while Leaflet and local table controls keep working. Retry rebuilds only the vector layer. External map resources are not service-worker precached.
 
-The supplied Thompson East Entrance SVG (`public/maps/floor-1-map.svg`) and room data are local assets, so the library plan works offline with the PWA. Keep its SVG content vector-rendered through zoom so its lines and labels stay sharp. The shared camera has a 1.0 minimum and a 3.6 absolute maximum; while the plan is open, a viewport-aware cap and pan bounds preserve at least 50% of its area and keep the campus map covering the viewport. Project the floor plan, group pins, room pins, and location marker from the same `xMidYMid slice` artwork transform. Render buttons in an unscaled screen overlay so their labels and icons stay crisp through every zoom level. Keep the root experience fixed to the viewport; allow vertical scrolling inside the information sheet only. In group details, the host is the first roster row, but host and member rows all live inside one scroll frame; never pin the host while members scroll.
+`geographic-map.ts` defines Thompson's center, verified against OpenStreetMap building way 30172308, and navigation bounds extending 300 meters in each cardinal direction. Leaflet handles drag, pinch, wheel, double-click, keyboard zoom, and the existing controls. A viewport-dependent minimum zoom and maximum bounds restrict navigation; a neutral mask covers boundary overshoot. Recenter returns to the neighborhood view.
+
+The local East Entrance floor SVG stays embedded over Thompson as a schematic 80-meter-wide overlay, preserving its source aspect ratio. Opening the floor plan focuses it above the bottom sheet. The image, table hit targets, sprouts, room pins, indoor route, and GPS marker use the same Web Mercator projection. Existing table data and callbacks remain unchanged. Legacy artwork helpers remain for compatibility but do not drive this map.
+
+Device location is requested after the location disclosure and stays in page memory. Out-of-area positions do not recenter the map. GPS does not verify indoor presence. Outside the schematic floor bounds, the reader explicitly falls back to simulated table 110-1; **Simulate location** uses the same anchor. Permission failure stops the GPS watcher and preserves the demo workflow. The local floor SVG remains a PWA asset for offline use.
+
+Validation:
+
+```sh
+node src/features/campus-map/geographic-map.test.mjs
+node scripts/check-group-demo.mjs
+npm run check:foundation
+npm run typecheck
+npm run build
+```
+
+If Turbopack cannot bind its compilation worker port in the execution environment, validate the production build with `npm run build -- --webpack`.

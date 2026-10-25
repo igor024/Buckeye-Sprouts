@@ -426,11 +426,11 @@ export function ThompsonMap({
         </div>
       )}
 
-      {showSheet && <section id="map-info-sheet" inert={panelHidden} className={`map-info-sheet${expanded ? " sheet-expanded" : ""}${tab === "groups" ? " group-search-sheet" : ""}${tab === "join" && activeGroup ? " current-group-sheet" : ""}${panelHidden ? " sheet-hidden" : ""}`} aria-label={tab === "groups" ? "Study group search" : tab === "join" ? "Join or manage a study group" : tab === "notes" ? "Shared notebook" : "Your study profile"}>
+      {showSheet && <section id="map-info-sheet" inert={panelHidden} className={`map-info-sheet${expanded ? " sheet-expanded" : ""}${tab === "groups" ? " group-search-sheet" : ""}${tab === "join" && activeGroup ? " current-group-sheet" : ""}${tab === "notes" ? " notes-sheet" : ""}${panelHidden ? " sheet-hidden" : ""}`} aria-label={tab === "groups" ? "Study group search" : tab === "join" ? "Join or manage a study group" : tab === "notes" ? "Shared notebook" : "Your study profile"}>
         {panelHandle}
         <div className="sheet-heading" onPointerDown={beginSheetSwipe} onPointerUp={endSheetSwipe} onPointerCancel={() => { sheetStart.current = null; }}>
           <div className="min-w-0 flex-1 pr-1.5">
-            <p className="sheet-eyebrow">OHIO STATE · THOMPSON LIBRARY · LEVEL 1</p>
+            <div className="sheet-brand-line"><img className="sheet-brand-logo" src="/brand/logo.png" width="28" height="28" alt="Buckeye Sprouts logo" /><p className="sheet-eyebrow">OHIO STATE · THOMPSON LIBRARY · LEVEL 1</p></div>
             <h1 className="paper-title truncate">{tab === "groups" ? "Group Search" : tab === "join" ? "Your Group" : tab === "notes" ? "Shared Notes" : "Your Study Profile"}</h1>
           </div>
           <div className="sheet-header-actions">
@@ -471,7 +471,10 @@ export function ThompsonMap({
                 Leave group
               </button>
             </div>}
-            {tab === "notes" && <button type="button" className="notes-new-button" onClick={() => { setExpanded(true); window.dispatchEvent(new CustomEvent("buckeye:open-new-note")); }} aria-label="Create a new group note" title="New note"><Plus size={18} /></button>}
+            {tab === "notes" && <>
+              <button type="button" className="notes-carmen-trigger" onClick={() => window.dispatchEvent(new CustomEvent("buckeye:open-carmen-ai"))} aria-label="Open Carmen study suggestions" title="Carmen study suggestions"><Star size={18} className="fill-amber-300" /></button>
+              <button type="button" className="notes-new-button" onClick={() => { setExpanded(true); window.dispatchEvent(new CustomEvent("buckeye:open-new-note")); }} aria-label="Create a new group note" title="New note"><Plus size={18} /></button>
+            </>}
           </div>
         </div>
         <div id="map-sheet-content" className="map-sheet-content">
@@ -506,7 +509,7 @@ export function ThompsonMap({
               endSessionInSupabase(activeGroup.id, activeGroup.tableId);
               dispatchGroup({ type: "end", hostId: viewer.id });
             }}
-          ><NotebookPanel notebook={currentNotebook} sessionId={activeGroup.id} courseCode={activeGroup.courseCode} memberCount={activeGroup.members.length + 1} currentUser={viewer} floorLevel="Level 1" onStartNewNote={() => setExpanded(true)} onNotebookContentChange={setNotebookContent} /></CurrentGroupPanel>}
+          />}
           {tab === "notes" && <div className="map-feature-panel"><NotebookPanel notebook={currentNotebook} sessionId={currentNotebook.sessionId} courseCode={activeGroup?.courseCode ?? "CSE 2221"} memberCount={activeGroup ? activeGroup.members.length + 1 : undefined} currentUser={viewer} floorLevel="Level 1" onStartNewNote={() => setExpanded(true)} onNotebookContentChange={setNotebookContent} /></div>}
           {tab === "me" && <div className="map-feature-panel">{profile ? <><div className="map-user-greeting">Hi, {profile.name.split(" ")[0]}</div>{profilePanel}</> : <p className="map-hint">Your study profile is not available.</p>}</div>}
         </div>
@@ -555,7 +558,7 @@ export function ThompsonMap({
 
       <nav className="map-service-tabs" aria-label="Map app navigation">
         <button className={tab === "groups" ? "active" : ""} aria-current={tab === "groups" ? "page" : undefined} aria-expanded={tab === "groups" && !panelHidden} aria-controls="map-info-sheet" type="button" onClick={() => activateTab("groups")}>{tabIcon("groups", <Users size={24} />)}<span>Groups</span></button>
-        <button className={tab === "join" ? "active" : ""} aria-current={tab === "join" ? "page" : undefined} aria-expanded={tab === "join" && !panelHidden} aria-controls={activeGroup ? "map-info-sheet" : "group-reader-panel"} type="button" onClick={() => activateTab("join")} aria-label="Join or manage a group">{tabIcon("join", <Plus size={25} />)}<span>Group</span></button>
+        <button className={tab === "join" ? "active" : ""} aria-current={tab === "join" ? "page" : undefined} aria-expanded={tab === "join" && !panelHidden} aria-controls={activeGroup ? "map-info-sheet" : "group-reader-panel"} type="button" onClick={() => activateTab("join")} aria-label="New group or manage your current group">{tabIcon("join", <Plus size={25} />)}<span>New</span></button>
         <button className={tab === "notes" ? "active" : ""} aria-current={tab === "notes" ? "page" : undefined} aria-expanded={tab === "notes" && !panelHidden} aria-controls="map-info-sheet" type="button" onClick={() => activateTab("notes")}>{tabIcon("notes", <BookOpen size={24} />)}<span>Notes</span></button>
         <button className={tab === "me" ? "active" : ""} aria-current={tab === "me" ? "page" : undefined} aria-expanded={tab === "me" && !panelHidden} aria-controls="map-info-sheet" type="button" onClick={() => activateTab("me")}>{tabIcon("me", <span className="service-avatar">{profile?.name.slice(0, 1) || "?"}</span>)}<span>Me</span></button>
       </nav>

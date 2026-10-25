@@ -9,6 +9,8 @@ import { DEFAULT_AVAILABLE_SEATS, MAX_AVAILABLE_SEATS, groupSeatCounts, type Gro
 import { canJoinDemoGroup } from "../group-demo";
 import { TableQrCamera } from "./TableQrCamera";
 
+const BUCKID_READER_DELAY_MS = 1000;
+
 type ReaderTarget = Omit<DemoReaderLocation, "source"> & { source: DemoReaderLocation["source"] | "qr" };
 
 function ReaderDialog({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
@@ -112,7 +114,7 @@ export function GroupJoinManager({ visible, profile, groups, activeGroup, tables
       const location = latest.current.readerLocation;
       if (!location) { setStage("idle"); return; }
       openLocation(location);
-    }, DEMO_READER_DELAY_MS);
+    }, method === "nfc" ? BUCKID_READER_DELAY_MS : DEMO_READER_DELAY_MS);
   }
 
   if (!visible || activeGroup) return null;
@@ -174,7 +176,7 @@ export function GroupJoinManager({ visible, profile, groups, activeGroup, tables
         </div>
         <p role="status">Finding your table…</p>
         <div className="reader-progress" role="progressbar" aria-label="BuckID reader progress">
-          <span />
+          <span style={{ animationDuration: `${scanMethod === "nfc" ? BUCKID_READER_DELAY_MS : DEMO_READER_DELAY_MS}ms` }} />
         </div>
         </>}
         <button type="button" className="reader-secondary" onClick={cancel}>Cancel</button>
@@ -221,7 +223,7 @@ export function GroupJoinManager({ visible, profile, groups, activeGroup, tables
 
 export function CurrentGroupPanel({ group, table, profileId, notice, onInvite, onGpsLeave, onEnd, children }: {
   group: DemoStudyGroup; table: ThompsonTable; profileId: string; notice: string;
-  onInvite: (profileId: string) => void; onGpsLeave: () => void; onEnd: () => void; children: ReactNode;
+  onInvite: (profileId: string) => void; onGpsLeave: () => void; onEnd: () => void; children?: ReactNode;
 }) {
   const [search, setSearch] = useState("");
   const seats = groupSeatCounts(group);
@@ -229,7 +231,7 @@ export function CurrentGroupPanel({ group, table, profileId, notice, onInvite, o
   const candidates = search.trim() ? MOCK_PROFILES.filter((profile) => `${profile.name} ${profile.id}`.toLowerCase().includes(search.trim().toLowerCase()) && !members.some((member) => member.id === profile.id)) : [];
   return <section className="current-group-details" aria-label="Current study group">
     {notice && <p role="status" className="reader-notice">{notice}</p>}
-    <h2 className="paper-title reader-group-name">{group.name}</h2><p className="reader-study-status">{group.courseCode} · {group.topic}</p>
+    <p className="reader-study-status">{group.courseCode} · {group.topic}</p>
     <p className="reader-caption">{table.label} · {table.status === "very-busy" ? "Full" : "Seats available"} · {seats.availableSeats} of {seats.totalSeats} seats available · {group.inviteOnly ? "Invite only" : "Open group"}</p>
     <GroupRoster group={group} />
     {group.host.id === profileId && group.inviteOnly && <section className="current-group-invites" aria-label="Host invitations">
@@ -238,7 +240,7 @@ export function CurrentGroupPanel({ group, table, profileId, notice, onInvite, o
       {search.trim() && !candidates.length && <p className="reader-caption">No other demo students match that name or profile ID.</p>}
       <p className="reader-caption">Local demo invitations · students join after confirmation.</p>
     </section>}
-    <div className="current-group-notebook"><h3 className="paper-title">Shared Group Notebook</h3>{children}</div>
+    {children && <div className="current-group-notebook"><h3 className="paper-title">Shared Group Notebook</h3>{children}</div>}
     <button type="button" className="reader-secondary group-gps-trigger" onClick={onGpsLeave}>Simulate Walking Away (GPS Trigger)</button>
     {group.host.id === profileId && <button type="button" className="reader-secondary group-end-session" onClick={onEnd}>End session</button>}
   </section>;
