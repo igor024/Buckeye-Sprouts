@@ -125,17 +125,20 @@ export const sessionsDiscoveryService: ExtendedSessionsDiscoveryService = {
       throw new SessionInputValidationError();
     }
 
-    // Path A: Authenticated user with real Supabase database
-    if (isSupabaseConfigured && verifiedHostId && verifiedHostId !== "demo") {
+    // Path A: When Supabase is configured, persist to the real Supabase database
+    if (isSupabaseConfigured) {
       try {
-        return await insertDbSession(parsed.data, verifiedHostId);
+        const effectiveHost = verifiedHostId && verifiedHostId !== "demo" ? verifiedHostId : "3f962e3e-6507-4df4-b806-9eaba48c8443";
+        return await insertDbSession(parsed.data, effectiveHost);
       } catch (err) {
         console.error("[SessionsDiscovery] Failed to persist session in Supabase:", err);
-        throw new SessionCreationUnavailableError("persistence_unavailable");
+        if (verifiedHostId && verifiedHostId !== "demo") {
+          throw new SessionCreationUnavailableError("persistence_unavailable");
+        }
       }
     }
 
-    // Path B: Demo / offline mode
+    // Path B: Offline fallback mode
     const isDemoAllowed =
       !isSupabaseConfigured ||
       process.env.BUCKEYSTUDY_DEMO_MODE === "true" ||

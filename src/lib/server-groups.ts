@@ -47,6 +47,20 @@ export async function fetchLiveMapGroups(): Promise<DemoStudyGroup[]> {
             current_courses,
             bio
           )
+        ),
+        check_ins (
+          user_id,
+          method,
+          checked_in_at,
+          checked_out_at,
+          profiles (
+            id,
+            name,
+            avatar_url,
+            major,
+            current_courses,
+            bio
+          )
         )
       `)
       .eq("status", "active")
@@ -87,9 +101,13 @@ export async function fetchLiveMapGroups(): Promise<DemoStudyGroup[]> {
       const notebookContent = nbRow?.content || `## ${row.course_code} study notes\n[note] ${hostProfile.name} · Shared\n${row.subtitle || row.title}.`;
 
       const members: ProfilePreview[] = [];
+      const seenIds = new Set<string>([hostProfile.id]);
+
+      // 1. Members from approved join_requests
       if (Array.isArray(row.join_requests)) {
         for (const req of row.join_requests) {
-          if (req.status === "approved" && req.profiles && req.profiles.id !== hostProfile.id) {
+          if (req.status === "approved" && req.profiles && !seenIds.has(req.profiles.id)) {
+            seenIds.add(req.profiles.id);
             members.push({
               id: req.profiles.id,
               name: req.profiles.name,
@@ -97,6 +115,23 @@ export async function fetchLiveMapGroups(): Promise<DemoStudyGroup[]> {
               major: req.profiles.major || "Buckeye Student",
               currentCourses: req.profiles.current_courses || [row.course_code],
               bio: req.profiles.bio || "",
+            });
+          }
+        }
+      }
+
+      // 2. Active members currently checked in at the table
+      if (Array.isArray(row.check_ins)) {
+        for (const checkin of row.check_ins) {
+          if (!checkin.checked_out_at && checkin.profiles && !seenIds.has(checkin.profiles.id)) {
+            seenIds.add(checkin.profiles.id);
+            members.push({
+              id: checkin.profiles.id,
+              name: checkin.profiles.name,
+              avatarUrl: checkin.profiles.avatar_url || "",
+              major: checkin.profiles.major || "Buckeye Student",
+              currentCourses: checkin.profiles.current_courses || [row.course_code],
+              bio: checkin.profiles.bio || "",
             });
           }
         }

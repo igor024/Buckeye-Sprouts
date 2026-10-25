@@ -50,14 +50,24 @@ export function canJoinDemoGroup(group: DemoStudyGroup, profileId: string) {
 export function demoGroupReducer(state: DemoGroupState, action: Action): DemoGroupState {
   if (action.type === "clear-notice") return { ...state, notice: "" };
   if (action.type === "sync-from-db") {
+    const updatedGroups = action.groups.map((g) => ({
+      ...g,
+      members: [...g.members],
+      invitedProfileIds: [...(g.invitedProfileIds || [])],
+      joinedAtByProfileId: { ...g.joinedAtByProfileId },
+    }));
+    let newActiveId = state.activeGroupId;
+    if (state.activeGroupId) {
+      const activeGroupBefore = state.groups.find((g) => g.id === state.activeGroupId);
+      if (activeGroupBefore) {
+        const matching = updatedGroups.find((g) => g.tableId === activeGroupBefore.tableId);
+        if (matching) newActiveId = matching.id;
+      }
+    }
     return {
       ...state,
-      groups: action.groups.map((g) => ({
-        ...g,
-        members: [...g.members],
-        invitedProfileIds: [...(g.invitedProfileIds || [])],
-        joinedAtByProfileId: { ...g.joinedAtByProfileId },
-      })),
+      groups: updatedGroups,
+      activeGroupId: newActiveId,
     };
   }
   if (action.type === "join") {

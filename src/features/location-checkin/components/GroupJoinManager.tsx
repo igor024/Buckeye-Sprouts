@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { ArrowLeft, Nfc, Search, X } from "lucide-react";
+import { ArrowLeft, Nfc, QrCode, Search, X } from "lucide-react";
 import { GroupRoster } from "@/app/components/GroupRoster";
 import { DEMO_GROUP_COURSES, DEMO_READER_DELAY_MS, MOCK_PROFILES, type DemoCreateGroupInput, type DemoReaderLocation, type DemoStudyGroup, type ProfilePreview, type ThompsonTable } from "@/types/contracts";
 import { canJoinDemoGroup } from "../group-demo";
@@ -49,6 +49,7 @@ interface GroupJoinManagerProps {
 /** No sheet is opened until a reader result has been explicitly confirmed. */
 export function GroupJoinManager({ visible, profile, groups, activeGroup, tables, readerLocation, notice, onStart, onJoin, onCreate }: GroupJoinManagerProps) {
   const [stage, setStage] = useState<"idle" | "scanning" | "existing" | "create">("idle");
+  const [scanMethod, setScanMethod] = useState<"nfc" | "qr">("qr");
   const [target, setTarget] = useState<DemoReaderLocation | null>(null);
   const [step, setStep] = useState(0);
   const [name, setName] = useState(`${profile.name}'s Group`);
@@ -64,9 +65,12 @@ export function GroupJoinManager({ visible, profile, groups, activeGroup, tables
   }, []);
   useEffect(() => { if (!visible || activeGroup) cancel(); }, [visible, activeGroup, cancel]);
   useEffect(() => () => { if (timer.current !== null) clearTimeout(timer.current); }, []);
-  function scan() {
+
+  function startScan(method: "nfc" | "qr") {
     if (timer.current !== null || stage !== "idle" || !readerLocation) return;
-    onStart(); setStage("scanning");
+    setScanMethod(method);
+    onStart();
+    setStage("scanning");
     timer.current = setTimeout(() => {
       timer.current = null;
       const location = latest.current.readerLocation;
@@ -75,22 +79,97 @@ export function GroupJoinManager({ visible, profile, groups, activeGroup, tables
       setStage(latest.current.groups.some((group) => group.tableId === location.tableId) ? "existing" : "create");
     }, DEMO_READER_DELAY_MS);
   }
+
   if (!visible || activeGroup) return null;
   const table = tables.find((item) => item.id === target?.tableId);
   const group = groups.find((item) => item.tableId === target?.tableId);
   const allowed = group ? canJoinDemoGroup(group, profile.id) : false;
   const courses = DEMO_GROUP_COURSES.filter((course) => `${course.code} ${course.name}`.toLowerCase().includes(query.trim().toLowerCase()));
-  const sourceText = target?.source === "device" ? "Approximate device location" : target?.usedFallback ? "Using demo location near Thompson Library" : "Simulated map location";
+  const sourceText = scanMethod === "qr"
+    ? "Scanned Table QR Anchor"
+    : target?.source === "device"
+      ? "Approximate device location"
+      : target?.usedFallback
+        ? "Using demo location near Thompson Library"
+        : "Simulated map location";
+
   return <>
     {stage === "idle" && <div className="reader-entry">
       {notice && <p role="status" className="reader-notice">{notice}</p>}
-      <button type="button" className="reader-tap-button" disabled={!readerLocation} onClick={scan}><Nfc size={24} aria-hidden="true" />Tap BuckID Reader</button>
+      <button
+        type="button"
+        className="reader-qr-button"
+        disabled={!readerLocation}
+        onClick={() => startScan("qr")}
+      >
+        <QrCode size={24} aria-hidden="true" />
+        Scan QR Code
+      </button>
+      <button
+        type="button"
+        className="reader-tap-button"
+        disabled={!readerLocation}
+        onClick={() => startScan("nfc")}
+      >
+        <Nfc size={24} aria-hidden="true" />
+        Tap BuckID Reader
+      </button>
     </div>}
-    {stage !== "idle" && <ReaderDialog key={stage} title={stage === "scanning" ? "Tap your BuckID" : stage === "existing" ? `Join ${group?.host.name.split(" ")[0] ?? "the host"}'s Group?` : "Create Group?"} onClose={cancel}>
+    {stage !== "idle" && <ReaderDialog
+      key={stage}
+      title={
+        stage === "scanning"
+          ? (scanMethod === "qr" ? "Scan Table QR Code" : "Tap your BuckID")
+          : stage === "existing"
+            ? `Join ${group?.host.name.split(" ")[0] ?? "the host"}'s Group?`
+            : "Create Group?"
+      }
+      onClose={cancel}
+    >
       {stage === "scanning" ? <div className="reader-scanning" role="status" aria-live="polite">
-        <div className="reader-animation" aria-hidden="true"><span /><span /><span /><Nfc size={42} /></div>
-        <p>Finding your table…</p>
-        <div className="reader-progress" role="progressbar" aria-label="BuckID reader progress"><span /></div>
+        <div className={`reader-animation${scanMethod === "qr" ? " is-qr-animation" : ""}`} aria-hidden="true">
+          <span />
+          <span />
+          <span />
+          {scanMethod === "qr" ? <QrCode size={42} /> : <Nfc size={42} />}
+        </div>
+        <p>{scanMethod === "qr" ? "Scanning table QR code…" : "Finding your table…"}</p>
+        <div className="reader-progress" role="progressbar" aria-label={scanMethod === "qr" ? "QR code scanner progress" : "BuckID reader progress"}>
+          <span />
+        </div>
+        {scanMethod === "qr" && tables && tables.length > 0 && (
+          <div className="reader-quick-tables" aria-label="Select table QR anchor">
+            <span className="reader-quick-tables-label">Or choose a table to scan:</span>
+            <div className="reader-quick-tables-chips">
+              {tables.slice(0, 4).map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  className="reader-quick-table-btn"
+                  onClick={() => {
+                    if (timer.current !== null) clearTimeout(timer.current);
+                    timer.current = null;
+                    const loc: DemoReaderLocation = {
+                      tableId: t.id,
+                      point: { x: t.x, y: t.y },
+                      source: "demo",
+                      usedFallback: false,
+                    };
+                    setTarget(loc);
+                    setName(`${profile.name}'s Group`);
+                    setQuery("");
+                    setCourseCode("");
+                    setInviteOnly(false);
+                    setStep(0);
+                    setStage(latest.current.groups.some((g) => g.tableId === t.id) ? "existing" : "create");
+                  }}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
         <button type="button" className="reader-secondary" onClick={cancel}>Cancel</button>
       </div> : <>
         <p className="reader-caption reader-location">{stage === "create" ? "Thompson Library · Level 1" : sourceText} · {table?.label}</p>

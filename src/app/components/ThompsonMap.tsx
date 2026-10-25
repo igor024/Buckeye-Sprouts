@@ -400,7 +400,27 @@ export function ThompsonMap({
               <button type="button" className="group-carmen-trigger" onClick={() => setCarmenOpen(true)} aria-label="Open Carmen study suggestions" title="Carmen study suggestions">
                 <Star size={18} className="fill-amber-300" />
               </button>
-              <button type="button" className="group-leave-button" onClick={() => dispatchGroup({ type: "leave", profileId: viewer.id })}>Leave group</button>
+              <button
+                type="button"
+                className="group-leave-button"
+                onClick={() => {
+                  if (activeGroup) {
+                    fetch("/api/map/groups", {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ action: "leave", sessionId: activeGroup.id, profileId: viewer.id, tableId: activeGroup.tableId }),
+                    })
+                      .then((r) => r.json())
+                      .then((data) => {
+                        if (data?.groups) dispatchGroup({ type: "sync-from-db", groups: data.groups });
+                      })
+                      .catch(() => {});
+                  }
+                  dispatchGroup({ type: "leave", profileId: viewer.id });
+                }}
+              >
+                Leave group
+              </button>
             </div>}
             {tab === "notes" && <button type="button" className="notes-new-button" onClick={() => { setExpanded(true); window.dispatchEvent(new CustomEvent("buckeye:open-new-note")); }} aria-label="Create a new group note" title="New note"><Plus size={18} /></button>}
           </div>
@@ -418,7 +438,21 @@ export function ThompsonMap({
           {tab === "join" && activeGroup && <CurrentGroupPanel
             group={activeGroup} table={tables.find((table) => table.id === activeGroup.tableId)!} profileId={viewer.id} notice={groupState.notice}
             onInvite={(profileId) => dispatchGroup({ type: "invite", profileId, hostId: viewer.id })}
-            onGpsLeave={() => dispatchGroup({ type: "leave", profileId: viewer.id, gps: true })}
+            onGpsLeave={() => {
+              if (activeGroup) {
+                fetch("/api/map/groups", {
+                  method: "PATCH",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ action: "leave", sessionId: activeGroup.id, profileId: viewer.id, tableId: activeGroup.tableId }),
+                })
+                  .then((r) => r.json())
+                  .then((data) => {
+                    if (data?.groups) dispatchGroup({ type: "sync-from-db", groups: data.groups });
+                  })
+                  .catch(() => {});
+              }
+              dispatchGroup({ type: "leave", profileId: viewer.id, gps: true });
+            }}
             onEnd={() => {
               endSessionInSupabase(activeGroup.id, activeGroup.tableId);
               dispatchGroup({ type: "end", hostId: viewer.id });
@@ -436,7 +470,12 @@ export function ThompsonMap({
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ action: "join", sessionId: groupId, profileId: viewer.id }),
-          }).catch(() => {});
+          })
+            .then((r) => r.json())
+            .then((data) => {
+              if (data?.groups) dispatchGroup({ type: "sync-from-db", groups: data.groups });
+            })
+            .catch(() => {});
           dispatchGroup({ type: "join", groupId, profile: viewer, now: Date.now() });
         }}
         onCreate={async (input) => {
