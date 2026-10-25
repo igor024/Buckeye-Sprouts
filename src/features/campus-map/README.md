@@ -12,7 +12,34 @@ The local East Entrance floor SVG stays embedded over Thompson as a schematic 80
 
 Device location is requested after the location disclosure and stays in page memory. Out-of-area positions do not recenter the map. GPS does not verify indoor presence. Outside the schematic floor bounds, the reader explicitly falls back to simulated table 110-1; **Simulate location** uses the same anchor. Permission failure stops the GPS watcher and preserves the demo workflow. The local floor SVG remains a PWA asset for offline use.
 
-Validation:
+## Running the Application
+
+### 1. Install Dependencies
+```sh
+npm install
+```
+
+### 2. Start the Development Server
+```sh
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser. (On Windows PowerShell, use `npm.cmd` if script execution policy blocks `npm.ps1`).
+
+### 3. Production Build & Start
+```sh
+npm run build
+npm start
+```
+
+If Turbopack cannot bind its compilation worker port in the execution environment, build using webpack:
+```sh
+npm run build -- --webpack
+```
+
+## Validation & Testing
+
+Run unit tests and verification checks:
 
 ```sh
 node src/features/campus-map/geographic-map.test.mjs
@@ -21,5 +48,3 @@ npm run check:foundation
 npm run typecheck
 npm run build
 ```
-
-If Turbopack cannot bind its compilation worker port in the execution environment, validate the production build with `npm run build -- --webpack`.

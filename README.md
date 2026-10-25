@@ -40,6 +40,8 @@ Replace each adapter within its own workstream when ready. Never use a service-r
 key in a `NEXT_PUBLIC_` variable.
 
 ```sh
+node src/features/campus-map/geographic-map.test.mjs
+node scripts/check-group-demo.mjs
 npm run check:foundation
 npm run typecheck
 npm run build
@@ -47,6 +49,8 @@ npm start
 # In another terminal, with the server running:
 npm run smoke
 ```
+
+If Turbopack cannot bind its compilation worker port in your execution environment, build using webpack: `npm run build -- --webpack`.
 
 `smoke` checks dashboard/session rendering, locked-session privacy, unknown-session
 404s, API validation, mock AI streaming, and the 501 room-booking stub. Set
