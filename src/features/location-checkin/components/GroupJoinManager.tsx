@@ -6,6 +6,9 @@ import { ArrowLeft, Nfc, QrCode, Search, X } from "lucide-react";
 import { GroupRoster } from "@/app/components/GroupRoster";
 import { DEMO_GROUP_COURSES, DEMO_READER_DELAY_MS, MOCK_PROFILES, type DemoCreateGroupInput, type DemoReaderLocation, type DemoStudyGroup, type ProfilePreview, type ThompsonTable } from "@/types/contracts";
 import { canJoinDemoGroup } from "../group-demo";
+import { TableQrCamera } from "./TableQrCamera";
+
+type ReaderTarget = Omit<DemoReaderLocation, "source"> & { source: DemoReaderLocation["source"] | "qr" };
 
 function ReaderDialog({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
   const titleId = useId();
@@ -22,7 +25,7 @@ function ReaderDialog({ title, onClose, children }: { title: string; onClose: ()
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") close.current();
       if (event.key !== "Tab") return;
-      const items = panel.current?.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), [tabindex="0"]');
+      const items = panel.current?.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select:not(:disabled), [tabindex="0"]');
       if (!items?.length) return;
       const first = items[0], last = items[items.length - 1];
       if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
@@ -43,22 +46,30 @@ interface GroupJoinManagerProps {
   visible: boolean; profile: ProfilePreview; groups: DemoStudyGroup[];
   activeGroup: DemoStudyGroup | null; tables: readonly ThompsonTable[];
   readerLocation: DemoReaderLocation | null; notice: string;
+  linkedTableId?: string | null; onTableLinkOpened?: () => void;
   onStart: () => void; onJoin: (id: string) => void; onCreate: (input: DemoCreateGroupInput) => void;
 }
 
 /** No sheet is opened until a reader result has been explicitly confirmed. */
-export function GroupJoinManager({ visible, profile, groups, activeGroup, tables, readerLocation, notice, onStart, onJoin, onCreate }: GroupJoinManagerProps) {
+export function GroupJoinManager({ visible, profile, groups, activeGroup, tables, readerLocation, notice, linkedTableId, onTableLinkOpened, onStart, onJoin, onCreate }: GroupJoinManagerProps) {
   const [stage, setStage] = useState<"idle" | "scanning" | "existing" | "create">("idle");
   const [scanMethod, setScanMethod] = useState<"nfc" | "qr">("qr");
-  const [target, setTarget] = useState<DemoReaderLocation | null>(null);
+  const [target, setTarget] = useState<ReaderTarget | null>(null);
   const [step, setStep] = useState(0);
   const [name, setName] = useState(`${profile.name}'s Group`);
   const [query, setQuery] = useState("");
   const [courseCode, setCourseCode] = useState("");
   const [inviteOnly, setInviteOnly] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const latest = useRef({ readerLocation, groups });
-  latest.current = { readerLocation, groups };
+  const latest = useRef({ readerLocation, groups, tables });
+  latest.current = { readerLocation, groups, tables };
+  const openedLink = useRef<string | null>(null);
+  const openLocation = useCallback((location: ReaderTarget) => {
+    if (timer.current !== null) clearTimeout(timer.current);
+    timer.current = null;
+    setTarget(location); setName(`${profile.name}'s Group`); setQuery(""); setCourseCode(""); setInviteOnly(false); setStep(0);
+    setStage(latest.current.groups.some((group) => group.tableId === location.tableId) ? "existing" : "create");
+  }, [profile.name]);
   const cancel = useCallback(() => {
     if (timer.current !== null) clearTimeout(timer.current);
     timer.current = null; setStage("idle"); setTarget(null);
@@ -66,17 +77,37 @@ export function GroupJoinManager({ visible, profile, groups, activeGroup, tables
   useEffect(() => { if (!visible || activeGroup) cancel(); }, [visible, activeGroup, cancel]);
   useEffect(() => () => { if (timer.current !== null) clearTimeout(timer.current); }, []);
 
+  useEffect(() => {
+    if (!linkedTableId) { openedLink.current = null; return; }
+    if (!visible || openedLink.current === linkedTableId) return;
+    const table = latest.current.tables.find((item) => item.id === linkedTableId);
+    if (!table) return;
+    openedLink.current = linkedTableId;
+    if (!activeGroup) {
+      setScanMethod("qr");
+      openLocation({ tableId: table.id, point: { x: table.x, y: table.y }, source: "qr", usedFallback: false });
+    }
+    onTableLinkOpened?.();
+  }, [linkedTableId, visible, activeGroup, openLocation, onTableLinkOpened]);
+
+  // Resolve against current data if a group appears or disappears while the form is open.
+  useEffect(() => {
+    if (!target || stage === "idle" || stage === "scanning") return;
+    const exists = groups.some((group) => group.tableId === target.tableId);
+    setStage(exists ? "existing" : "create");
+  }, [groups, target, stage]);
+
   function startScan(method: "nfc" | "qr") {
-    if (timer.current !== null || stage !== "idle" || !readerLocation) return;
+    if (timer.current !== null || stage !== "idle" || (method === "nfc" && !readerLocation)) return;
     setScanMethod(method);
     onStart();
     setStage("scanning");
+    if (method === "qr") return;
     timer.current = setTimeout(() => {
       timer.current = null;
       const location = latest.current.readerLocation;
       if (!location) { setStage("idle"); return; }
-      setTarget(location); setName(`${profile.name}'s Group`); setQuery(""); setCourseCode(""); setInviteOnly(false); setStep(0);
-      setStage(latest.current.groups.some((group) => group.tableId === location.tableId) ? "existing" : "create");
+      openLocation(location);
     }, DEMO_READER_DELAY_MS);
   }
 
@@ -99,7 +130,6 @@ export function GroupJoinManager({ visible, profile, groups, activeGroup, tables
       <button
         type="button"
         className="reader-qr-button"
-        disabled={!readerLocation}
         onClick={() => startScan("qr")}
       >
         <QrCode size={24} aria-hidden="true" />
@@ -126,50 +156,19 @@ export function GroupJoinManager({ visible, profile, groups, activeGroup, tables
       }
       onClose={cancel}
     >
-      {stage === "scanning" ? <div className="reader-scanning" role="status" aria-live="polite">
-        <div className={`reader-animation${scanMethod === "qr" ? " is-qr-animation" : ""}`} aria-hidden="true">
+      {stage === "scanning" ? <div className="reader-scanning">
+        {scanMethod === "qr" ? <TableQrCamera /> : <>
+        <div className="reader-animation" aria-hidden="true">
           <span />
           <span />
           <span />
-          {scanMethod === "qr" ? <QrCode size={42} /> : <Nfc size={42} />}
+          <Nfc size={42} />
         </div>
-        <p>{scanMethod === "qr" ? "Scanning table QR code…" : "Finding your table…"}</p>
-        <div className="reader-progress" role="progressbar" aria-label={scanMethod === "qr" ? "QR code scanner progress" : "BuckID reader progress"}>
+        <p role="status">Finding your table…</p>
+        <div className="reader-progress" role="progressbar" aria-label="BuckID reader progress">
           <span />
         </div>
-        {scanMethod === "qr" && tables && tables.length > 0 && (
-          <div className="reader-quick-tables" aria-label="Select table QR anchor">
-            <span className="reader-quick-tables-label">Or choose a table to scan:</span>
-            <div className="reader-quick-tables-chips">
-              {tables.slice(0, 4).map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  className="reader-quick-table-btn"
-                  onClick={() => {
-                    if (timer.current !== null) clearTimeout(timer.current);
-                    timer.current = null;
-                    const loc: DemoReaderLocation = {
-                      tableId: t.id,
-                      point: { x: t.x, y: t.y },
-                      source: "demo",
-                      usedFallback: false,
-                    };
-                    setTarget(loc);
-                    setName(`${profile.name}'s Group`);
-                    setQuery("");
-                    setCourseCode("");
-                    setInviteOnly(false);
-                    setStep(0);
-                    setStage(latest.current.groups.some((g) => g.tableId === t.id) ? "existing" : "create");
-                  }}
-                >
-                  {t.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+        </>}
         <button type="button" className="reader-secondary" onClick={cancel}>Cancel</button>
       </div> : <>
         <p className="reader-caption reader-location">{stage === "create" ? "Thompson Library · Level 1" : sourceText} · {table?.label}</p>

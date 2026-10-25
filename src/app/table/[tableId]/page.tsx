@@ -1,4 +1,5 @@
-import { TableRoutingView } from "./TableRoutingView";
+import { notFound, redirect } from "next/navigation";
+import { tableGroupHref } from "@/lib/table-qr";
 
 export default async function TablePage({
   params,
@@ -6,11 +7,7 @@ export default async function TablePage({
   params: Promise<{ tableId: string }>;
 }) {
   const { tableId } = await params;
-  const decodedId = decodeURIComponent(tableId);
-
-  return (
-    <main id="main" className="site-width min-h-[80vh] flex flex-col justify-center">
-      <TableRoutingView tableId={decodedId} />
-    </main>
-  );
+  const destination = tableGroupHref(tableId);
+  if (!destination) notFound();
+  redirect(destination);
 }

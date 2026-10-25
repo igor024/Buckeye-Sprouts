@@ -1,82 +1,61 @@
 # BuckeyeStudy — Physical Table QR Code Architecture & Generation Guide
 
-This guide describes how the physical table QR code anchoring system works in **BuckeyeStudy**, how it automatically routes students into study groups, prompts sign-in, enables 1-click group creation when tables are empty, and how to print/generate QR code anchors for campus deployment.
+This guide describes the physical table QR anchors, live in-app camera scanner, routing into the main page's Group tab, and printing QR codes for campus deployment.
 
 ---
 
 ## 1. System Overview & The Physical-to-Digital Bridge
 
-Instead of forcing students to open a browser, search through a crowded list, or reserve empty rooms hours in advance, BuckeyeStudy anchors each physical library table with a deterministic QR code:
+Each physical library table has a deterministic QR anchor. Students can scan it with their phone's camera or with **Group > Scan QR Code** inside BuckeyeStudy:
 
+```text
+Physical table QR sticker / live camera scanner
+  -> /table/150b-1 (or /qr/150b-1)
+  -> /?tab=join&table=150b-1
+  -> Main page, Group tab, exact table selected
+     -> Occupied: inspect the group and explicitly choose Join group
+     -> Empty: create a group with the table already locked in
 ```
-[ Physical Table QR Sticker ]
-            │ (Phone Camera Scan)
-            ▼
-   https://<domain>/table/150b-1  (Skips Main Screen)
-            │
-            ├─► User NOT signed in?
-            │     └─► Prompt Ohio State Sign-In (or 1-Click Demo Login)
-            │
-            ▼ (Authenticated)
-   Does an active study group exist at this table?
-            │
-            ├─► YES (e.g. Table 150b-1 is busy):
-            │     └─► Auto-redirect directly into `/session/[id]`!
-            │
-            └─► NO (e.g. Table 150a-1 is open):
-                  └─► Prompt Study Group Creation with location PRE-FILLED!
-                        • Library: Thompson Library
-                        • Table ID: 150a-1 (Auto-Anchored)
-                        • Floor: Floor 1
-                        • Room/Area: Room 150A (Table 1)
-```
+
+Scanning selects a table; it does not join a group, record a check-in, or bypass an invitation. The existing profile and demo fallback behavior remains available on the main page.
 
 ---
 
 ## 2. URL Scheme Specification
 
-Every physical QR code sticker must be encoded with a URL following this pattern:
+Printed QR codes continue to use these URLs; existing stickers do not need to be regenerated:
 
 | Environment | Primary URL | Shorthand Alias |
 | :--- | :--- | :--- |
 | **Production** | `https://<your-domain>/table/<tableId>` | `https://<your-domain>/qr/<tableId>` |
 | **Local Development** | `http://localhost:3000/table/<tableId>` | `http://localhost:3000/qr/<tableId>` |
 
-### Examples:
-- Table 1 in Room 150B: `https://buckeyestudy.osu.edu/table/150b-1`
-- Table 4 in Room 110: `https://buckeyestudy.osu.edu/table/110-4`
-- Table 12 in Room 140: `https://buckeyestudy.osu.edu/table/140-12`
+Both routes normalize registered table IDs case-insensitively and redirect to the main page. For example, `/qr/150B-1` and `/table/150b-1` both open `/?tab=join&table=150b-1`. Unknown table IDs show the site's not-found page.
 
-> **Note:** The route automatically parses and sanitizes IDs (case-insensitive) and resolves aliases (e.g. `/qr/150b-1` redirects seamlessly to `/table/150b-1`).
+The in-app scanner accepts these URL formats and legacy JSON such as `{"libraryName":"Thompson Library","tableId":"150b-1"}`. It extracts the registered table ID and stays on the current website, even when a sticker was generated for another deployment hostname. Unrecognized codes show an inline error and leave the scanner running.
 
 ---
 
 ## 3. How the User Experience Works
 
-### A. Instant Routing (Skips the Main Screen)
-When a student scans the QR code at the table, their mobile camera immediately opens `/table/[tableId]`. The app does not load the general dashboard or study session directory.
+### A. Live Camera Scanner
 
-### B. Authentication Gate
-- If the user is unauthenticated:
-  - Displays the table header badge: `THOMPSON LIBRARY • TABLE 150B-1`.
-  - Prompts: **"Sign in to Join Table 150b-1"**.
-  - Supports standard Ohio State student login / registration.
-  - Features an **Instant 1-Click Demo Login** bar (`Alex Morgan` / `Jordan Lee`) so hackathon judges and evaluators can verify the entire workflow in seconds without creating credentials.
-  - Once signed in, the session seamlessly proceeds without redirecting away from the table.
+1. Open the **Group** tab and click **Scan QR Code**.
+2. Allow camera access. A live preview opens, preferring the rear camera on phones.
+3. Point the camera at a table sticker. Once decoded, the camera stops and the main page opens that exact table's join/create dialog.
 
-### C. Automatic Group Routing vs. Pre-Filled Creation
-- **Occupied Table (Active Group Found):**
-  - Displays the active course code (e.g., `CSE 2221`), topic title, host name, and seat count.
-  - Automatically routes the student into `/session/[sessionId]` within 2 seconds.
-- **Open / Empty Table (No Active Group):**
-  - Shows: **"Table 150a-1 is Available • Ready to Host"**.
-  - Displays the creation form with all location data **automatically locked and pre-filled**:
-    - **Venue:** `Thompson Library`
-    - **Table ID:** `150a-1`
-    - **Floor:** `Floor 1`
-    - **Zone:** `Room 150A (Table 1)`
-  - The student simply taps their course code (`CSE 2221`, `MATH 1151`, etc.), sets available seats, and clicks **"Launch Study Group at Table 150a-1"**.
-  - On submission, the table is locked in the database and the student is immediately routed to their new live session!
+Camera scanning requires **HTTPS or localhost**; a phone opening an ordinary HTTP LAN address cannot use the browser camera. Permission denial, unsupported browsers, and missing cameras show a useful error and a **Retry camera** button. Closing the dialog or changing tabs releases the camera, including when permission is still being requested. GPS permission is not required for QR scanning.
+
+### B. Table Selection and Group Actions
+
+- **Occupied table:** show the current group, host, course, and invitation restriction. Students explicitly click **Join group**; scanning does not auto-join.
+- **Empty table:** open the existing three-step creation form with the scanned table fixed. Students choose their group name, course, and invite-only setting before creating it.
+- The table link parameters are removed after opening the dialog, so closing it does not immediately reopen it. Scanning another code opens the new table through the same flow.
+- Group availability follows the current database-backed map data and its existing offline behavior.
+
+### C. Judge-Friendly Simulation
+
+The camera dialog also includes a **Demo table** selector and **Simulate Table QR Scan** button. The simulator uses the same routes and table-selection flow without needing a physical sticker or working camera. BuckID reader behavior is unchanged.
 
 ---
 

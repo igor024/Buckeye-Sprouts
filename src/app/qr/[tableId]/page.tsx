@@ -1,4 +1,5 @@
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { tableGroupHref } from "@/lib/table-qr";
 
 export default async function QrRedirectPage({
   params,
@@ -6,5 +7,7 @@ export default async function QrRedirectPage({
   params: Promise<{ tableId: string }>;
 }) {
   const { tableId } = await params;
-  redirect(`/table/${encodeURIComponent(tableId)}`);
+  const destination = tableGroupHref(tableId);
+  if (!destination) notFound();
+  redirect(destination);
 }

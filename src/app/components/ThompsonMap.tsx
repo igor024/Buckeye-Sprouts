@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent, ReactNode } from "react";
 import { BookOpen, MapPin, Plus, RotateCw, Search, Star, Users, X } from "lucide-react";
 import {
@@ -23,6 +24,7 @@ import { CarmenAiChatbot } from "@/features/notebook-ai/components/CarmenAiChatb
 import { MOCK_CARMEN_STUDENTS } from "@/features/notebook-ai/mock-carmen-data";
 import { IntegratedCampusMap } from "@/features/campus-map/components/IntegratedCampusMap";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
+import { normalizeQrTableId } from "@/lib/table-qr";
 import {
   fetchGroupsDirectFromSupabase,
   saveNotebookToSupabase,
@@ -35,17 +37,38 @@ type MapTab = "groups" | "join" | "notes" | "me";
 export function ThompsonMap({
   sessions: _sessions,
   initialGroups = [],
+  initialReaderTableId = null,
+  initialTab = "groups",
   profile,
   profilePanel,
   locationPanel: _locationPanel,
 }: {
   sessions: SessionPreview[];
   initialGroups?: DemoStudyGroup[];
+  initialReaderTableId?: string | null;
+  initialTab?: "groups" | "join";
   profile: ProfilePreview | null;
   profilePanel: ReactNode;
   locationPanel?: ReactNode;
 }) {
-  const [tab, setTab] = useState<MapTab>("groups");
+  const searchParams = useSearchParams();
+  const [tab, setTab] = useState<MapTab>(initialTab);
+  const [linkedTableId, setLinkedTableId] = useState(initialReaderTableId);
+  useEffect(() => {
+    const isTableLink = searchParams.get("tab") === "join";
+    setLinkedTableId(isTableLink ? normalizeQrTableId(searchParams.get("table")) : null);
+    if (isTableLink) {
+      setTab("join");
+      setSelectedTableId(null);
+    }
+  }, [searchParams]);
+  const consumeTableLink = useCallback(() => {
+    const url = new URL(window.location.href);
+    url.searchParams.delete("tab");
+    url.searchParams.delete("table");
+    // Consume the anchor without another server navigation replacing the open dialog.
+    window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+  }, []);
   const [tabActivations, setTabActivations] = useState<Record<MapTab, number>>({ groups: 0, join: 0, notes: 0, me: 0 });
   const [expanded, setExpanded] = useState(false);
   const [groupSheetHidden, setGroupSheetHidden] = useState(false);
@@ -461,6 +484,7 @@ export function ThompsonMap({
       </section>}
 
       <GroupJoinManager visible={tab === "join"} profile={viewer} groups={groupState.groups} activeGroup={activeGroup} tables={tables} readerLocation={readerLocation} notice={groupState.notice}
+        linkedTableId={linkedTableId} onTableLinkOpened={consumeTableLink}
         onStart={() => dispatchGroup({ type: "clear-notice" })}
         onJoin={(groupId) => {
           fetch("/api/map/groups", {

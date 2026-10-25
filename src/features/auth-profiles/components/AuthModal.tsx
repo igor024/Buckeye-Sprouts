@@ -124,9 +124,6 @@ export function AuthModal() {
               <h2 id="auth-modal-title" className="text-base font-bold tracking-tight">
                 Buckeye<span className="text-red-200">Study</span> Sign In
               </h2>
-              <p className="text-[11px] text-red-100 flex items-center gap-1.5 mt-0.5">
-                <Database size={11} /> Real Supabase Database (Vercel)
-              </p>
             </div>
           </div>
           <button
@@ -147,11 +144,10 @@ export function AuthModal() {
               setMode("signin");
               setError(null);
             }}
-            className={`flex-1 py-3 text-xs font-semibold text-center transition border-b-2 ${
-              mode === "signin"
+            className={`flex-1 py-3 text-xs font-semibold text-center transition border-b-2 ${mode === "signin"
                 ? "border-red-800 text-red-800 bg-white"
                 : "border-transparent text-stone-500 hover:text-stone-800"
-            }`}
+              }`}
           >
             Sign In
           </button>
@@ -161,11 +157,10 @@ export function AuthModal() {
               setMode("signup");
               setError(null);
             }}
-            className={`flex-1 py-3 text-xs font-semibold text-center transition border-b-2 ${
-              mode === "signup"
+            className={`flex-1 py-3 text-xs font-semibold text-center transition border-b-2 ${mode === "signup"
                 ? "border-red-800 text-red-800 bg-white"
                 : "border-transparent text-stone-500 hover:text-stone-800"
-            }`}
+              }`}
           >
             Create Account
           </button>
@@ -303,11 +298,10 @@ export function AuthModal() {
                         key={code}
                         type="button"
                         onClick={() => toggleCourse(code)}
-                        className={`text-[11px] font-semibold px-2.5 py-1 rounded-md border transition ${
-                          selected
+                        className={`text-[11px] font-semibold px-2.5 py-1 rounded-md border transition ${selected
                             ? "bg-red-800 text-white border-red-800"
                             : "bg-stone-50 text-stone-600 border-stone-200 hover:bg-stone-100"
-                        }`}
+                          }`}
                       >
                         {code}
                       </button>
