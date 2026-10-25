@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent, ReactNode } from "react";
-import { BookOpen, MapPin, Plus, RotateCw, Search, Sparkles, Star, Users, X } from "lucide-react";
+import { BookOpen, MapPin, Plus, RotateCw, Search, Star, Users, X } from "lucide-react";
 import {
   MOCK_NOTEBOOKS,
   MOCK_PROFILES,
@@ -21,6 +21,7 @@ import { GroupRoster, ProfileAvatar } from "@/app/components/GroupRoster";
 import { NotebookPanel } from "@/features/notebook-ai/components/NotebookPanel";
 import { CarmenAiChatbot } from "@/features/notebook-ai/components/CarmenAiChatbot";
 import { GroupFinderDialog } from "@/features/notebook-ai/components/GroupFinderDialog";
+import { GroupFinderMascot } from "@/features/notebook-ai/components/GroupFinderMascot";
 import { MOCK_CARMEN_STUDENTS } from "@/features/notebook-ai/mock-carmen-data";
 import { IntegratedCampusMap } from "@/features/campus-map/components/IntegratedCampusMap";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
@@ -513,7 +514,7 @@ export function ThompsonMap({
           {tab === "groups" && <>
             <div className="group-search-tools">
               <label className="map-search group-search-field"><Search size={19} aria-hidden="true" /><input type="search" value={groupQuery} onChange={(event) => setGroupQuery(event.target.value)} placeholder="Search courses, e.g. CSE 2221" aria-label="Search study groups by course number" /></label>
-              <button ref={finderButton} type="button" className="group-finder-trigger" aria-label="Ask AI to find a study group" aria-haspopup="dialog" aria-expanded={finderOpen} onClick={() => setFinderOpen(true)}><Sparkles size={18} aria-hidden="true" /><span>Ask AI</span></button>
+              <button ref={finderButton} type="button" className="group-finder-trigger" aria-label="Ask AI to find a study group" aria-haspopup="dialog" aria-expanded={finderOpen} onClick={() => setFinderOpen(true)}><GroupFinderMascot variant="trigger" /><span>Ask AI</span></button>
             </div>
             <ul className="map-group-list" aria-label="Study groups on Thompson Library Level 1">
               {visibleGroups.map(({ table, group }) => <li key={group.id}><button className="map-group-row" type="button" onClick={(event) => openTable(table, event.currentTarget)}>

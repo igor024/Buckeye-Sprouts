@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { RotateCw, Send, Sparkles, X } from "lucide-react";
+import { GroupFinderMascot } from "./GroupFinderMascot";
 import type { DemoStudyGroup } from "@/types/contracts";
 import { basicGroupMatches, conversationWindow, finderGroupsFromMap } from "../group-finder/matching";
 import { finderResponseSchema } from "../group-finder/schemas";
@@ -132,11 +133,12 @@ export function GroupFinderDialog({ isOpen, onClose, groups, onViewGroup }: Prop
       </header>
       <div className="finder-toolbar"><p>Tell me your course, topic, or how many seats you need.</p><button type="button" onClick={newChat}>New chat</button></div>
       <div ref={transcript} className="finder-transcript" role="log" aria-label="Group finder conversation" aria-live="polite">
-        {!turns.length && <div className="finder-welcome"><p>What would help you study today?</p>
+        {!turns.length && <div className="finder-welcome">
+          <div className="finder-welcome-intro"><GroupFinderMascot variant="welcome" /><div><span className="finder-welcome-label">Your Buckeye Sprouts study assistant</span><p>What would help you study today?</p></div></div>
           {['CSE 2221 recursion', 'Calculus with room for two', 'Open groups with 3 seats'].map((example) => <button type="button" key={example} onClick={() => void sendPrompt(example)}>{example}</button>)}
         </div>}
         {turns.map((turn, index) => <div key={index} className={`finder-turn finder-turn-${turn.role}`}>
-          <p className="finder-speaker">{turn.role === "user" ? "You" : turn.result?.source === "gemini" ? "Gemini" : "Basic matching"}
+          <p className="finder-speaker">{turn.role === "assistant" && <GroupFinderMascot variant="avatar" />}{turn.role === "user" ? "You" : turn.result?.source === "gemini" ? "Gemini" : "Basic matching"}
             {turn.result && <span className="finder-source">{turn.result.dataSource === "database" ? "Live groups" : "Cached map data"}</span>}
           </p>
           <p className="finder-message">{turn.content}</p>

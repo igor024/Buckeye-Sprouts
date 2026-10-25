@@ -1,6 +1,10 @@
 .group-search-tools { display: flex; align-items: stretch; gap: 8px; }
 .group-search-tools .group-search-field { flex: 1; min-width: 0; }
-.group-finder-trigger { display: inline-flex; align-items: center; justify-content: center; gap: 6px; flex-shrink: 0; min-height: 44px; padding: 8px 12px; border: 1px solid #ba0c2f; border-radius: 12px; background: #fff6f8; color: #9b1631; font: inherit; font-size: 14px; font-weight: 650; cursor: pointer; }
+.finder-mascot { display: block; height: auto; flex-shrink: 0; object-fit: contain; }
+.finder-mascot-trigger { width: 27px; }
+.finder-mascot-welcome { width: 100px; }
+.finder-mascot-avatar { width: 24px; }
+.group-finder-trigger { display: inline-flex; align-items: center; justify-content: center; gap: 6px; flex-shrink: 0; min-height: 44px; padding: 4px 12px; border: 1px solid #ba0c2f; border-radius: 12px; background: #fff6f8; color: #9b1631; font: inherit; font-size: 14px; font-weight: 650; cursor: pointer; }
 .finder-backdrop { z-index: 65; }
 .finder-dialog { display: flex; flex-direction: column; width: min(100%, 580px); height: min(700px, 100%); padding: 18px; overflow: hidden; background-image: var(--paper-grid); background-size: var(--paper-grid-size) var(--paper-grid-size); }
 .finder-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-shrink: 0; }
@@ -13,6 +17,9 @@
 .finder-transcript { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 2px 3px 12px; scrollbar-width: thin; }
 .finder-welcome { display: grid; justify-items: start; gap: 10px; margin-top: 16px; }
 .finder-welcome p { margin: 0 0 4px; color: #3f4443; font-weight: 600; }
+.finder-welcome-intro { display: flex; align-items: center; gap: 16px; margin-bottom: 8px; }
+.finder-welcome-intro > div { min-width: 0; }
+.finder-welcome-label { display: block; margin-bottom: 8px; color: #9b1631; font-size: 12px; line-height: 1.4; }
 .finder-welcome button { min-height: 42px; padding: 9px 12px; border: 1px solid #d5dcda; border-radius: 12px; background: #fff; color: #3f4443; font: inherit; font-size: 13px; text-align: left; cursor: pointer; }
 .finder-turn { margin: 12px 0 18px; }
 .finder-turn-user { margin-left: 32px; padding: 12px; border-radius: 15px 15px 3px 15px; background: #f9e7eb; }
