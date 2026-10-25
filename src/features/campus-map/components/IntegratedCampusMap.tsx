@@ -6,7 +6,6 @@ import { createPortal } from "react-dom";
 import {
   CAMPUS_MAP_ARTWORK_SIZE,
   CAMPUS_MAP_BUILDINGS,
-  CAMPUS_MAP_DEMO_LOCATION,
   CAMPUS_MAP_GEO_BOUNDS,
   CAMPUS_MAP_LANDMARKS,
   CAMPUS_MAP_ZOOM_LIMITS,
@@ -282,14 +281,6 @@ export function IntegratedCampusMap({
     }
   }, [showLibraryPlan, viewportSize]);
 
-  const simulateLocation = () => {
-    stopLocationWatch();
-    setUserPoint(CAMPUS_MAP_DEMO_LOCATION);
-    setLocationState("demo");
-    setLocationMessage("Demo location shown near Thompson Library.");
-    setView((current) => clampMapView({ ...current, x: 0, y: 0 }, viewportSize, showLibraryPlan));
-  };
-
   const requestLocation = () => {
     setShowDisclosure(false);
     setLocationMessage("");
@@ -495,7 +486,6 @@ export function IntegratedCampusMap({
           <button type="button" aria-label="Zoom out" disabled={view.scale <= CAMPUS_MAP_ZOOM_LIMITS.minScale} onClick={() => changeZoom(.8)}><Minus size={18} /></button>
         </div>
         <button type="button" className="integrated-recenter" aria-label="Recenter campus map" onClick={resetMap}><LocateFixed size={17} /></button>
-        <button type="button" className="integrated-demo-location" onClick={simulateLocation}>Simulate location</button>
       </div>
 
       {locationMessage && <div className={`integrated-location-status status-${locationState}`} role="status"><span />{locationMessage}</div>}
