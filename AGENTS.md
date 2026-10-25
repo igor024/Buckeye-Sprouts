@@ -307,10 +307,592 @@ Before finishing a workstream or pushing code, run the following verification ch
 3. **Fallback Resiliency:**
    Disconnect internet/invalidate API keys. The app must remain operable in "Mock Demo Mode" without crashing.
 
-4. **HackOHIO Rubric Compliance Checklist:**
-   - [ ] **Innovation (5/5):** Challenges static booking systems with real-time peer discovery, physical table binding, and crowd visuals.
-   - [ ] **Curiosity (5/5):** Implements ambient AI discovery and mathematical geofencing to answer novel questions on peer proximity and study anxiety.
-   - [ ] **Communications (5/5):** Interactive Scarlet & Gray UI with 1-click simulation toggles for judges (GPS, BuckID scan, room booking).
-   - [ ] **Breadth & Complexity (5/5):** Fuses optics (barcodes), spatial math (Haversine), cognitive science (peer pedagogy), and a 10x multi-campus scalability plan.
-   - [ ] **Impact (5/5):** Directly addresses library seat hoarding and study group isolation for 65,000+ Ohio State students.
-   - [ ] **Navigating Challenges (5/5):** Explicitly documents pivots on encrypted NFC hardware, indoor GPS drift, and resilient offline fallbacks.
+310: 4. **HackOHIO Rubric Compliance Checklist:**
+311:    - [ ] **Innovation (5/5):** Challenges static booking systems with real-time peer discovery, physical table binding, and crowd visuals.
+312:    - [ ] **Curiosity (5/5):** Implements ambient AI discovery and mathematical geofencing to answer novel questions on peer proximity and study anxiety.
+313:    - [ ] **Communications (5/5):** Interactive Scarlet & Gray UI with 1-click simulation toggles for judges (GPS, BuckID scan, room booking).
+314:    - [ ] **Breadth & Complexity (5/5):** Fuses optics (barcodes), spatial math (Haversine), cognitive science (peer pedagogy), and a 10x multi-campus scalability plan.
+315:    - [ ] **Impact (5/5):** Directly addresses library seat hoarding and study group isolation for 65,000+ Ohio State students.
+316:    - [ ] **Navigating Challenges (5/5):** Explicitly documents pivots on encrypted NFC hardware, indoor GPS drift, and resilient offline fallbacks.
+
+---
+
+## 6. Complete Database Schema, Data Formats & Frontend Integration Guide
+
+This section is the definitive, authoritative reference for any agent or frontend developer connecting UI components to live database state in BuckeyeStudy.
+
+---
+
+### 6.1 Database Infrastructure & Environment Variables
+
+BuckeyeStudy runs on **PostgreSQL hosted via Supabase** with Row-Level Security (RLS) enabled. The application supports dual operational modes:
+1. **Persistent Mode (Live Supabase)**: Real PostgreSQL queries and server actions when `.env.local` contains valid Supabase credentials.
+2. **Mock Demo Mode (Offline Resilient)**: In-memory fallback stores (`mockStore` in `@/lib/supabase.ts`) when API keys are absent or network requests fail.
+
+#### Environment Variables (`.env.local`)
+| Variable | Environment | Scope / Role | Security Directives |
+| :--- | :--- | :--- | :--- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Client & Server | Supabase project API base URL (e.g. `https://<id>.supabase.co`) | Safe to expose in public client bundles. |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Client & Server | Public anonymous API key | Subject to RLS policies. Grants read access to public map tables (`profiles`, `study_sessions`, `join_requests`, `check_ins`, `shared_notebooks`, `room_ids`, `library_geofences`). |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server Only (`server-only`) | Administrative bypass key | **Strictly Server-Only**. Used inside API route handlers (`/api/map/groups`, `/api/sessions`, etc.) for write operations and foreign key resolution. **Never leak to browser bundles.** |
+| `POSTGRES_URL` / `POSTGRES_URL_NON_POOLING` | Scripts / Migrations | Direct PostgreSQL connection strings | Used by migration runner scripts (`scripts/apply-*.js`). |
+| `BUCKEYSTUDY_DEMO_MODE` | Server & Scripts | Optional toggle (`"true"`) | Forces local demo fixtures regardless of Supabase configuration. |
+
+#### Client SDK Helpers
+- **Browser Client (`@/lib/supabase-browser.ts`)**: `getSupabaseBrowserClient()`  
+  Initializes a cached singleton Supabase client using `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`. Use this for direct browser reads, table lookups, and Supabase Realtime channel subscriptions.
+- **Admin Server Client (`@/lib/supabase-admin.ts`)**: `getSupabaseAdminClient()`  
+  Initializes a privileged server client using `SUPABASE_SERVICE_ROLE_KEY`. Uses Next.js `server-only` to guarantee zero leakage into client bundles.
+- **Configuration Validator (`@/lib/supabase.ts`)**: `isSupabaseConfigured`  
+  Boolean flag (`Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)`). Always check this flag before executing client-side Supabase network requests to ensure graceful fallback.
+
+---
+
+### 6.2 Complete Database Tables Catalog & Column Specifications
+
+The database schema comprises **10 relational tables**, **1 storage bucket**, and **3 stored SQL functions**.
+
+#### Table 1: `public.profiles`
+Represents student identities. Every profile corresponds to an identity in Supabase `auth.users`.
+| Column | Type | Constraints / Defaults | Description |
+| :--- | :--- | :--- | :--- |
+| `id` | `uuid` | `PRIMARY KEY`, references `auth.users(id) ON DELETE CASCADE` | Student UUID. **All foreign keys reference this UUID.** |
+| `name` | `text` | `NOT NULL`, `check (char_length(name) between 1 and 120)` | Full student name (e.g., "Alex Morgan", "Sam Patel"). |
+| `avatar_url` | `text` | `NOT NULL DEFAULT ''` | URL to student avatar image (empty string falls back to SVG initials badge). |
+| `major` | `text` | `NOT NULL DEFAULT ''` | Department / major (e.g., "Computer Science & Engineering"). |
+| `current_courses` | `text[]` | `NOT NULL DEFAULT '{}'` | Array of enrolled course codes (e.g., `["CSE 2221", "MATH 1151"]`). |
+| `bio` | `text` | `NOT NULL DEFAULT ''` | Brief bio or academic interests. |
+| `created_at` | `timestamptz` | `NOT NULL DEFAULT now()` | Registration timestamp. |
+
+#### Table 2: `public.profile_identities`
+Internal identity linkage. **Backend only — no browser grants.**
+| Column | Type | Constraints / Defaults | Description |
+| :--- | :--- | :--- | :--- |
+| `user_id` | `uuid` | `PRIMARY KEY`, references `public.profiles(id) ON DELETE CASCADE` | Associated student profile. |
+| `buck_id_hash` | `text` | `NOT NULL UNIQUE` | Cryptographic hash of optical 1D barcode scan. Raw scans are never stored. |
+| `verified_at` | `timestamptz` | `NOT NULL DEFAULT now()` | Verification timestamp. |
+
+#### Table 3: `public.study_sessions`
+Active and scheduled study sessions tied to physical locations.
+| Column | Type | Constraints / Defaults | Description |
+| :--- | :--- | :--- | :--- |
+| `id` | `uuid` | `PRIMARY KEY DEFAULT gen_random_uuid()` | Unique study session UUID. |
+| `host_id` | `uuid` | `NOT NULL`, references `public.profiles(id)` | Current host of the study session. |
+| `title` | `text` | `NOT NULL`, `check (char_length(title) between 1 and 160)` | Display title (e.g., "Recursion & Components Study", "Alex's Group"). |
+| `subtitle` | `text` | `NOT NULL DEFAULT ''` | Focus topic or description (e.g., "Working through software components"). |
+| `course_code` | `text` | `NOT NULL` | Course code (e.g., "CSE 2221", "MATH 1151", "CSE 2321"). |
+| `library_name` | `text` | `NOT NULL` | Building name (e.g., "Thompson Library", "18th Avenue Library"). |
+| `floor` | `text` | `NULLABLE` | Library level (e.g., "Level 1", "Floor 3"). |
+| `zone` | `text` | `NULLABLE` | Area description or table cluster (e.g., "Table 110-1", "East study area"). |
+| `table_id` | `text` | `NULLABLE` (Added in Migration 0008) | **Direct physical table anchor ID** (e.g., "110-1", "140-1", "165-1"). Fast indexed lookup. |
+| `total_seats` | `integer` | `NOT NULL DEFAULT 4`, `check (total_seats > 0)` | Table seat capacity. |
+| `available_seats` | `integer` | `NOT NULL DEFAULT 3`, `check (available_seats >= 0 and available_seats <= total_seats)` | Open seats remaining. |
+| `requires_approval` | `boolean` | `NOT NULL DEFAULT true` | If `true`, joining requires host review (invite-only). If `false`, open table. |
+| `status` | `text` | `NOT NULL DEFAULT 'scheduled'`, `check (status in ('scheduled', 'active', 'closed'))` | Live active sessions have `status = 'active'`. |
+| `scheduled_for` | `timestamptz` | `NULLABLE` | Future start time if `status = 'scheduled'`. |
+| `ai_topic_tags` | `text[]` | `NOT NULL DEFAULT '{}'` | Extracted concepts for ambient topic search. |
+| `created_at` | `timestamptz` | `NOT NULL DEFAULT now()` | Session creation timestamp. |
+
+#### Table 4: `public.room_ids`
+Physical table and room anchors for interactive SVG floor plans.
+| Column | Type | Constraints / Defaults | Description |
+| :--- | :--- | :--- | :--- |
+| `id` | `text` | `PRIMARY KEY` | Table ID matching SVG rectangles (e.g., "110-1", "140-1", "165-1"). |
+| `library_name` | `text` | `NOT NULL DEFAULT 'Thompson Library'` | Associated library facility. |
+| `active_session_id` | `uuid` | `NULLABLE`, references `public.study_sessions(id) ON DELETE SET NULL` | Pointer to the active session occupying this table. `NULL` if table is empty. |
+| `created_at` | `timestamptz` | `NOT NULL DEFAULT now()` | Registration timestamp. |
+
+#### Table 5: `public.session_private_details`
+Protected location coordinates and surroundings photo. Access restricted to approved members.
+| Column | Type | Constraints / Defaults | Description |
+| :--- | :--- | :--- | :--- |
+| `session_id` | `uuid` | `PRIMARY KEY`, references `public.study_sessions(id) ON DELETE CASCADE` | Associated study session. |
+| `table_id` | `text` | `NOT NULL` | Anchor table ID. |
+| `surroundings_photo_path` | `text` | `NOT NULL DEFAULT ''` | Path inside the `surroundings` Supabase Storage bucket. |
+| `gps_lat` | `float8` | `NOT NULL`, `check (gps_lat between -90 and 90)` | WGS84 latitude coordinate. |
+| `gps_lng` | `float8` | `NOT NULL`, `check (gps_lng between -180 and 180)` | WGS84 longitude coordinate. |
+
+#### Table 6: `public.join_requests`
+Membership requests and approved roster.
+| Column | Type | Constraints / Defaults | Description |
+| :--- | :--- | :--- | :--- |
+| `id` | `uuid` | `PRIMARY KEY DEFAULT gen_random_uuid()` | Unique request ID. |
+| `session_id` | `uuid` | `NOT NULL`, references `public.study_sessions(id) ON DELETE CASCADE` | Target study session. |
+| `requester_id` | `uuid` | `NOT NULL`, references `public.profiles(id) ON DELETE CASCADE` | Student requesting or occupying a seat. |
+| `status` | `text` | `NOT NULL DEFAULT 'pending'`, `check (status in ('pending', 'approved', 'rejected', 'cancelled'))` | `'approved'` indicates active membership. |
+| `requested_at` | `timestamptz` | `NOT NULL DEFAULT now()` | Request timestamp. |
+
+#### Table 7: `public.check_ins`
+Real-time physical table presence tracking (who is physically sitting at each table).
+| Column | Type | Constraints / Defaults | Description |
+| :--- | :--- | :--- | :--- |
+| `id` | `uuid` | `PRIMARY KEY DEFAULT gen_random_uuid()` | Unique check-in receipt ID. |
+| `session_id` | `uuid` | `NOT NULL`, references `public.study_sessions(id) ON DELETE CASCADE` | Study session attended. |
+| `user_id` | `uuid` | `NOT NULL`, references `public.profiles(id) ON DELETE CASCADE` | Student checked in. |
+| `method` | `text` | `NOT NULL`, `check (method in ('table_qr', 'buck_id'))` | Optical check-in method used. |
+| `checked_in_at` | `timestamptz` | `NOT NULL DEFAULT now()` | Check-in timestamp. |
+| `checked_out_at` | `timestamptz` | `NULLABLE`, `check (checked_out_at is null or checked_out_at >= checked_in_at)` | If `null`, student is **currently physically present at the table**. |
+
+#### Table 8: `public.shared_notebooks`
+Live collaborative Markdown notes for each session.
+| Column | Type | Constraints / Defaults | Description |
+| :--- | :--- | :--- | :--- |
+| `session_id` | `uuid` | `PRIMARY KEY`, references `public.study_sessions(id) ON DELETE CASCADE` | Associated study session. |
+| `content` | `text` | `NOT NULL DEFAULT ''` | Markdown study notes text. |
+| `last_updated_by` | `uuid` | `NOT NULL`, references `public.profiles(id)` | Profile UUID of the last editor. |
+| `ai_summary` | `text` | `NOT NULL DEFAULT ''` | AI-generated "Catch Me Up" synopsis for arriving students. |
+| `ai_suggestions` | `text[]` | `NOT NULL DEFAULT '{}'` | Socratic AI prompt suggestions. |
+| `updated_at` | `timestamptz` | `NOT NULL DEFAULT now()` | Timestamp of last note mutation. |
+| `revision` | `bigint` | `NOT NULL DEFAULT 0`, `check (revision >= 0)` | Monotonically increasing revision counter. |
+
+#### Table 9: `public.library_geofences`
+Geographic boundaries for GPS departure monitoring.
+| Column | Type | Constraints / Defaults | Description |
+| :--- | :--- | :--- | :--- |
+| `library_name` | `text` | `PRIMARY KEY` | Building name (e.g., "Thompson Library", "18th Avenue Library"). |
+| `center_lat` | `float8` | `NOT NULL`, `check (center_lat between -90 and 90)` | Center latitude (Thompson: `40.0001`, 18th Ave: `40.0025`). |
+| `center_lng` | `float8` | `NOT NULL`, `check (center_lng between -180 and 180)` | Center longitude (Thompson: `-83.0146`, 18th Ave: `-83.0092`). |
+| `radius_meters` | `float8` | `NOT NULL`, `check (radius_meters > 0)` | Geofence radius in meters (Thompson: `100`, 18th Ave: `85`). |
+| `room_ids` | `text[]` | `DEFAULT '{}'` | Array of room and table IDs within this boundary. |
+
+#### Table 10: `public.room_bookings`
+Automated room reservation webhook seam (triggered on 3-person quorum).
+| Column | Type | Constraints / Defaults | Description |
+| :--- | :--- | :--- | :--- |
+| `id` | `uuid` | `PRIMARY KEY DEFAULT gen_random_uuid()` | Unique booking record ID. |
+| `session_id` | `uuid` | `NOT NULL`, references `public.study_sessions(id) ON DELETE CASCADE` | Associated study session. |
+| `library_name` | `text` | `NOT NULL` | Target library facility. |
+| `room_id` | `text` | `NOT NULL` | Reserved group study room. |
+| `starts_at` | `timestamptz` | `NOT NULL` | Reservation start time. |
+| `ends_at` | `timestamptz` | `NOT NULL`, `check (ends_at > starts_at)` | Reservation end time. |
+| `status` | `text` | `NOT NULL DEFAULT 'pending'`, `check (status in ('pending', 'confirmed', 'unavailable', 'cancelled'))` | Booking state. |
+| `provider_booking_id` | `text` | `UNIQUE`, `NULLABLE` | External OSU LibCal booking confirmation ID. |
+| `idempotency_key` | `text` | `NOT NULL UNIQUE` | Webhook idempotency key. |
+| `created_at` | `timestamptz` | `NOT NULL DEFAULT now()` | Record creation timestamp. |
+
+#### Storage Buckets
+- **Bucket ID:** `surroundings` (`storage.buckets`)
+  - **Public:** `false` (Private storage, short-lived signed URLs generated for approved members).
+  - **File Size Limit:** 5 MB (`5242880` bytes).
+  - **Allowed MIME Types:** `image/jpeg`, `image/png`, `image/webp`.
+
+#### Stored SQL Procedures & Functions
+1. `public.lookup_active_session_by_table(p_table_id text, p_library_name text DEFAULT 'Thompson Library')`
+   - **Security:** `SECURITY DEFINER set search_path = public`
+   - **Permissions:** `GRANT EXECUTE TO anon, authenticated`
+   - **Returns:** Table row containing `session_id`, `title`, `subtitle`, `course_code`, `library_name`, `floor`, `zone`, `total_seats`, `available_seats`, `requires_approval`, `status`, `created_at`, `host_name`.
+   - **Usage:** Fast physical table QR code scan lookup.
+2. `public.is_session_host(target_session_id uuid) -> boolean`
+   - Returns `true` if `auth.uid()` matches `study_sessions.host_id`.
+3. `public.can_access_session(target_session_id uuid) -> boolean`
+   - Returns `true` if user is host or has an approved `join_requests` row.
+4. `public.handle_new_user()`
+   - Auth trigger that automatically inserts a matching row into `public.profiles` upon `auth.users` creation.
+
+---
+
+### 6.3 Security, Row-Level Security (RLS) & Anon Grants Matrix
+
+| Table | Anon Read (`anon`) | Auth Read (`authenticated`) | Auth Write (`authenticated`) | Service Role Write (`admin`) |
+| :--- | :--- | :--- | :--- | :--- |
+| `public.profiles` | **YES** (Migration 0007) | **YES** | **YES** (Own row only: `id = auth.uid()`) | **Full Access** |
+| `public.profile_identities` | NO | NO | NO (Backend only) | **Full Access** |
+| `public.study_sessions` | **YES** (status <> 'closed') | **YES** | **YES** (Host only: `host_id = auth.uid()`) | **Full Access** |
+| `public.session_private_details` | **YES** (Migration 0007) | **YES** | **YES** (Host only) | **Full Access** |
+| `public.join_requests` | **YES** (Migration 0007) | **YES** | **YES** (Insert own request, Host updates) | **Full Access** |
+| `public.check_ins` | **YES** (Migration 0009) | **YES** | **YES** (Own check-in or host) | **Full Access** |
+| `public.shared_notebooks` | **YES** (Migration 0007) | **YES** | **YES** (Approved members) | **Full Access** |
+| `public.room_ids` | **YES** (Migration 0005) | **YES** | **YES** | **Full Access** |
+| `public.library_geofences` | **YES** | **YES** | NO | **Full Access** |
+| `public.room_bookings` | NO | **YES** (Host only) | NO | **Full Access** |
+
+> [!IMPORTANT]
+> **Anonymous Read Access (Migrations 0007 & 0009):** Frontend client components using `getSupabaseBrowserClient()` can directly read `profiles`, `study_sessions`, `session_private_details`, `join_requests`, `check_ins`, and `shared_notebooks` anonymously without requiring an authenticated session.
+> All write mutations should be dispatched through Next.js API routes (`/api/map/groups`, `/api/sessions`, etc.) which utilize the privileged `getSupabaseAdminClient()`.
+
+---
+
+### 6.4 Real-Time Table Occupancy, Presence & Sprout Display Model
+
+BuckeyeStudy represents physical table occupancy visually on the interactive Thompson Library floor plan using **colored tables and decorative sprout characters**:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          study_sessions (<uuid>)                            │
+│  table_id: "140-1"                                                          │
+│  host_id: "3f962e3e-..."  ───(Host Profile: Alex Morgan)                    │
+└──────────────┬───────────────────────────────────────────────┬──────────────┘
+               │                                               │
+               ▼                                               ▼
+┌───────────────────────────────┐               ┌─────────────────────────────┐
+│         join_requests         │               │          check_ins          │
+│  session_id: <uuid>           │               │  session_id: <uuid>         │
+│  requester_id: "c8e8b31a-..." │               │  user_id: "c8e8b31a-..."    │
+│  status: 'approved'           │               │  checked_out_at: NULL       │
+│  (Member: Sam Patel)          │               │  (Currently at Table)       │
+└───────────────────────────────┘               └─────────────────────────────┘
+```
+
+#### Determining Table Occupancy
+For any table (e.g., `"140-1"`):
+1. **Active Session Anchor:** Find the session where `table_id = "140-1"` and `status = 'active'`. (Or `room_ids.active_session_id`).
+2. **The Host:** `study_sessions.host_id` -> resolve from `public.profiles`.
+3. **Approved Members:** `join_requests` where `session_id = session.id` and `status = 'approved'` -> resolve from `public.profiles`.
+4. **Physically Checked-In Users:** `check_ins` where `session_id = session.id` and `checked_out_at IS NULL` -> resolve from `public.profiles`.
+5. **Deduplication Rule:** Combine all unique users from (3) and (4) that are not the host into `group.members`.
+6. **Total Occupants:** $N = 1\text{ (Host)} + |\text{Distinct Members}|$.
+
+#### Table Status & Sprout Mapping (`THOMPSON_TABLE_SPROUT_COUNTS`)
+| Occupant Count ($N$) | Status (`ThompsonTableStatus`) | Table Color | Decorative Sprouts | Description |
+| :---: | :---: | :---: | :---: | :--- |
+| **0** (No active session) | `"empty"` | Green (`#22c55e`) | **0 Sprouts** | Table is vacant and available to be claimed. |
+| **1** (Host only) | `"busy"` | Yellow (`#eab308`) | **1 Sprout** | 1 student studying; open for peers to join. |
+| **2 or more** | `"very-busy"` | Orange (`#f97316`) | **2 Sprouts** | Active collaborative group studying together. |
+
+---
+
+### 6.5 Standardized TypeScript Contracts & Field Mapping
+
+All frontend components communicate using standard contracts defined in `src/types/contracts.ts`:
+
+#### Contract 1: `DemoStudyGroup` (The Core Interactive Map Group)
+```typescript
+export interface DemoStudyGroup {
+  id: string;                                  // UUID matching study_sessions.id
+  tableId: string;                             // e.g. "110-1", "140-1", "165-1"
+  name: string;                                // study_sessions.title
+  courseCode: string;                          // study_sessions.course_code (e.g. "CSE 2221")
+  topic: string;                               // study_sessions.subtitle
+  host: ProfilePreview;                        // Host profile object
+  members: ProfilePreview[];                   // All distinct occupants currently at table
+  inviteOnly: boolean;                         // study_sessions.requires_approval
+  invitedProfileIds: string[];                 // Array of invited student UUIDs
+  joinedAtByProfileId: Record<string, number>; // Timestamps by profile UUID
+  notebookContent: string;                     // shared_notebooks.content markdown string
+}
+```
+
+#### Contract 2: `ProfilePreview` (Safe Student Profile)
+```typescript
+export interface ProfilePreview {
+  id: string;                                  // UUID matching public.profiles.id
+  name: string;                                // Student name (e.g. "Alex Morgan")
+  avatarUrl: string;                           // Photo URL or "" for initials
+  major: string;                               // Department (e.g. "Computer Science & Engineering")
+  currentCourses: string[];                    // Array of course strings (e.g. ["CSE 2221"])
+  bio: string;                                 // Short bio
+}
+```
+
+#### Contract 3: `ThompsonTable` (Map SVG Geometry Anchor)
+```typescript
+export interface ThompsonTable {
+  id: string;                                  // "110-1", "140-1", etc.
+  label: string;                               // "Table 110-1"
+  status: "empty" | "busy" | "very-busy";      // Dynamic occupancy color state
+  x: number;                                   // Center X percentage (0-100) on floor plan SVG
+  y: number;                                   // Center Y percentage (0-100) on floor plan SVG
+  width: number;                               // Width percentage (0-100)
+  height: number;                              // Height percentage (0-100)
+  groupId?: string;                            // Points to DemoStudyGroup.id if occupied
+  showInSearch?: boolean;                      // True if group matches search query
+}
+```
+
+#### Complete Database-to-Contract Transformation Logic (`mapDbSessionToDemoGroup`)
+Found in `@/lib/map-service.ts` and `@/lib/server-groups.ts`:
+```typescript
+export function mapDbSessionToDemoGroup(row: any): DemoStudyGroup {
+  // 1. Resolve host profile
+  const hostProfile: ProfilePreview = row.profiles ? {
+    id: row.profiles.id,
+    name: row.profiles.name,
+    avatarUrl: row.profiles.avatar_url || "",
+    major: row.profiles.major || "Computer Science & Engineering",
+    currentCourses: row.profiles.current_courses || [row.course_code],
+    bio: row.profiles.bio || "",
+  } : {
+    id: row.host_id,
+    name: "Study Host",
+    avatarUrl: "",
+    major: "Computer Science & Engineering",
+    currentCourses: [row.course_code],
+    bio: "",
+  };
+
+  // 2. Resolve table ID from direct column or private details
+  const pRow = Array.isArray(row.session_private_details) ? row.session_private_details[0] : row.session_private_details;
+  const tableId = row.table_id || pRow?.table_id || "165-1";
+
+  // 3. Resolve shared notebook content
+  const nbRow = Array.isArray(row.shared_notebooks) ? row.shared_notebooks[0] : row.shared_notebooks;
+  const notebookContent = nbRow?.content || `## ${row.course_code} study notes\n[note] ${hostProfile.name} · Shared\n${row.subtitle || row.title}.`;
+
+  // 4. Merge and deduplicate members from approved join_requests and active check_ins
+  const members: ProfilePreview[] = [];
+  const seenIds = new Set<string>([hostProfile.id]);
+
+  if (Array.isArray(row.join_requests)) {
+    for (const req of row.join_requests) {
+      if (req.status === "approved" && req.profiles && !seenIds.has(req.profiles.id)) {
+        seenIds.add(req.profiles.id);
+        members.push({
+          id: req.profiles.id,
+          name: req.profiles.name,
+          avatarUrl: req.profiles.avatar_url || "",
+          major: req.profiles.major || "Buckeye Student",
+          currentCourses: req.profiles.current_courses || [row.course_code],
+          bio: req.profiles.bio || "",
+        });
+      }
+    }
+  }
+
+  if (Array.isArray(row.check_ins)) {
+    for (const checkin of row.check_ins) {
+      if (!checkin.checked_out_at && checkin.profiles && !seenIds.has(checkin.profiles.id)) {
+        seenIds.add(checkin.profiles.id);
+        members.push({
+          id: checkin.profiles.id,
+          name: checkin.profiles.name,
+          avatarUrl: checkin.profiles.avatar_url || "",
+          major: checkin.profiles.major || "Buckeye Student",
+          currentCourses: checkin.profiles.current_courses || [row.course_code],
+          bio: checkin.profiles.bio || "",
+        });
+      }
+    }
+  }
+
+  return {
+    id: row.id,
+    tableId,
+    name: row.title,
+    courseCode: row.course_code,
+    topic: row.subtitle || (Array.isArray(row.ai_topic_tags) && row.ai_topic_tags[0] ? row.ai_topic_tags.join(", ") : "Study Session"),
+    host: hostProfile,
+    members,
+    inviteOnly: Boolean(row.requires_approval),
+    invitedProfileIds: [],
+    joinedAtByProfileId: {
+      [hostProfile.id]: new Date(row.created_at || Date.now()).getTime(),
+      ...Object.fromEntries(members.map((m, idx) => [m.id, new Date(row.created_at || Date.now()).getTime() + idx + 1])),
+    },
+    notebookContent,
+  };
+}
+```
+
+---
+
+### 6.6 Complete Next.js API Routes Reference
+
+#### 1. `/api/map/groups`
+Handles the interactive floor plan study group lifecycle.
+- **`GET /api/map/groups`**
+  - **Description:** Returns all active `DemoStudyGroup[]` populated with profiles, approved members, active check-ins, and notebooks.
+  - **Headers:** `Cache-Control: no-store`
+  - **Response (200):** `DemoStudyGroup[]`
+- **`POST /api/map/groups`**
+  - **Description:** Creates a new study session at a table, records host check-in, initializes the notebook, and updates `room_ids`.
+  - **Request Body:**
+    ```json
+    {
+      "tableId": "140-2",
+      "name": "CSE 2221 Recursion Review",
+      "courseCode": "CSE 2221",
+      "inviteOnly": false,
+      "hostProfile": { "id": "11111111-...", "name": "Alex Morgan" }
+    }
+    ```
+  - **Response (201):**
+    ```json
+    { "success": true, "sessionId": "<uuid>", "groups": [...] }
+    ```
+- **`PATCH /api/map/groups`**
+  - **Description:** Executes session state transitions.
+  - **Action `join`:**
+    ```json
+    { "action": "join", "sessionId": "<uuid>", "profileId": "<uuid>" }
+    ```
+    Inserts approved `join_requests` row and active `check_ins` row (`checked_out_at: null`).
+  - **Action `leave`:**
+    ```json
+    { "action": "leave", "sessionId": "<uuid>", "profileId": "<uuid>", "tableId": "140-2" }
+    ```
+    Sets `checked_out_at = now()`, marks `join_requests` as `cancelled`. If the leaving user was the host, migrates host status to the next oldest checked-in member or closes the session if empty.
+  - **Action `notebook`:**
+    ```json
+    { "action": "notebook", "sessionId": "<uuid>", "content": "# Notes...", "profileId": "<uuid>" }
+    ```
+    Upserts `shared_notebooks.content` and timestamp.
+  - **Action `end`:**
+    ```json
+    { "action": "end", "sessionId": "<uuid>", "tableId": "140-2" }
+    ```
+    Marks session as `closed`, checks out all occupants, and clears `room_ids.active_session_id`.
+
+#### 2. `/api/tables/[tableId]`
+- **`GET /api/tables/[tableId]?library=Thompson+Library`**
+  - **Description:** Physical table QR scan resolution endpoint. Calls `lookup_active_session_by_table` RPC.
+  - **Response (200):**
+    ```json
+    {
+      "tableId": "140-1",
+      "location": { "libraryName": "Thompson Library", "floor": "Level 1", "tableNumber": "140-1" },
+      "hasActiveSession": true,
+      "sessionId": "<uuid>",
+      "hostName": "Sam Patel",
+      "session": { "id": "<uuid>", "title": "Sam's Group", "courseCode": "MATH 1151" }
+    }
+    ```
+
+#### 3. `/api/sessions`
+- **`GET /api/sessions?courseCode=CSE+2221&libraryName=Thompson+Library&status=active`**
+  - Lists sessions matching optional query filters.
+- **`POST /api/sessions`**
+  - Creates a new session from standard `createSessionSchema` (requires Bearer token or demo header).
+
+#### 4. `/api/sessions/[id]/join`
+- **`GET /api/sessions/[id]/join`**: Returns viewer's join status and full host review queue.
+- **`POST /api/sessions/[id]/join`**: Submits a join request (`pending` if approval required).
+- **`PATCH /api/sessions/[id]/join`**: Host approves or rejects request (`decision: "approved" | "rejected"`).
+
+#### 5. `/api/sessions/[id]/check-in`
+- **`GET /api/sessions/[id]/check-in`**: Returns current user's active check-in receipt.
+- **`POST /api/sessions/[id]/check-in`**: Records optical table QR or BuckID check-in.
+- **`DELETE /api/sessions/[id]/check-in`**: Checks out user from the table.
+
+#### 6. `/api/rooms/book`
+- **`POST /api/rooms/book`**: Initiates group study room reservation when 3-person quorum is reached.
+
+#### 7. `/api/ai/summarize`
+- **`POST /api/ai/summarize`**: Generates "Catch Me Up" study synthesis or ambient topic tags.
+
+#### 8. `/api/ai/feedback`
+- **`POST /api/ai/feedback`**: Streams Socratic tutoring feedback over a raw UTF-8 `ReadableStream`.
+
+---
+
+### 6.7 Frontend Connection Recipes & React State Architecture
+
+#### Recipe 1: Reading Live Table Groups from Client Components
+```typescript
+import { fetchGroupsDirectFromSupabase } from "@/lib/map-service";
+
+// Inside a React component or refresh handler:
+async function loadGroups() {
+  // Option A: Direct Supabase client query (fastest, client-side cached)
+  let groups = await fetchGroupsDirectFromSupabase();
+
+  // Option B: Fallback to Next.js API route
+  if (!groups || groups.length === 0) {
+    const res = await fetch("/api/map/groups");
+    if (res.ok) {
+      const data = await res.json();
+      groups = Array.isArray(data) ? data : data.groups;
+    }
+  }
+
+  // Update component state or dispatch to reducer:
+  dispatchGroup({ type: "sync-from-db", groups });
+}
+```
+
+#### Recipe 2: Subscribing to Realtime Database Mutations
+```typescript
+import { useEffect } from "react";
+import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
+
+export function useRealtimeTableSync(onUpdate: () => void) {
+  useEffect(() => {
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) return;
+
+    // Listen for changes to study_sessions, check_ins, and notebooks
+    const channel = supabase
+      .channel("live-table-changes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "study_sessions" }, () => onUpdate())
+      .on("postgres_changes", { event: "*", schema: "public", table: "check_ins" }, () => onUpdate())
+      .on("postgres_changes", { event: "*", schema: "public", table: "join_requests" }, () => onUpdate())
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [onUpdate]);
+}
+```
+
+#### Recipe 3: Creating a Group at a Table
+```typescript
+import { createSessionInSupabase } from "@/lib/map-service";
+
+const newGroupInput = {
+  tableId: "140-2",
+  name: "Calculus Study Circle",
+  courseCode: "MATH 1151",
+  inviteOnly: false,
+};
+
+// Calls POST /api/map/groups:
+const response = await createSessionInSupabase(newGroupInput, currentProfile);
+if (response.success) {
+  console.log("Created session UUID:", response.sessionId);
+  // Syncs the updated group list directly from database:
+  dispatchGroup({ type: "sync-from-db", groups: response.groups });
+}
+```
+
+#### Recipe 4: Joining a Table / Study Session
+```typescript
+// Calls PATCH /api/map/groups with action="join":
+const res = await fetch("/api/map/groups", {
+  method: "PATCH",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    action: "join",
+    sessionId: targetSessionId,
+    profileId: currentProfile.id,
+  }),
+});
+const data = await res.json();
+if (data.success && data.groups) {
+  dispatchGroup({ type: "sync-from-db", groups: data.groups });
+}
+```
+
+#### Recipe 5: Leaving a Table
+```typescript
+// Calls PATCH /api/map/groups with action="leave":
+await fetch("/api/map/groups", {
+  method: "PATCH",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    action: "leave",
+    sessionId: activeGroup.id,
+    profileId: currentProfile.id,
+    tableId: activeGroup.tableId,
+  }),
+});
+dispatchGroup({ type: "leave", profileId: currentProfile.id });
+```
+
+---
+
+### 6.8 Known Pitfalls & Solutions for Frontend Agents
+
+1. **Mock Profile IDs vs Supabase Foreign Keys**:
+   - `MOCK_PROFILES[0].id` is `"11111111-1111-4111-8111-111111111111"`.
+   - In Supabase, foreign keys on `study_sessions`, `join_requests`, and `check_ins` point to `public.profiles(id)` which references `auth.users(id)`.
+   - **Solution**: The API route `/api/map/groups` automatically resolves any mock UUID or student name to a valid database profile (e.g. Alex Morgan -> `3f962e3e-6507-4df4-b806-9eaba48c8443`). When building new API routes or server actions, always resolve caller profile IDs via `.eq("id", profileId).maybeSingle()` and fallback to `profiles.select("id").limit(1)`.
+
+2. **Supabase Row-Level Security (RLS) on Check-Ins**:
+   - Migration 0009 grants `SELECT ON public.check_ins TO anon;`. If querying `check_ins` from the browser, always filter for `checked_out_at IS NULL` to obtain active occupants.
+
+3. **Table ID Naming Conventions**:
+   - All Level 1 Thompson tables follow the format `"<cluster>-<index>"`, such as `"110-1"`, `"140-1"`, `"165-1"`, `"150b-1"`, etc. Always match table IDs exactly when querying or updating `room_ids` or `study_sessions.table_id`.
+
+4. **SSR vs CSR Hydration**:
+   - In `DashboardPage` (`src/app/page.tsx`), `fetchLiveMapGroups()` is called server-side and passed into `<ThompsonMap initialGroups={liveGroups} />`. Client-side components should initialize their reducer with `initialGroups` to prevent layout shift or visual flickering.
+
