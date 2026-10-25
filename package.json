@@ -7,9 +7,10 @@
   },
   "scripts": {
     "sync:rooms": "node scripts/sync-room-ids.mjs",
-    "dev": "node scripts/sync-room-ids.mjs && next dev",
-    "build": "next build",
-    "start": "node scripts/sync-room-ids.mjs && next start",
+    "sync:ethan": "node scripts/ensure-ethan-group.mjs",
+    "dev": "node scripts/sync-room-ids.mjs && node scripts/ensure-ethan-group.mjs && next dev",
+    "build": "node scripts/ensure-ethan-group.mjs && next build",
+    "start": "node scripts/sync-room-ids.mjs && node scripts/ensure-ethan-group.mjs && next start",
     "check:foundation": "node scripts/check-foundation.mjs",
     "typecheck": "tsc --noEmit",
     "smoke": "node scripts/smoke.mjs"
