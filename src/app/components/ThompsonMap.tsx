@@ -375,7 +375,7 @@ export function ThompsonMap({
         </button>
         <div className="sheet-heading">
           <div className="min-w-0 flex-1 pr-1.5">
-            <div className="sheet-brand-line"><img className="sheet-brand-logo" src="/brand/logo.png" width="28" height="28" alt="Buckeye Sprouts logo" /><p className="sheet-eyebrow">OHIO STATE · THOMPSON LIBRARY · LEVEL 1</p></div>
+            <div className="sheet-brand-line"><img className="sheet-brand-logo" src="/brand/logo.png" width="28" height="28" alt="Buckeye Sprouts logo" /><p className="sheet-eyebrow">THOMPSON LIBRARY · LEVEL 1</p></div>
             <h1 className="paper-title truncate">{tab === "groups" ? "Group Search" : tab === "join" ? "Your Group" : tab === "notes" ? "Shared Notes" : "Your Study Profile"}</h1>
           </div>
           <div className="sheet-header-actions">
