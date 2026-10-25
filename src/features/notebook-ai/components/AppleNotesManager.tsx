@@ -131,7 +131,7 @@ export function AppleNotesManager({ onNoteAdded, notebookContent = "", onNoteboo
               >
                 {/* Note title and delete action */}
                 <div className="flex items-center justify-between gap-2 mb-0.5">
-                  <h4 className="paper-title min-w-0 text-sm font-semibold text-stone-900 truncate tracking-tight">
+                  <h4 className="paper-title paper-title-secondary min-w-0 text-sm font-semibold text-stone-900 truncate tracking-tight">
                     {note.title}
                   </h4>
                   <div className="flex items-center gap-1.5 shrink-0">
@@ -258,7 +258,7 @@ export function AppleNotesManager({ onNoteAdded, notebookContent = "", onNoteboo
               </button>
             </div>
 
-            <h3 className="paper-title text-base font-bold text-stone-900">{activeNote.title}</h3>
+            <h3 className="paper-title paper-title-secondary text-base font-bold text-stone-900">{activeNote.title}</h3>
 
             {/* Note Body with optional code highlighting */}
             {/```[\s\S]*?```/.test(activeNote.content) ? (

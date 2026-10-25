@@ -7,6 +7,8 @@ import { GroupRoster } from "@/app/components/GroupRoster";
 import { DEMO_GROUP_COURSES, DEMO_READER_DELAY_MS, MOCK_PROFILES, type DemoCreateGroupInput, type DemoReaderLocation, type DemoStudyGroup, type ProfilePreview, type ThompsonTable } from "@/types/contracts";
 import { canJoinDemoGroup } from "../group-demo";
 
+const BUCKID_READER_DELAY_MS = 1000;
+
 function ReaderDialog({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
   const titleId = useId();
   const panel = useRef<HTMLDivElement>(null);
@@ -77,7 +79,7 @@ export function GroupJoinManager({ visible, profile, groups, activeGroup, tables
       if (!location) { setStage("idle"); return; }
       setTarget(location); setName(`${profile.name}'s Group`); setQuery(""); setCourseCode(""); setInviteOnly(false); setStep(0);
       setStage(latest.current.groups.some((group) => group.tableId === location.tableId) ? "existing" : "create");
-    }, DEMO_READER_DELAY_MS);
+    }, method === "nfc" ? BUCKID_READER_DELAY_MS : DEMO_READER_DELAY_MS);
   }
 
   if (!visible || activeGroup) return null;
@@ -135,7 +137,7 @@ export function GroupJoinManager({ visible, profile, groups, activeGroup, tables
         </div>
         <p>{scanMethod === "qr" ? "Scanning table QR code…" : "Finding your table…"}</p>
         <div className="reader-progress" role="progressbar" aria-label={scanMethod === "qr" ? "QR code scanner progress" : "BuckID reader progress"}>
-          <span />
+          <span style={{ animationDuration: `${scanMethod === "nfc" ? BUCKID_READER_DELAY_MS : DEMO_READER_DELAY_MS}ms` }} />
         </div>
         {scanMethod === "qr" && tables && tables.length > 0 && (
           <div className="reader-quick-tables" aria-label="Select table QR anchor">
@@ -204,16 +206,16 @@ export function GroupJoinManager({ visible, profile, groups, activeGroup, tables
   </>;
 }
 
-export function CurrentGroupPanel({ group, table, profileId, notice, onInvite, onGpsLeave, onEnd, children }: {
+export function CurrentGroupPanel({ group, table, profileId, notice, onInvite, onGpsLeave, onEnd }: {
   group: DemoStudyGroup; table: ThompsonTable; profileId: string; notice: string;
-  onInvite: (profileId: string) => void; onGpsLeave: () => void; onEnd: () => void; children: ReactNode;
+  onInvite: (profileId: string) => void; onGpsLeave: () => void; onEnd: () => void;
 }) {
   const [search, setSearch] = useState("");
   const members = [group.host, ...group.members];
   const candidates = search.trim() ? MOCK_PROFILES.filter((profile) => `${profile.name} ${profile.id}`.toLowerCase().includes(search.trim().toLowerCase()) && !members.some((member) => member.id === profile.id)) : [];
   return <section className="current-group-details" aria-label="Current study group">
     {notice && <p role="status" className="reader-notice">{notice}</p>}
-    <h2 className="paper-title reader-group-name">{group.name}</h2><p className="reader-study-status">{group.courseCode} · {group.topic}</p>
+    <p className="reader-study-status">{group.courseCode} · {group.topic}</p>
     <p className="reader-caption">{table.label} · {table.status === "very-busy" ? "Very busy" : "Busy"} · {group.inviteOnly ? "Invite only" : "Open group"}</p>
     <GroupRoster group={group} />
     {group.host.id === profileId && group.inviteOnly && <section className="current-group-invites" aria-label="Host invitations">
@@ -222,7 +224,6 @@ export function CurrentGroupPanel({ group, table, profileId, notice, onInvite, o
       {search.trim() && !candidates.length && <p className="reader-caption">No other demo students match that name or profile ID.</p>}
       <p className="reader-caption">Local demo invitations · students join after confirmation.</p>
     </section>}
-    <div className="current-group-notebook"><h3 className="paper-title">Shared Group Notebook</h3>{children}</div>
     <button type="button" className="reader-secondary group-gps-trigger" onClick={onGpsLeave}>Simulate Walking Away (GPS Trigger)</button>
     {group.host.id === profileId && <button type="button" className="reader-secondary group-end-session" onClick={onEnd}>End session</button>}
   </section>;

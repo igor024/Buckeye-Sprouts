@@ -1,5 +1,5 @@
-/* One local vector illustration carries the campus map and library entry point. */
-.integrated-campus-map { position: absolute; z-index: 1; inset: 0; overflow: hidden; background: #edf0e8; }
+/* Geographic vector map with an independently projected interactive floor plan. */
+.integrated-campus-map { position: absolute; z-index: 1; inset: 0; overflow: hidden; background: var(--campus-map-background, #edf0e8); }
 .integrated-map-viewport { position: absolute; inset: 0; overflow: hidden; touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; }
 .integrated-map-viewport:active { cursor: grabbing; }
 .integrated-map-surface { position: absolute; inset: 0; display: block; width: 100%; height: 100%; overflow: hidden; }
@@ -48,7 +48,7 @@
 .integrated-library-shortcut { position: absolute; z-index: 4; top: max(70px,calc(env(safe-area-inset-top) + 66px)); left: max(14px,calc((100vw - 610px) / 2)); display: inline-flex; align-items: center; gap: 7px; min-height: 36px; padding: 0 11px; border: 1px solid #ffffffed; border-radius: 999px; color: var(--color-scarlet-dark); background: #ffffffdf; box-shadow: 0 5px 20px #2123251c; font: inherit; font-size: 11px; font-weight: 700; cursor: pointer; }
 .integrated-library-shortcut > svg { color: var(--color-scarlet); }
 .integrated-shortcut-detail { padding-left: 7px; border-left: 1px solid #dfe3e5; color: #646a6e; font-weight: 550; }
-.integrated-library-plan-frame { fill: #fff; stroke: #ffffff; stroke-width: 1px; vector-effect: non-scaling-stroke; filter: drop-shadow(0 5px 9px #21232535); }
+.integrated-library-plan-frame { fill: var(--campus-map-background, #edf0e8); stroke: var(--campus-map-background, #edf0e8); stroke-width: 1px; vector-effect: non-scaling-stroke; }
 .integrated-library-plan-image { pointer-events: none; }
 .integrated-plan-heading { display: flex; align-items: center; justify-content: space-between; max-width: 330px; margin: 12px auto 7px; color: var(--color-scarlet-dark); font-size: 12px; font-weight: 700; }
 .integrated-plan-heading small { color: #646a6e; font-size: 10px; font-weight: 500; }
@@ -139,3 +139,14 @@
   .group-info-dialog:has(.group-info-notebook-content) { --notebook-width: min(330px,calc(100vw - 32px)); }
 }
 @media (prefers-reduced-motion: reduce) { .integrated-map-surface { transition: none; } }
+
+.integrated-map-viewport.leaflet-container { z-index: 0; background: var(--campus-map-background, #edf0e8); font: inherit; }
+.integrated-geographic-overlays { position: absolute; z-index: 2; inset: 0; pointer-events: none; }
+.integrated-geographic-overlays .integrated-map-surface { pointer-events: none; }
+.integrated-map-boundary-mask { position: absolute; z-index: 1; inset: 0; width: 100%; height: 100%; fill: var(--campus-map-background, #edf0e8); pointer-events: none; }
+.integrated-map-attribution { position: absolute; z-index: 4; top: max(4px,env(safe-area-inset-top)); left: 4px; max-width: calc(100% - 8px); padding: 3px 6px; border-radius: 4px; color: #39443d; background: #ffffffed; font: 10px/1.4 system-ui,sans-serif; }
+.integrated-map-attribution a { color: #245b70; text-decoration: underline; }
+.integrated-tile-status { position: absolute; z-index: 3; top: max(106px,calc(env(safe-area-inset-top) + 98px)); left: max(14px,calc((100vw - 610px) / 2)); max-width: min(270px,calc(100% - 150px)); padding: 8px 10px; border-radius: 10px; color: #3f4443; background: #ffffffed; box-shadow: 0 2px 10px #21232518; font-size: 11px; }
+.integrated-tile-status button { display: block; margin-top: 6px; padding: 5px 8px; border: 1px solid #ba0c2f; border-radius: 6px; color: #ba0c2f; cursor: pointer; }
+
+.integrated-map-viewport .leaflet-gl-layer { pointer-events: none; }
