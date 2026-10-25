@@ -46,6 +46,7 @@ export function ThompsonMap({
   locationPanel?: ReactNode;
 }) {
   const [tab, setTab] = useState<MapTab>("groups");
+  const [tabActivations, setTabActivations] = useState<Record<MapTab, number>>({ groups: 0, join: 0, notes: 0, me: 0 });
   const [expanded, setExpanded] = useState(false);
   const [groupSheetHidden, setGroupSheetHidden] = useState(false);
   const [groupQuery, setGroupQuery] = useState("");
@@ -247,6 +248,16 @@ export function ThompsonMap({
     setExpanded(false);
   };
 
+  const activateTab = (nextTab: MapTab) => {
+    setTabActivations((counts) => ({ ...counts, [nextTab]: counts[nextTab] + 1 }));
+    if (nextTab === "groups") openGroupSearch();
+    else selectTab(nextTab);
+  };
+
+  const tabIcon = (iconTab: MapTab, icon: ReactNode) => (
+    <span key={tabActivations[iconTab]} className={`map-tab-icon${tabActivations[iconTab] > 0 ? " is-bouncing" : ""}`} aria-hidden="true">{icon}</span>
+  );
+
   const beginSheetSwipe = (event: ReactPointerEvent<HTMLButtonElement>) => {
     event.currentTarget.setPointerCapture(event.pointerId);
     sheetDragged.current = false;
@@ -383,23 +394,35 @@ export function ThompsonMap({
       />
 
       <nav className="map-service-tabs" aria-label="Map app navigation">
-        <button className={tab === "groups" ? "active" : ""} aria-current={tab === "groups" ? "page" : undefined} aria-expanded={tab === "groups" && !groupSheetHidden} aria-controls="map-info-sheet" type="button" onClick={openGroupSearch}><Users size={24} aria-hidden="true" /><span>Groups</span></button>
-        <button className={tab === "join" ? "active" : ""} aria-current={tab === "join" ? "page" : undefined} type="button" onClick={() => selectTab("join")} aria-label="Join or manage a group"><Plus size={25} aria-hidden="true" /><span>Group</span></button>
-        <button className={tab === "notes" ? "active" : ""} aria-current={tab === "notes" ? "page" : undefined} type="button" onClick={() => selectTab("notes")}><BookOpen size={24} aria-hidden="true" /><span>Notes</span></button>
-        <button className={tab === "me" ? "active" : ""} aria-current={tab === "me" ? "page" : undefined} type="button" onClick={() => selectTab("me")}><span className="service-avatar" aria-hidden="true">{profile?.name.slice(0, 1) || "?"}</span><span>Me</span></button>
+        <button className={tab === "groups" ? "active" : ""} aria-current={tab === "groups" ? "page" : undefined} aria-expanded={tab === "groups" && !groupSheetHidden} aria-controls="map-info-sheet" type="button" onClick={() => activateTab("groups")}>{tabIcon("groups", <Users size={24} />)}<span>Groups</span></button>
+        <button className={tab === "join" ? "active" : ""} aria-current={tab === "join" ? "page" : undefined} type="button" onClick={() => activateTab("join")} aria-label="Join or manage a group">{tabIcon("join", <Plus size={25} />)}<span>Group</span></button>
+        <button className={tab === "notes" ? "active" : ""} aria-current={tab === "notes" ? "page" : undefined} type="button" onClick={() => activateTab("notes")}>{tabIcon("notes", <BookOpen size={24} />)}<span>Notes</span></button>
+        <button className={tab === "me" ? "active" : ""} aria-current={tab === "me" ? "page" : undefined} type="button" onClick={() => activateTab("me")}>{tabIcon("me", <span className="service-avatar">{profile?.name.slice(0, 1) || "?"}</span>)}<span>Me</span></button>
       </nav>
 
       {tab === "join" && activeGroup && currentStudent && <CarmenAiChatbot studentProfile={currentStudent} courseCode={activeGroup.courseCode} notebookContent={notebookContent} isOpenExternal={carmenOpen} onToggleExternal={() => setCarmenOpen((open) => !open)} onInsertToNotebook={(text) => setNotebookContent(`${notebookContent}\n\n${text}`.trim())} />}
 
       {selectedTable && <div className={`group-info-backdrop${closingTable ? " is-closing" : ""}`} role="presentation" onClick={closeTable}>
         <section className="group-info-dialog" role="dialog" aria-modal="true" aria-labelledby="group-info-title" aria-describedby="group-info-status" onClick={(event) => event.stopPropagation()}>
-          <button ref={tableCloseButton} type="button" className="group-info-close" onClick={closeTable} aria-label="Close table information"><X size={20} /></button>
-          <div className="group-info-heading">
-            <p className="group-info-eyebrow">{selectedTable.label} · {selectedTable.status === "empty" ? "EMPTY" : selectedTable.status === "very-busy" ? "VERY BUSY" : "BUSY"}</p>
-            <h2 id="group-info-title">{selectedGroup ? selectedGroup.name : "Available table"}</h2>
-            <p id="group-info-status">{selectedGroup ? `${selectedGroup.courseCode} · ${selectedGroup.topic}` : "No study group is at this table right now."}</p>
-          </div>
-          {selectedGroup && <GroupRoster group={selectedGroup} />}
+          {selectedGroup ? <>
+            <img className="group-info-notebook-art" src="/illustrations/notebook2.png" width="1066" height="1439" alt="" aria-hidden="true" />
+            <div className="group-info-notebook-content">
+              <div className="group-info-heading group-info-notebook-heading">
+                <p className="group-info-eyebrow">{selectedTable.label} · {selectedTable.status === "very-busy" ? "VERY BUSY" : "BUSY"}</p>
+                <h2 id="group-info-title">{selectedGroup.name}</h2>
+                <p id="group-info-status">{selectedGroup.courseCode} · {selectedGroup.topic}</p>
+              </div>
+              <GroupRoster group={selectedGroup} variant="notebook" />
+            </div>
+            <button ref={tableCloseButton} type="button" className="group-info-notebook-close" onClick={closeTable} aria-label="Close group popup" />
+          </> : <>
+            <button ref={tableCloseButton} type="button" className="group-info-close" onClick={closeTable} aria-label="Close table information"><X size={20} /></button>
+            <div className="group-info-heading">
+              <p className="group-info-eyebrow">{selectedTable.label} · EMPTY</p>
+              <h2 id="group-info-title">Available table</h2>
+              <p id="group-info-status">No study group is at this table right now.</p>
+            </div>
+          </>}
         </section>
       </div>}
     </div>

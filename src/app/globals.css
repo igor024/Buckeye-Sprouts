@@ -244,6 +244,14 @@ body:has(.thompson-map-app) #main { width: 100%; max-width: none; margin: 0; pad
 .group-table-label { display: inline-flex; align-items: center; gap: 4px; color: var(--map-secondary); font-size: 12px; line-height: 1.3; white-space: nowrap; }
 .thompson-map-app :where(a,button):focus-visible { outline: 3px solid #177d98; outline-offset: 2px; }
 @media (hover: hover) { .map-group-row:hover { background: #ffffff40; }.map-service-tabs button:not(.active):hover { background: #ffffff59; } }
+.map-tab-icon { display: inline-flex; }
+.map-tab-icon.is-bouncing { animation: map-tab-bounce .44s cubic-bezier(.22, 1.25, .36, 1) forwards; }
+@keyframes map-tab-bounce {
+  0% { transform: translateY(0) scale(1); }
+  35% { transform: translateY(-7px) scale(1.12); }
+  68% { transform: translateY(2px) scale(.97); }
+  100% { transform: translateY(0) scale(1); }
+}
 @media (min-width: 760px) { :root { --app-nav-bottom: max(28px, calc(env(safe-area-inset-bottom) + 10px)); }.map-service-header { left: 22px; right: auto; width: min(440px, calc(100% - 44px)); } }
 @media (max-width: 390px) { .sheet-heading { padding-inline: 17px; }.map-sheet-content { padding-inline: 17px; }.spot-list { gap: 5px; } }
 @media (prefers-reduced-motion: reduce) { .map-info-sheet { transition: none; } }
@@ -293,6 +301,8 @@ body:has(.thompson-map-app) #main { width: 100%; max-width: none; margin: 0; pad
 .reader-notice { padding: 12px; margin: 0 0 12px; border: 1px solid var(--paper-border); border-radius: 14px; background: var(--paper-surface); color: #43594c; font-size: 13px; line-height: 1.5; }
 .reader-dialog-panel { position: relative; padding-top: 64px; background-image: var(--paper-grid); background-size: var(--paper-grid-size) var(--paper-grid-size); }
 .reader-dialog-panel > h2 { margin: 0 0 16px; font-size: 26px; line-height: 1.2; font-weight: 700; letter-spacing: -.035em; }
+.reader-dialog-panel:has(> .reader-scanning) > h2 { text-align: center; }
+.reader-dialog-panel:has(> .reader-group-name) > :is(h2, h3, p) { text-align: center; }
 .reader-close { position: absolute; top: 12px; left: 12px; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; color: #545b60; background: #e9eae3; cursor: pointer; }
 .reader-caption { margin: 10px 0; font-size: 12px; line-height: 1.5; color: #545b60; }
 .reader-location { padding-bottom: 12px; border-bottom: 1px solid var(--paper-border); }
