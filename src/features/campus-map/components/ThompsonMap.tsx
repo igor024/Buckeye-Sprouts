@@ -63,6 +63,7 @@ export function ThompsonMap({
   const sheetDragged = useRef(false);
   const tabBarDragged = useRef(false);
   const tableCloseButton = useRef<HTMLButtonElement>(null);
+  const currentGroupHeading = useRef<HTMLHeadingElement>(null);
   const tableTrigger = useRef<HTMLElement | null>(null);
   const tableCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -114,7 +115,10 @@ export function ThompsonMap({
     return () => window.removeEventListener("buckeye:open-new-note", expandNotesForNewNote);
   }, [tab, activeGroup?.id]);
 
-  useEffect(() => { setExpanded(false); setCarmenOpen(false); }, [activeGroup?.id]);
+  useEffect(() => {
+    setExpanded(false); setCarmenOpen(false);
+    if (activeGroup) currentGroupHeading.current?.focus({ preventScroll: true });
+  }, [activeGroup?.id]);
 
   useEffect(() => {
     if (!selectedTable) return;
@@ -251,7 +255,7 @@ export function ThompsonMap({
         <div className="sheet-heading">
           <div className="min-w-0 flex-1 pr-1.5">
             <p className="sheet-eyebrow">OHIO STATE · THOMPSON LIBRARY · LEVEL 1</p>
-            <h1 className="paper-title truncate">{tab === "groups" ? "Group Search" : tab === "join" ? "Your Group" : tab === "notes" ? "Shared Notes" : "Your Study Profile"}</h1>
+            <h1 ref={tab === "join" ? currentGroupHeading : undefined} tabIndex={tab === "join" && activeGroup ? -1 : undefined} className="paper-title truncate">{tab === "groups" ? "Group Search" : tab === "join" ? "Your Group" : tab === "notes" ? "Shared Notes" : "Your Study Profile"}</h1>
           </div>
           {tab === "join" && activeGroup && <div className="current-group-header-actions">
             <button type="button" className="group-carmen-trigger" onClick={() => setCarmenOpen(true)} aria-label="Open Carmen study suggestions" title="Carmen study suggestions">

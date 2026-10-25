@@ -155,7 +155,7 @@ export interface DemoCreateGroupInput {
   inviteOnly: boolean;
 }
 
-export const DEMO_READER_DELAY_MS = 3000;
+export const DEMO_READER_DELAY_MS = 1000;
 export const DEMO_GROUP_COURSES = [
   { code: "CSE 2221", name: "Software I" },
   { code: "CSE 2231", name: "Software II" },
@@ -185,7 +185,7 @@ export interface ThompsonTable extends IllustrativeMapPosition {
   width: number;
   height: number;
   groupId?: ThompsonTableGroup["id"];
-  /** Only the named Jordan and Sam fixtures appear as Group Search rows. */
+  /** Curated demo groups appear as Group Search rows. */
   showInSearch?: boolean;
 }
 
@@ -387,7 +387,7 @@ export class FeatureNotImplementedError extends Error {
 export const MOCK_PROFILES: UserProfile[] = [
   {
     id: "11111111-1111-4111-8111-111111111111",
-    name: "Alex Morgan",
+    name: "Alex Rabochii",
     buckIdHash: "demo-hash-alex-not-a-real-identity",
     avatarUrl: "",
     major: "Computer Science & Engineering",
@@ -414,6 +414,15 @@ export const MOCK_PROFILES: UserProfile[] = [
   },
 ];
 
+export const MOCK_ETHAN_PROFILE: ProfilePreview = {
+  id: "44444444-4444-4444-8444-444444444444",
+  name: "Ethan Dong",
+  avatarUrl: "",
+  major: "",
+  currentCourses: ["CSE 2221"],
+  bio: "",
+};
+
 const toProfilePreview = (profile: UserProfile): ProfilePreview => ({
   id: profile.id,
   name: profile.name,
@@ -428,7 +437,7 @@ export const MOCK_STUDY_GROUP_PINS: StudyGroupMapPin[] = [
   {
     id: "jordan-cse-2221",
     name: "Jordan's Group",
-    courseCode: "CSE 2221",
+    courseCode: "CSE 2231",
     topic: "Recursion and software components",
     tableLabel: "Table 145-1",
     x: 27,
@@ -479,7 +488,7 @@ function tableFromSvgRect(
     width: width / THOMPSON_PLAN_SVG_SIZE.width * 100,
     height: height / THOMPSON_PLAN_SVG_SIZE.height * 100,
     ...(groupId ? { groupId } : {}),
-    ...((id === "145-1" || id === "140-1") ? { showInSearch: true } : {}),
+    ...(["150b-1", "110-2", "140-1", "140-3", "145-1", "160-1"].includes(id) ? { showInSearch: true } : {}),
   };
 }
 
@@ -566,7 +575,7 @@ export const THOMPSON_EAST_ENTRANCE_TABLES: readonly ThompsonTable[] = [
 ] as const;
 
 const TABLE_GROUP_TOPICS = [
-  { courseCode: "CSE 2221", topic: "Recursion and software components" },
+  { courseCode: "CSE 2231", topic: "Recursion and software components" },
   { courseCode: "MATH 1151", topic: "Limits and derivatives" },
   { courseCode: "CSE 2321", topic: "Graph traversal practice" },
   { courseCode: "ENGR 1181", topic: "MATLAB lab prep" },
@@ -577,9 +586,12 @@ function toTableGroup(group: StudyGroupMapPin): ThompsonTableGroup {
 }
 
 function createDemoTableGroup(table: ThompsonTable, index: number): ThompsonTableGroup {
-  const host = toProfilePreview(MOCK_PROFILES[index % MOCK_PROFILES.length]);
-  const members = MOCK_PROFILES.filter((profile) => profile.id !== host.id).map(toProfilePreview);
-  const topic = TABLE_GROUP_TOPICS[index % TABLE_GROUP_TOPICS.length];
+  const isReaderDemo = table.id === "110-2";
+  const host = isReaderDemo ? MOCK_ETHAN_PROFILE : toProfilePreview(MOCK_PROFILES[index % MOCK_PROFILES.length]);
+  const members = isReaderDemo ? [] : MOCK_PROFILES.filter((profile) => profile.id !== host.id).map(toProfilePreview);
+  const topic = isReaderDemo
+    ? { courseCode: "CSE 2221", topic: "Recursion and software components" }
+    : TABLE_GROUP_TOPICS[index % TABLE_GROUP_TOPICS.length];
   return { id: table.groupId!, name: `${host.name.split(" ")[0]}'s Group`, courseCode: topic.courseCode, topic: topic.topic, host, members };
 }
 

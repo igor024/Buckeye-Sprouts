@@ -11,13 +11,13 @@ interface GroupAgendaChecklistProps {
 }
 
 export function GroupAgendaChecklist({
-  currentStudentName = "Alex Morgan",
+  currentStudentName = "Alex Rabochii",
   onItemCompleted,
 }: GroupAgendaChecklistProps) {
   const [items, setItems] = useState<AgendaItem[]>(INITIAL_AGENDA_ITEMS);
   const [isAdding, setIsAdding] = useState(false);
   const [newTitle, setNewTitle] = useState("");
-  const [newAssigned, setNewAssigned] = useState("Alex Morgan");
+  const [newAssigned, setNewAssigned] = useState("Alex Rabochii");
   const [newMinutes, setNewMinutes] = useState(20);
 
   const toggleItem = (id: string) => {
@@ -111,7 +111,7 @@ export function GroupAgendaChecklist({
                 onChange={(e) => setNewAssigned(e.target.value)}
                 className="w-full px-2 py-1.5 rounded-lg bg-white border border-stone-300 text-xs"
               >
-                <option value="Alex Morgan">Alex Morgan</option>
+                <option value="Alex Rabochii">Alex Rabochii</option>
                 <option value="Jordan Lee">Jordan Lee</option>
                 <option value="Sam Patel">Sam Patel</option>
                 <option value="All Members">All Members</option>

@@ -11,7 +11,7 @@ interface PadletBoardProps {
 }
 
 export function PadletBoard({
-  currentStudentName = "Alex Morgan",
+  currentStudentName = "Alex Rabochii",
   onSyncToMarkdown,
 }: PadletBoardProps) {
   const [cards, setCards] = useState<PadletCard[]>(INITIAL_PADLET_CARDS);

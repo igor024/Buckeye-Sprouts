@@ -31,7 +31,7 @@ This section is the current user-approved source of truth for the Buckeye Sprout
 - Support pinch-to-zoom on the map, respecting the existing zoom and pan bounds.
 - Keep the map's visible location control fixed at 15 × 15 CSS pixels and icon-only, with an accessible name and a transparent hit area for touch.
 - Add a class/course-number search field (for example, `CSE 2221`) and filter the visible group pins as the query changes.
-- Use local demo groups on this floor, such as Jordan's group at Table X for CSE 2221 and Sam's group at Table Y for MATH 1151. Keep them frontend-only and use the Alex, Jordan, and Sam demo profiles.
+- Show six curated frontend-only demo groups in Group Search using Alex, Jordan, Sam and Ethan. Ethan's group at Table 110-2 is the only seeded group studying CSE 2221; Jordan studies CSE 2231 and Sam studies MATH 1151. Ethan starts alone as host, and joining adds the viewer normally.
 - Show table states as **empty**, **busy**, or **very busy**. There are no full tables; users may still join a group at a very busy table.
 - Selecting a group row or map pin opens an information pop-up with:
   - an `X` close button at the top-left;
@@ -45,10 +45,10 @@ This section is the current user-approved source of truth for the Buckeye Sprout
 ## Phase 2 — Group Join/Create, State 1 (not in a group)
 
 - Selecting Group while not in a group shows only a standalone `Tap BuckID Reader` action over the persistent map; do not open a sliding sheet in this state.
-- Activating it opens an animated, explicitly simulated reader popup for three seconds. Do not implement NFC, barcode or camera scanning. Disable repeated activation and cancel pending scans when closed or when switching tabs.
+- Activating it opens an animated, explicitly simulated reader popup for one second. Do not implement NFC, barcode or camera scanning. Disable repeated activation and cancel pending scans when closed or when switching tabs.
 - Resolve the nearest Thompson Level 1 table from the displayed location using the same unzoomed floor-plan projection as the map. If location is unavailable or outside the campus drawing, use and visibly label the existing Thompson demo location. Do not request GPS automatically.
 - Resolve these outcomes from shared local table/group state, rather than an outcome toggle:
-  - **Existing group:** Show a grid-paper `Join [Host Name]'s Group?` popup, the same group heading, course/topic study status, and scrolling host-first participant list as Phase 1, plus explicit confirmation to join. Invite-only groups require an invitation; a simulated tap does not bypass it.
+  - **Existing group:** When the user has access, joining happens automatically after the simulated reader completes. Invite-only groups require an invitation; an uninvited user sees an inline notice and cannot join from that scan.
   - **No existing group:** Show a grid-paper `Create Group?` popup with sequential steps: name, searchable course selection, then Invite only and Create. Create at the resolved table, never a hardcoded table.
 - A very busy table does not block joining; do not present a full-table state or reject a join solely because of group busyness.
 - The create flow must include:
@@ -64,6 +64,7 @@ This section is the current user-approved source of truth for the Buckeye Sprout
   - collapsed: cover only the lower part of the screen and leave the map visible;
   - expanded by swiping up: fill the available screen above navigation, retaining the 12px gap.
 - Place a **red `Leave group` button in the top-right** of the group tab.
+- Keep the current-group content in a single vertical stack with consistent 16px gaps and the existing horizontal sheet padding. Use the generic `Your Group` heading without repeating the group's name as a second heading.
 - Keep the bottom-bar Group label unchanged. Once joined, selecting it opens current-group details without scanning again. Leaving returns to the standalone reader action.
 - Keep membership, host succession, invitations, occupancy and notebook content synchronized across Group Search, Group, Notes and map popups in frontend state only.
 - On host departure, if members remain, transfer host status to the earliest-joined remaining member. If no members remain, close the group posting.
@@ -85,7 +86,7 @@ This section is the current user-approved source of truth for the Buckeye Sprout
 
 - Only when the current user is the host of an invite-only group, show a host invite search within the current-group view.
 - The host must be able to search a student by profile ID or name and grant an invitation to join.
-- Grant an invitation separately from membership: the invited student still confirms joining at the simulated reader.
+- Grant an invitation separately from membership: the invited student joins automatically when their simulated reader scan completes.
 - Do not show this control for other roles or non-invite-only groups.
 - At the end of Phase 4, show and verify the role/visibility behavior and ask about any remaining edge cases.
 
@@ -111,7 +112,7 @@ This records the implemented prototype and prior verification, not approval of a
 
 ### Code ownership and shared state
 
-- `src/types/contracts.ts` owns shared map/domain types and fixtures, including `DemoStudyGroup`, `DemoGroupState`, `DemoCreateGroupInput`, `DemoReaderLocation`, `CampusMapViewport`, `MOCK_DEMO_STUDY_GROUPS`, `DEMO_GROUP_COURSES` and the 3000ms reader delay. Import these rather than copying profiles or group shapes into features.
+- `src/types/contracts.ts` owns shared map/domain types and fixtures, including `DemoStudyGroup`, `DemoGroupState`, `DemoCreateGroupInput`, `DemoReaderLocation`, `CampusMapViewport`, `MOCK_DEMO_STUDY_GROUPS`, `DEMO_GROUP_COURSES` and the 1000ms reader delay. Import these rather than copying profiles or group shapes into features.
 - `src/features/campus-map/components/ThompsonMap.tsx` owns the shared group reducer and composes the persistent map, search, Group, Notes and popups. Table occupancy and visible group data derive from this state. Preserve map mounting/camera state across tab changes.
 - `src/features/location-checkin/group-demo.ts` owns pure local join/create/leave/invite/notebook/end-session transitions. It clones fixtures so interactions cannot mutate the canonical seed data.
 - `src/features/campus-map/map-geometry.ts` owns `artworkPointToViewport`, `getPlanGeometry` and `resolveDemoReaderLocation`. `IntegratedCampusMap` uses these same helpers and reports reader location to the shell.
@@ -120,15 +121,15 @@ This records the implemented prototype and prior verification, not approval of a
 
 ### Reader and membership behavior to preserve
 
-- A user without an active group sees only the standalone `Tap BuckID Reader` action on Group. It opens a clearly simulated three-second popup; it never accesses NFC, barcode or camera APIs.
-- Cancel the pending timer when the dialog closes, the tab changes or the component unmounts; prevent repeated activation. Reduced motion suppresses animation without shortening the three-second simulation.
+- A user without an active group sees only the standalone `Tap BuckID Reader` action on Group. It opens a clearly simulated one-second popup; it never accesses NFC, barcode or camera APIs.
+- Cancel the pending timer when the dialog closes, the tab changes or the component unmounts; prevent repeated activation. Reduced motion suppresses animation without shortening the one-second simulation.
 - Resolve the nearest table from the latest displayed location using the shared unzoomed floor-plan projection. Camera pan/zoom must not change which table is nearest. Missing, invalid or out-of-artwork coordinates use the visibly labeled Thompson demo location. GPS remains an explicit user action.
 - The projection depends on viewport dimensions because the embedded plan has a responsive width cap. Do not replace it with raw latitude/longitude distance or compare coordinates from different spaces.
-- An existing posting opens an explicit join confirmation, not automatic membership. Invite-only access is enforced in the reducer as well as the UI. Very busy tables remain joinable.
+- An accessible existing posting automatically joins after the simulated reader completes. Invite-only access is enforced in the reducer as well as the UI; an uninvited user sees an inline notice and remains outside the group. Very busy tables remain joinable.
 - An empty table opens name, searchable course, then privacy/Create steps. The default name is selected on focus and click only while it still equals the profile-based default. Require a selected course; create at the resolved table.
 - New group IDs retain the `local-` prefix. Use `createDemoGroupId()`, whose fallback supports ordinary HTTP/LAN previews where `crypto.randomUUID` may be unavailable.
-- Joining/creating opens the draggable current-group sheet; selecting Group again shows details without scanning. Keep the Group navigation label and top-right red `Leave group` control.
-- Invitations are grants, not membership. Only an invite-only host can search the canonical demo profiles by name/ID and invite them. Confirmation at the reader still adds the member and consumes the invitation.
+- Joining/creating opens the draggable current-group sheet; selecting Group again shows details without scanning. Keep the generic `Your Group` heading, 16px vertical spacing, Group navigation label and top-right red `Leave group` control.
+- Invitations are grants, not membership. Only an invite-only host can search the canonical demo profiles by name/ID and invite them. The invited student joins through their own simulated reader; that successful join consumes the invitation.
 - Host departure transfers ownership to the earliest-joined remaining member; ordinary member departure preserves the host. The last member leaving closes the posting even if unused invitations remain. Remaining groups retain their notebook content.
 - The GPS departure control currently simulates moving over 150m and dispatches the same leave transition. Do not describe this as a verified automatic live geofence; actual distance-based automatic departure remains a separate requirement to audit before claiming Phase 3 complete.
 - State is in memory and resets on reload. No cross-device membership, invitation delivery or durable group notebook persistence is provided by this flow.
@@ -146,6 +147,7 @@ This records the implemented prototype and prior verification, not approval of a
 - Relevant checks: `node scripts/check-group-demo.mjs`, `npm.cmd run typecheck`, `npm.cmd run build`, and `git diff --check`. These passed for the implementation before this documentation-only update.
 - The group check covers nearest-table projection at multiple viewport sizes, fallback location, valid table/course creation, invitation gating, invitation versus membership, duplicate joins, host succession, group closure, notebook retention, very-busy joins, fixture immutability and ID generation without crypto support.
 - Prior browser checks verified three-second timing, cancellation/tab switching, no NFC access or automatic GPS request, both reader outcomes, selected default name, course filtering, invite visibility, synchronized notes/search/map details, Carmen course context, leave/GPS simulation and persistent map state.
+- Latest reader browser checks verified approximately one-second automatic joining without a confirmation popup, focus on `Your Group`, cancellation/close and tab switching, inline invitation denial, the retained selected-default-name creation flow, and matched horizontal padding with 16px section gaps at 320px, 390px and desktop widths.
 - Responsive checks covered 320×568, 375×667, 390×844, 473×1024 and 1440×900, plus short viewports, safe-area insets and reduced motion. Check panel/navigation clearance again when changing heights, portals or safe-area variables.
 - Browser screenshots, `results.json` and the ad hoc CDP script are under ignored `out/reader-review/`; these are local review artifacts, not committed tests. The script uses a configured local preview port, which may need updating. Do not assume an old preview server still exists or serves the latest build.
 - If using headless Chrome for local checks, launch a dedicated profile under ignored `out/`, use an unused debugging port and close only that browser afterward. Do not reuse an unrelated existing debugging service. In this environment `--disable-gpu` was needed for reliable CDP touch events; reconnecting CDP may reset viewport emulation.
