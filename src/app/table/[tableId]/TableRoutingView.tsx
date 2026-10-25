@@ -24,6 +24,7 @@ import {
 import { useAuth } from "@/features/auth-profiles/context/AuthContext";
 import { parseTableLocation, type TableLocationInfo } from "@/features/sessions-discovery/table-ids";
 import type { CreateSessionInput, SessionPreview } from "@/types/contracts";
+import { SAMPLE_ACCOUNTS, SAMPLE_ACCOUNT_PASSWORD } from "@/features/auth-profiles/sample-accounts.mjs";
 
 interface TableDataResponse {
   tableId: string;
@@ -61,8 +62,8 @@ export function TableRoutingView({ tableId: initialTableId }: { tableId: string 
   const [redirectCountdown, setRedirectCountdown] = useState<number | null>(null);
 
   // Quick Sign In form states
-  const [email, setEmail] = useState("alex.morgan@osu.edu");
-  const [password, setPassword] = useState("buckeye2026");
+  const [email, setEmail] = useState(SAMPLE_ACCOUNTS[0].email);
+  const [password, setPassword] = useState(SAMPLE_ACCOUNT_PASSWORD);
   const [authError, setAuthError] = useState<string | null>(null);
   const [isSigningIn, setIsSigningIn] = useState(false);
 
@@ -136,9 +137,9 @@ export function TableRoutingView({ tableId: initialTableId }: { tableId: string 
     setIsSigningIn(true);
     setAuthError(null);
     setEmail(demoEmail);
-    setPassword("buckeye2026");
+    setPassword(SAMPLE_ACCOUNT_PASSWORD);
     try {
-      const res = await signIn(demoEmail, "buckeye2026");
+      const res = await signIn(demoEmail, SAMPLE_ACCOUNT_PASSWORD);
       if (res.error) {
         setAuthError(res.error);
         console.warn(`[Demo] Sign in failed for ${demoName}:`, res.error);

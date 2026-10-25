@@ -25,6 +25,7 @@ import { MOCK_CARMEN_STUDENTS } from "@/features/notebook-ai/mock-carmen-data";
 import { IntegratedCampusMap } from "@/features/campus-map/components/IntegratedCampusMap";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { normalizeQrTableId } from "@/lib/table-qr";
+import { useAuth } from "@/features/auth-profiles/context/AuthContext";
 import {
   fetchGroupsDirectFromSupabase,
   saveNotebookToSupabase,
@@ -39,7 +40,7 @@ export function ThompsonMap({
   initialGroups = [],
   initialReaderTableId = null,
   initialTab = "groups",
-  profile,
+  profile: initialProfile,
   profilePanel,
   locationPanel: _locationPanel,
 }: {
@@ -51,6 +52,8 @@ export function ThompsonMap({
   profilePanel: ReactNode;
   locationPanel?: ReactNode;
 }) {
+  const { profile: signedInProfile } = useAuth();
+  const profile = signedInProfile ?? initialProfile;
   const searchParams = useSearchParams();
   const [tab, setTab] = useState<MapTab>(initialTab);
   const [linkedTableId, setLinkedTableId] = useState(initialReaderTableId);
@@ -59,6 +62,7 @@ export function ThompsonMap({
     setLinkedTableId(isTableLink ? normalizeQrTableId(searchParams.get("table")) : null);
     if (isTableLink) {
       setTab("join");
+      setPanelHidden(false);
       setSelectedTableId(null);
     }
   }, [searchParams]);
@@ -71,7 +75,7 @@ export function ThompsonMap({
   }, []);
   const [tabActivations, setTabActivations] = useState<Record<MapTab, number>>({ groups: 0, join: 0, notes: 0, me: 0 });
   const [expanded, setExpanded] = useState(false);
-  const [groupSheetHidden, setGroupSheetHidden] = useState(false);
+  const [panelHidden, setPanelHidden] = useState(false);
   const [groupQuery, setGroupQuery] = useState("");
   const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
   const [closingTable, setClosingTable] = useState(false);
@@ -84,6 +88,9 @@ export function ThompsonMap({
   const [readerLocation, setReaderLocation] = useState<DemoReaderLocation | null>(null);
   const activeGroup = groupState.groups.find((group) => group.id === groupState.activeGroupId) ?? null;
   const viewer: ProfilePreview = profile ?? MOCK_PROFILES[0];
+  useEffect(() => {
+    dispatchGroup({ type: "change-viewer" });
+  }, [viewer.id]);
   const tables: ThompsonTable[] = useMemo(() => {
     return THOMPSON_EAST_ENTRANCE_TABLES.map((table) => {
       const group = groupState.groups.find((item) => item.tableId === table.id);
@@ -111,7 +118,7 @@ export function ThompsonMap({
   };
 
   const showSheet = tab !== "join" || activeGroup !== null;
-  const sheetStart = useRef<number | null>(null);
+  const sheetStart = useRef<{ pointerId: number; x: number; y: number } | null>(null);
   const tabBarStart = useRef<{ pointerId: number; y: number } | null>(null);
   const sheetDragged = useRef(false);
   const tabBarDragged = useRef(false);
@@ -250,7 +257,10 @@ export function ThompsonMap({
 
   useEffect(() => {
     const expandNotesForNewNote = () => {
-      if (tab === "notes" || (tab === "join" && activeGroup)) setExpanded(true);
+      if (tab === "notes" || (tab === "join" && activeGroup)) {
+        setPanelHidden(false);
+        setExpanded(true);
+      }
     };
     window.addEventListener("buckeye:open-new-note", expandNotesForNewNote);
     return () => window.removeEventListener("buckeye:open-new-note", expandNotesForNewNote);
@@ -285,14 +295,14 @@ export function ThompsonMap({
   }, [selectedTable]);
 
   const openGroupSearch = () => {
-    if (tab === "groups" && !groupSheetHidden) {
-      setGroupSheetHidden(true);
+    if (tab === "groups" && !panelHidden) {
+      setPanelHidden(true);
       setExpanded(false);
       return;
     }
     setTab("groups");
     setExpanded(false);
-    setGroupSheetHidden(false);
+    setPanelHidden(false);
   };
 
   const openTable = (table: ThompsonTable, trigger: HTMLElement) => {
@@ -302,7 +312,7 @@ export function ThompsonMap({
 
   const selectTab = (nextTab: MapTab) => {
     setTab(nextTab);
-    setGroupSheetHidden(false);
+    setPanelHidden(false);
     setExpanded(false);
   };
 
@@ -316,22 +326,32 @@ export function ThompsonMap({
     <span key={tabActivations[iconTab]} className={`map-tab-icon${tabActivations[iconTab] > 0 ? " is-bouncing" : ""}`} aria-hidden="true">{icon}</span>
   );
 
-  const beginSheetSwipe = (event: ReactPointerEvent<HTMLButtonElement>) => {
+  const dismissPanel = () => {
+    setPanelHidden(true);
+    setExpanded(false);
+    setCarmenOpen(false);
+  };
+
+  const beginSheetSwipe = (event: ReactPointerEvent<HTMLElement>) => {
+    if (!event.isPrimary || event.button !== 0) return;
+    const target = event.target as Element;
+    if (!event.currentTarget.matches(".sheet-swipe-handle") && target.closest("button, input, select, textarea, a")) return;
     event.currentTarget.setPointerCapture(event.pointerId);
     sheetDragged.current = false;
-    sheetStart.current = event.clientY;
+    sheetStart.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY };
   };
-  const endSheetSwipe = (event: ReactPointerEvent<HTMLButtonElement>) => {
-    if (sheetStart.current !== null) {
-      const delta = event.clientY - sheetStart.current;
-      if (delta < -35) {
-        setGroupSheetHidden(false);
-        setExpanded(true);
+  const endSheetSwipe = (event: ReactPointerEvent<HTMLElement>) => {
+    const start = sheetStart.current;
+    if (start && start.pointerId === event.pointerId) {
+      const delta = event.clientY - start.y;
+      const vertical = Math.abs(delta) > Math.abs(event.clientX - start.x);
+      if (vertical && delta < -35) {
+        setPanelHidden(false);
+        setExpanded(showSheet);
         sheetDragged.current = true;
       }
-      if (delta > 35) {
-        if (tab === "groups") setGroupSheetHidden(true);
-        else setExpanded(false);
+      if (vertical && delta > 35) {
+        dismissPanel();
         sheetDragged.current = true;
       }
     }
@@ -347,15 +367,13 @@ export function ThompsonMap({
   const endTabBarGesture = (event: ReactPointerEvent<HTMLDivElement>) => {
     const start = tabBarStart.current;
     if (!start || start.pointerId !== event.pointerId) return;
-    if (!showSheet) { tabBarStart.current = null; return; }
     const delta = event.clientY - start.y;
     if (delta < -35) {
-      setGroupSheetHidden(false);
-      setExpanded(true);
+      setPanelHidden(false);
+      setExpanded(showSheet);
       tabBarDragged.current = true;
     } else if (delta > 35) {
-      if (tab === "groups") setGroupSheetHidden(true);
-      else setExpanded(false);
+      dismissPanel();
       tabBarDragged.current = true;
     }
     tabBarStart.current = null;
@@ -366,6 +384,16 @@ export function ThompsonMap({
     event.stopPropagation();
     tabBarDragged.current = false;
   };
+
+  const panelHandle = <button type="button" className="sheet-swipe-handle"
+    onPointerDown={beginSheetSwipe} onPointerUp={endSheetSwipe} onPointerCancel={() => { sheetStart.current = null; }}
+    aria-expanded={showSheet ? expanded : !panelHidden} aria-controls={showSheet ? "map-sheet-content" : "group-reader-panel"}
+    aria-label={showSheet ? (expanded ? "Collapse panel" : "Expand panel") : "Close Group panel"}
+    onClick={() => {
+      if (sheetDragged.current) { sheetDragged.current = false; return; }
+      if (showSheet) setExpanded((value) => !value);
+      else dismissPanel();
+    }}><span /></button>;
 
   return (
     <div className="thompson-map-app" onPointerDownCapture={beginTabBarGesture} onPointerUpCapture={endTabBarGesture} onPointerCancelCapture={() => { tabBarStart.current = null; }} onClickCapture={guardTabBarClick}>
@@ -395,11 +423,9 @@ export function ThompsonMap({
         </div>
       )}
 
-      {showSheet && <section id="map-info-sheet" inert={groupSheetHidden && tab === "groups"} className={`map-info-sheet${expanded ? " sheet-expanded" : ""}${tab === "groups" ? " group-search-sheet" : ""}${tab === "join" && activeGroup ? " current-group-sheet" : ""}${groupSheetHidden && tab === "groups" ? " group-sheet-hidden" : ""}`} aria-label={tab === "groups" ? "Study group search" : tab === "join" ? "Join or manage a study group" : tab === "notes" ? "Shared notebook" : "Your study profile"}>
-        <button type="button" className="sheet-swipe-handle" onPointerDown={beginSheetSwipe} onPointerUp={endSheetSwipe} onPointerCancel={() => { sheetStart.current = null; }} aria-expanded={expanded} aria-controls="map-sheet-content" aria-label={expanded ? "Collapse panel" : "Expand panel"} onClick={() => { if (sheetDragged.current) { sheetDragged.current = false; return; } setExpanded((value) => !value); }}>
-          <span />
-        </button>
-        <div className="sheet-heading">
+      {showSheet && <section id="map-info-sheet" inert={panelHidden} className={`map-info-sheet${expanded ? " sheet-expanded" : ""}${tab === "groups" ? " group-search-sheet" : ""}${tab === "join" && activeGroup ? " current-group-sheet" : ""}${panelHidden ? " sheet-hidden" : ""}`} aria-label={tab === "groups" ? "Study group search" : tab === "join" ? "Join or manage a study group" : tab === "notes" ? "Shared notebook" : "Your study profile"}>
+        {panelHandle}
+        <div className="sheet-heading" onPointerDown={beginSheetSwipe} onPointerUp={endSheetSwipe} onPointerCancel={() => { sheetStart.current = null; }}>
           <div className="min-w-0 flex-1 pr-1.5">
             <p className="sheet-eyebrow">OHIO STATE · THOMPSON LIBRARY · LEVEL 1</p>
             <h1 className="paper-title truncate">{tab === "groups" ? "Group Search" : tab === "join" ? "Your Group" : tab === "notes" ? "Shared Notes" : "Your Study Profile"}</h1>
@@ -483,7 +509,8 @@ export function ThompsonMap({
         </div>
       </section>}
 
-      <GroupJoinManager visible={tab === "join"} profile={viewer} groups={groupState.groups} activeGroup={activeGroup} tables={tables} readerLocation={readerLocation} notice={groupState.notice}
+      <GroupJoinManager visible={tab === "join" && !panelHidden} profile={viewer} groups={groupState.groups} activeGroup={activeGroup} tables={tables} readerLocation={readerLocation} notice={groupState.notice}
+        readerHandle={panelHandle}
         linkedTableId={linkedTableId} onTableLinkOpened={consumeTableLink}
         onStart={() => dispatchGroup({ type: "clear-notice" })}
         onJoin={(groupId) => {
@@ -514,13 +541,13 @@ export function ThompsonMap({
       />
 
       <nav className="map-service-tabs" aria-label="Map app navigation">
-        <button className={tab === "groups" ? "active" : ""} aria-current={tab === "groups" ? "page" : undefined} aria-expanded={tab === "groups" && !groupSheetHidden} aria-controls="map-info-sheet" type="button" onClick={() => activateTab("groups")}>{tabIcon("groups", <Users size={24} />)}<span>Groups</span></button>
-        <button className={tab === "join" ? "active" : ""} aria-current={tab === "join" ? "page" : undefined} type="button" onClick={() => activateTab("join")} aria-label="Join or manage a group">{tabIcon("join", <Plus size={25} />)}<span>Group</span></button>
-        <button className={tab === "notes" ? "active" : ""} aria-current={tab === "notes" ? "page" : undefined} type="button" onClick={() => activateTab("notes")}>{tabIcon("notes", <BookOpen size={24} />)}<span>Notes</span></button>
-        <button className={tab === "me" ? "active" : ""} aria-current={tab === "me" ? "page" : undefined} type="button" onClick={() => activateTab("me")}>{tabIcon("me", <span className="service-avatar">{profile?.name.slice(0, 1) || "?"}</span>)}<span>Me</span></button>
+        <button className={tab === "groups" ? "active" : ""} aria-current={tab === "groups" ? "page" : undefined} aria-expanded={tab === "groups" && !panelHidden} aria-controls="map-info-sheet" type="button" onClick={() => activateTab("groups")}>{tabIcon("groups", <Users size={24} />)}<span>Groups</span></button>
+        <button className={tab === "join" ? "active" : ""} aria-current={tab === "join" ? "page" : undefined} aria-expanded={tab === "join" && !panelHidden} aria-controls={activeGroup ? "map-info-sheet" : "group-reader-panel"} type="button" onClick={() => activateTab("join")} aria-label="Join or manage a group">{tabIcon("join", <Plus size={25} />)}<span>Group</span></button>
+        <button className={tab === "notes" ? "active" : ""} aria-current={tab === "notes" ? "page" : undefined} aria-expanded={tab === "notes" && !panelHidden} aria-controls="map-info-sheet" type="button" onClick={() => activateTab("notes")}>{tabIcon("notes", <BookOpen size={24} />)}<span>Notes</span></button>
+        <button className={tab === "me" ? "active" : ""} aria-current={tab === "me" ? "page" : undefined} aria-expanded={tab === "me" && !panelHidden} aria-controls="map-info-sheet" type="button" onClick={() => activateTab("me")}>{tabIcon("me", <span className="service-avatar">{profile?.name.slice(0, 1) || "?"}</span>)}<span>Me</span></button>
       </nav>
 
-      {tab === "join" && activeGroup && currentStudent && <CarmenAiChatbot studentProfile={currentStudent} courseCode={activeGroup.courseCode} notebookContent={notebookContent} isOpenExternal={carmenOpen} onToggleExternal={() => setCarmenOpen((open) => !open)} onInsertToNotebook={(text) => setNotebookContent(`${notebookContent}\n\n${text}`.trim())} />}
+      {tab === "join" && !panelHidden && activeGroup && currentStudent && <CarmenAiChatbot studentProfile={currentStudent} courseCode={activeGroup.courseCode} notebookContent={notebookContent} isOpenExternal={carmenOpen} onToggleExternal={() => setCarmenOpen((open) => !open)} onInsertToNotebook={(text) => setNotebookContent(`${notebookContent}\n\n${text}`.trim())} />}
 
       {selectedTable && <div className={`group-info-backdrop${closingTable ? " is-closing" : ""}`} role="presentation" onClick={closeTable}>
         <section className="group-info-dialog" role="dialog" aria-modal="true" aria-labelledby="group-info-title" aria-describedby="group-info-status" onClick={(event) => event.stopPropagation()}>

@@ -11,6 +11,7 @@ export type Action =
   | { type: "invite"; profileId: string; hostId: string }
   | { type: "end"; hostId: string }
   | { type: "clear-notice" }
+  | { type: "change-viewer" }
   | { type: "sync-from-db"; groups: DemoStudyGroup[] };
 
 export function createDemoGroupState(initialGroups?: DemoStudyGroup[]): DemoGroupState {
@@ -48,6 +49,8 @@ export function canJoinDemoGroup(group: DemoStudyGroup, profileId: string) {
 }
 
 export function demoGroupReducer(state: DemoGroupState, action: Action): DemoGroupState {
+  // Switching login changes the local viewer, not physical table membership.
+  if (action.type === "change-viewer") return { ...state, activeGroupId: null, notice: "" };
   if (action.type === "clear-notice") return { ...state, notice: "" };
   if (action.type === "sync-from-db") {
     const updatedGroups = action.groups.map((g) => ({

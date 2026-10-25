@@ -46,12 +46,13 @@ interface GroupJoinManagerProps {
   visible: boolean; profile: ProfilePreview; groups: DemoStudyGroup[];
   activeGroup: DemoStudyGroup | null; tables: readonly ThompsonTable[];
   readerLocation: DemoReaderLocation | null; notice: string;
+  readerHandle?: ReactNode;
   linkedTableId?: string | null; onTableLinkOpened?: () => void;
   onStart: () => void; onJoin: (id: string) => void; onCreate: (input: DemoCreateGroupInput) => void;
 }
 
 /** No sheet is opened until a reader result has been explicitly confirmed. */
-export function GroupJoinManager({ visible, profile, groups, activeGroup, tables, readerLocation, notice, linkedTableId, onTableLinkOpened, onStart, onJoin, onCreate }: GroupJoinManagerProps) {
+export function GroupJoinManager({ visible, profile, groups, activeGroup, tables, readerLocation, notice, readerHandle, linkedTableId, onTableLinkOpened, onStart, onJoin, onCreate }: GroupJoinManagerProps) {
   const [stage, setStage] = useState<"idle" | "scanning" | "existing" | "create">("idle");
   const [scanMethod, setScanMethod] = useState<"nfc" | "qr">("qr");
   const [target, setTarget] = useState<ReaderTarget | null>(null);
@@ -125,7 +126,8 @@ export function GroupJoinManager({ visible, profile, groups, activeGroup, tables
         : "Simulated map location";
 
   return <>
-    {stage === "idle" && <div className="reader-entry">
+    {stage === "idle" && <div id="group-reader-panel" className="reader-entry">
+      {readerHandle}
       {notice && <p role="status" className="reader-notice">{notice}</p>}
       <button
         type="button"

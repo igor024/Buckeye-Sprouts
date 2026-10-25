@@ -10,10 +10,10 @@ import {
   Sparkles,
   AlertCircle,
   CheckCircle2,
-  Database,
   ArrowRight,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { SAMPLE_ACCOUNTS, SAMPLE_ACCOUNT_PASSWORD } from "../sample-accounts.mjs";
 
 const POPULAR_COURSES = [
   "CSE 2221",
@@ -60,10 +60,21 @@ export function AuthModal() {
     );
   };
 
-  const handleQuickDemoFill = () => {
-    setEmail("alex.morgan@osu.edu");
-    setPassword("Password123!");
+  const handleSampleSignIn = async (sampleEmail: string) => {
+    if (busy) return;
+    setEmail(sampleEmail);
+    setPassword(SAMPLE_ACCOUNT_PASSWORD);
     setError(null);
+    setInfoMessage(null);
+    setBusy(true);
+    try {
+      const result = await signIn(sampleEmail, SAMPLE_ACCOUNT_PASSWORD);
+      if (result.error) setError(result.error);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Could not sign in to the sample account.");
+    } finally {
+      setBusy(false);
+    }
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -168,20 +179,24 @@ export function AuthModal() {
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {/* Quick Demo Pre-fill for Hackathon Judges */}
+          {/* Synthetic accounts use real Supabase Auth; selection does not bypass login. */}
           {mode === "signin" && (
-            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between text-xs text-amber-900">
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-2 text-xs text-amber-900">
               <div className="flex items-center gap-2">
                 <Sparkles size={15} className="text-amber-700 shrink-0" />
-                <span className="text-[11px]">Judge Quick-Fill (Verified student in DB)</span>
+                <span className="font-semibold">Sample accounts</span>
               </div>
-              <button
-                type="button"
-                onClick={handleQuickDemoFill}
-                className="bg-amber-200/80 hover:bg-amber-300 text-amber-950 font-bold px-2.5 py-1 rounded-md text-[10px] transition"
-              >
-                Fill Alex&apos;s Credentials
-              </button>
+              <div className="flex flex-wrap gap-2">
+                {SAMPLE_ACCOUNTS.map((account) => <button
+                  key={account.email}
+                  type="button"
+                  disabled={busy || !isConfigured}
+                  onClick={() => void handleSampleSignIn(account.email)}
+                  aria-label={`Sign in as ${account.name}`}
+                  className="bg-amber-200/80 hover:bg-amber-300 text-amber-950 font-bold px-2.5 py-2 rounded-md text-[11px] transition disabled:opacity-50"
+                >{account.name}</button>)}
+              </div>
+              <p className="text-[11px]">Demo password: <code>{SAMPLE_ACCOUNT_PASSWORD}</code></p>
             </div>
           )}
 
