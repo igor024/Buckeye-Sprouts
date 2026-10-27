@@ -1,5 +1,7 @@
 # Buckeye Sprouts
 
+![Homepage screenshot](./images/buckeye_sprouts.png)
+
 A Next.js App Router + TypeScript foundation for an Ohio State study group finder.
 This handoff intentionally contains read-only feature previews, deterministic mock
 services, shared contracts, and API stubs. It does not implement the four features.
